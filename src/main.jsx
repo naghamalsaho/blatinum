@@ -1,18 +1,24 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { BrowserRouter } from 'react-router-dom'
-import './index.css'
-import App from './App.jsx'
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { BrowserRouter } from "react-router-dom";
+import { Provider } from "react-redux"; // 👈 مهم
+import { store } from "./app/store/store"; // 👈 مسار الستورد
 
-const rootElement = document.getElementById('root');
+import "./index.css";
+import App from "./App.jsx";
+
+const rootElement = document.getElementById("root");
+
 if (rootElement) {
   createRoot(rootElement).render(
-    <BrowserRouter>
-      <StrictMode>
-        <App />
-      </StrictMode>
-    </BrowserRouter>,
+    <Provider store={store}> {/* 👈 لفّ التطبيق */}
+      <BrowserRouter>
+        <StrictMode>
+          <App />
+        </StrictMode>
+      </BrowserRouter>
+    </Provider>
   );
 } else {
-  console.error('Root element not found');
+  console.error("Root element not found");
 }
