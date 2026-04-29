@@ -4,6 +4,7 @@ import Field from "../shared/components/Field";
 import AuthHero from "../shared/components/AuthHero";
 import Button from "../shared/components/Button";
 import { loginUser } from "../features/auth/model/auth.thunks";
+import { validateLogin, validatePassword } from "../shared/utils/validation";
 import "../shared/ui/login.css";
 
 export default function LoginPage() {
@@ -16,22 +17,48 @@ export default function LoginPage() {
     password: "",
   });
 
+  const [fieldErrors, setFieldErrors] = useState({
+    login: "",
+    password: "",
+  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    console.log("[LoginPage] input changed:", name, value);
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+
+    if (name === "login") {
+      setFieldErrors((prev) => ({
+        ...prev,
+        login: validateLogin(value),
+      }));
+    }
+
+    if (name === "password") {
+      setFieldErrors((prev) => ({
+        ...prev,
+        password: validatePassword(value),
+      }));
+    }
   };
 
   const handleLogin = async (e) => {
     e.preventDefault();
 
-    console.log("[LoginPage] submit clicked");
-    console.log("[LoginPage] formData before dispatch:", formData);
+    const loginError = validateLogin(formData.login);
+    const passwordError = validatePassword(formData.password);
+
+    setFieldErrors({
+      login: loginError,
+      password: passwordError,
+    });
+
+    if (loginError || passwordError) {
+      return;
+    }
 
     const result = await dispatch(
       loginUser({
@@ -40,13 +67,8 @@ export default function LoginPage() {
       })
     );
 
-    console.log("[LoginPage] dispatch result:", result);
-
     if (loginUser.fulfilled.match(result)) {
-      console.log("[LoginPage] login succeeded");
       setIsToggled(true);
-    } else {
-      console.log("[LoginPage] login failed");
     }
   };
 
@@ -64,6 +86,7 @@ export default function LoginPage() {
               onChange={handleChange}
               label="Login"
               iconClass="fa-solid fa-user"
+              error={fieldErrors.login}
             />
 
             <Field
@@ -73,6 +96,7 @@ export default function LoginPage() {
               onChange={handleChange}
               label="Password"
               iconClass="fa-solid fa-lock"
+              error={fieldErrors.password}
             />
 
             <Button type="submit" className="submit-button" disabled={loading}>

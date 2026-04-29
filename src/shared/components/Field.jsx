@@ -8,18 +8,23 @@ export default function Field({
   label,
   iconClass,
   required = true,
+  error = "",
 }) {
   return (
-    <div className="field-wrapper">
-      <input
-        type={type}
-        name={name}
-        required={required}
-        value={value}
-        onChange={onChange}
-      />
-      <label>{label}</label>
-      <i className={iconClass}></i>
+    <div className="field-group">
+      <div className="field-wrapper">
+        <input
+          type={type}
+          name={name}
+          required={required}
+          value={value}
+          onChange={onChange}
+        />
+        <label>{label}</label>
+        <i className={iconClass}></i>
+      </div>
+
+      {error && <p className="field-error">{error}</p>}
     </div>
   );
 }
@@ -32,4 +37,5 @@ Field.propTypes = {
   label: PropTypes.string.isRequired,
   iconClass: PropTypes.string.isRequired,
   required: PropTypes.bool,
+  error: PropTypes.string,
 };
