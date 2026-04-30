@@ -4,7 +4,6 @@ import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux"; // 👈 مهم
 import { store } from "./app/store/store"; // 👈 مسار الستورد
 
-import "./index.css";
 import App from "./App.jsx";
 
 const rootElement = document.getElementById("root");
@@ -19,6 +18,4 @@ if (rootElement) {
       </BrowserRouter>
     </Provider>
   );
-} else {
-  console.error("Root element not found");
 }

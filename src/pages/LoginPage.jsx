@@ -6,11 +6,12 @@ import Button from "../shared/components/Button";
 import { loginUser } from "../features/auth/model/auth.thunks";
 import { validateLogin, validatePassword } from "../shared/utils/validation";
 import "../shared/ui/login.css";
+import { useNavigate } from "react-router-dom";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
   const { loading, error } = useSelector((state) => state.auth);
-
+const navigate = useNavigate();
   const [isToggled, setIsToggled] = useState(false);
   const [formData, setFormData] = useState({
     login: "",
@@ -69,6 +70,9 @@ export default function LoginPage() {
 
     if (loginUser.fulfilled.match(result)) {
       setIsToggled(true);
+      if (loginUser.fulfilled.match(result)) {
+  navigate("/admin"); // 🔥 تحويل للداشبورد
+}
     }
   };
 
