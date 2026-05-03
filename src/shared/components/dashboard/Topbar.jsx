@@ -1,7 +1,17 @@
-import { Menu, Search, Globe, Bell, ChevronDown } from "lucide-react";
+import PropTypes from "prop-types";
+import { Menu, Search, ChevronDown } from "lucide-react";
 
-// eslint-disable-next-line react/prop-types
-export default function Topbar({ onMenuClick }) {
+export default function Topbar({
+  onMenuClick = () => {},
+  title = "لوحة التحكم",
+  subtitle = "مرحباً، هذه نظرة عامة على النظام",
+  searchPlaceholder = "بحث...",
+  actions = [],
+  user = {
+    name: "المدير",
+    avatar: "ع",
+  },
+}) {
   return (
     <header className="dashboard-topbar">
       <div className="topbar-left">
@@ -14,32 +24,59 @@ export default function Topbar({ onMenuClick }) {
           <Menu size={20} />
         </button>
 
-        <button type="button" className="icon-btn">
-          <Globe size={18} />
-        </button>
-
-        <button type="button" className="icon-btn">
-          <Bell size={18} />
-        </button>
+        {actions.map((action) => {
+          const Icon = action.icon;
+          return (
+            <button
+              key={action.key || action.label}
+              type="button"
+              className="icon-btn"
+              onClick={action.onClick}
+              aria-label={action.label}
+              title={action.label}
+            >
+              <Icon size={18} />
+            </button>
+          );
+        })}
 
         <div className="search-box">
           <Search size={18} className="search-icon" />
-          <input type="text" placeholder="بحث..." />
+          <input type="text" placeholder={searchPlaceholder} />
         </div>
       </div>
 
       <div className="topbar-right">
         <div className="topbar-title">
-          <h2>لوحة التحكم</h2>
-          <p>مرحباً، هذه نظرة عامة على النظام</p>
+          <h2>{title}</h2>
+          <p>{subtitle}</p>
         </div>
 
         <button type="button" className="profile-pill">
-          <span className="profile-avatar">ع</span>
-          <span className="profile-name">المدير</span>
+          <span className="profile-avatar">{user.avatar}</span>
+          <span className="profile-name">{user.name}</span>
           <ChevronDown size={16} />
         </button>
       </div>
     </header>
   );
 }
+
+Topbar.propTypes = {
+  onMenuClick: PropTypes.func,
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  searchPlaceholder: PropTypes.string,
+  actions: PropTypes.arrayOf(
+    PropTypes.shape({
+      key: PropTypes.string,
+      label: PropTypes.string.isRequired,
+      icon: PropTypes.elementType.isRequired,
+      onClick: PropTypes.func,
+    })
+  ),
+  user: PropTypes.shape({
+    name: PropTypes.string,
+    avatar: PropTypes.string,
+  }),
+};

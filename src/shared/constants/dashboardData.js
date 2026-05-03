@@ -1,62 +1,67 @@
 import {
-  LayoutDashboard,
+  LayoutGrid,
   Bell,
+  ClipboardList,
   FileText,
-  CreditCard,
-  FolderOpen,
+  Folder,
   Scale,
-  Home,
   Users,
-  Shuffle,
-  HardHat,
-  Megaphone,
-  BarChart3,
-  Bot,
+  Building2,
   Settings,
-  
+  LogOut,
+  Globe,
 } from "lucide-react";
 
-export const roleLabels = {
-  admin: "المدير العام",
-  customer_service: "خدمة العملاء",
-  legal: "القسم القانوني",
-  financial: "القسم المالي",
-  marketing: "التسويق",
-};
+export const adminDashboardConfig = {
+  brand: {
+    short: "عق",
+    title: "نظام العقارات",
+    subtitle: "لوحة الإدارة",
+  },
 
-export const navByRole = {
-  admin: [
+  sidebarSections: [
     {
-      section: "الرئيسية",
+      title: "الرئيسية",
       items: [
-        { id: "dashboard", label: "لوحة التحكم", icon: LayoutDashboard },
-        { id: "notifications", label: "الإشعارات", icon: Bell, badge: 5 },
+        { key: "dashboard", to: "/admin", label: "لوحة التحكم", icon: LayoutGrid, end: true },
+        { key: "notifications", to: "/admin/notifications", label: "الإشعارات", icon: Bell },
       ],
     },
     {
-      section: "إدارة النظام",
+      title: "إدارة النظام",
       items: [
-        { id: "requests", label: "الطلبات", icon: FileText, badge: 8 },
-        { id: "payments", label: "الدفعات", icon: CreditCard, badge: 3 },
-        { id: "documents", label: "المستندات", icon: FolderOpen },
-        { id: "contracts", label: "العقود", icon: Scale },
-        { id: "apartments", label: "الشقق", icon: Home },
-        { id: "customers", label: "الزبائن", icon: Users },
-        { id: "lottery", label: "نظام القرعة", icon: Shuffle },
+        { key: "orders", to: "/admin/orders", label: "الطلبات", icon: ClipboardList },
+        { key: "payments", to: "/admin/payments", label: "الدفعات", icon: FileText },
+        { key: "contracts", to: "/admin/contracts", label: "العقود", icon: Scale },
+        { key: "files", to: "/admin/files", label: "المستندات", icon: Folder },
       ],
     },
     {
-      section: "الموارد",
+      title: "الموارد",
       items: [
-        { id: "engineers", label: "المهندسون", icon: HardHat },
-        { id: "marketing", label: "التسويق", icon: Megaphone },
-        { id: "finance", label: "التقارير المالية", icon: BarChart3 },
-        { id: "chatbot", label: "المجيب الآلي", icon: Bot },
+        { key: "users", to: "/admin/users", label: "المستخدمون", icon: Users },
+        { key: "warehouses", to: "/admin/warehouses", label: "المستودعات", icon: Building2 },
+        { key: "settings", to: "/admin/settings", label: "الإعدادات", icon: Settings },
       ],
-    },
-    {
-      section: "الإعدادات",
-      items: [{ id: "settings", label: "الإعدادات", icon: Settings }],
     },
   ],
+
+  topbar: {
+    title: "لوحة التحكم",
+    subtitle: "مرحباً، هذه نظرة عامة على النظام",
+    searchPlaceholder: "بحث...",
+    actions: [
+      { key: "lang", label: "اللغة", icon: Globe },
+    ],
+    user: {
+      name: "المدير",
+      avatar: "ع",
+    },
+  },
+
+  footer: {
+    label: "تسجيل الخروج",
+    icon: LogOut,
+    onClick: () => {},
+  },
 };

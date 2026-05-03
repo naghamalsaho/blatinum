@@ -1,4 +1,7 @@
 :root {
+  /* =========================
+     Login theme
+     ========================= */
   --color-bg: #1a1a2e;
   --color-bg-dark: #0f0f1e;
   --color-primary: #00d4ff;
@@ -6,4 +9,20 @@
   --color-white: #ffffff;
   --color-border-soft: rgba(255, 255, 255, 0.8);
   --color-shadow-primary: rgba(0, 212, 255, 0.4);
+
+  /* =========================
+     Dashboard theme
+     ========================= */
+  --dash-bg: #08111f;
+  --dash-bg-2: #0d1728;
+  --dash-surface: rgba(15, 23, 42, 0.92);
+  --dash-surface-2: rgba(18, 27, 46, 0.96);
+  --dash-line: rgba(255, 255, 255, 0.08);
+  --dash-line-2: rgba(255, 255, 255, 0.12);
+  --dash-text: #eef2ff;
+  --dash-muted: rgba(238, 242, 255, 0.62);
+  --dash-accent: #d4af37;
+  --dash-accent-soft: rgba(212, 175, 55, 0.14);
+  --dash-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+  --dash-radius: 22px;
 }
