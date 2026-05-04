@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom";
-import LoginPage from "../pages/LoginPage.jsx";
+import LoginPage from "../Rools/admin/pages/LoginPage.jsx";
 import AdminLayout from "./layouts/adminLayout";
-import DashboardPage from "../pages/DashboardPage.jsx"
+import DashboardPage from "../Rools/admin/pages/DashboardPage.jsx"
 export default function AppRouter() {
   return (
     <Routes>

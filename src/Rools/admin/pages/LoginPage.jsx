@@ -1,17 +1,18 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import Field from "../shared/components/Field";
-import AuthHero from "../shared/components/AuthHero";
-import Button from "../shared/components/Button";
-import { loginUser } from "../features/auth/model/auth.thunks";
-import { validateLogin, validatePassword } from "../shared/utils/validation";
-import "../shared/ui/login.css";
 import { useNavigate } from "react-router-dom";
+import Field from "@/shared/components/Field";
+import AuthHero from "@/shared/components/AuthHero";
+import Button from "@/shared/components/Button";
+import { loginUser } from "@/Rools/admin/features/auth/model/auth.thunks";
+import { validateLogin, validatePassword } from "@/shared/utils/validation";
+import "@/shared/ui/login.css";
 
 export default function LoginPage() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { loading, error } = useSelector((state) => state.auth);
-const navigate = useNavigate();
+
   const [isToggled, setIsToggled] = useState(false);
   const [formData, setFormData] = useState({
     login: "",
@@ -57,9 +58,7 @@ const navigate = useNavigate();
       password: passwordError,
     });
 
-    if (loginError || passwordError) {
-      return;
-    }
+    if (loginError || passwordError) return;
 
     const result = await dispatch(
       loginUser({
@@ -70,9 +69,10 @@ const navigate = useNavigate();
 
     if (loginUser.fulfilled.match(result)) {
       setIsToggled(true);
-      if (loginUser.fulfilled.match(result)) {
-  navigate("/admin"); // 🔥 تحويل للداشبورد
-}
+
+      setTimeout(() => {
+        navigate("/admin");
+      }, 2200);
     }
   };
 

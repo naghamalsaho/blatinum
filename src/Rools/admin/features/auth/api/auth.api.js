@@ -1,4 +1,4 @@
-import { api } from "../../../shared/api/crud";
+import { api } from "../../../../../shared/api/crud";
 
 export const AUTH_ENDPOINTS = {
   login: "/login",

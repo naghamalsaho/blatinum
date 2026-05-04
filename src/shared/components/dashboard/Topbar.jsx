@@ -1,5 +1,6 @@
 import PropTypes from "prop-types";
-import { Menu, Search, ChevronDown } from "lucide-react";
+import { Menu, Search, ChevronDown, SunMedium, Moon } from "lucide-react";
+import { useTheme } from "../../theme/useTheme";
 
 export default function Topbar({
   onMenuClick = () => {},
@@ -12,6 +13,9 @@ export default function Topbar({
     avatar: "ع",
   },
 }) {
+  const { theme, toggleTheme } = useTheme();
+  const ThemeIcon = theme === "dark" ? SunMedium : Moon;
+
   return (
     <header className="dashboard-topbar">
       <div className="topbar-left">
@@ -22,6 +26,16 @@ export default function Topbar({
           aria-label="فتح القائمة"
         >
           <Menu size={20} />
+        </button>
+
+        <button
+          type="button"
+          className="icon-btn"
+          onClick={toggleTheme}
+          aria-label={theme === "dark" ? "تفعيل الوضع الفاتح" : "تفعيل الوضع الداكن"}
+          title={theme === "dark" ? "الوضع الفاتح" : "الوضع الداكن"}
+        >
+          <ThemeIcon size={18} />
         </button>
 
         {actions.map((action) => {

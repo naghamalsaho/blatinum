@@ -4,7 +4,9 @@
   box-sizing: border-box;
 }
 
-html, body, #root {
+html,
+body,
+#root {
   width: 100% !important;
   max-width: none !important;
   margin: 0 !important;
@@ -15,8 +17,6 @@ html, body, #root {
 #root {
   display: block !important;
 }
-
-
 
 .dashboard-shell {
   min-height: 100vh;
@@ -83,7 +83,7 @@ html, body, #root {
 
 .brand-text p {
   margin: 4px 0 0;
-  color: var(--muted);
+  color: var(--dash-muted);
   font-size: 13px;
 }
 
@@ -91,9 +91,9 @@ html, body, #root {
   display: none;
   width: 40px;
   height: 40px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
+  color: var(--dash-text);
   border-radius: 14px;
   cursor: pointer;
   font-size: 24px;
@@ -113,7 +113,7 @@ html, body, #root {
 .nav-group-title {
   display: block;
   margin: 0 0 10px;
-  color: rgba(238, 242, 255, 0.45);
+  color: var(--dash-muted);
   font-size: 12px;
   letter-spacing: 0.4px;
 }
@@ -138,8 +138,8 @@ html, body, #root {
 
 .nav-item:hover {
   background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
-  border-color: rgba(255, 255, 255, 0.06);
+  color: var(--dash-text);
+  border-color: var(--dash-line-2);
 }
 
 .nav-item.active {
@@ -156,7 +156,7 @@ html, body, #root {
 
 .sidebar-footer {
   padding-top: 10px;
-  border-top: 1px solid var(--line);
+  border-top: 1px solid var(--dash-line);
 }
 
 .logout-btn {
@@ -166,9 +166,9 @@ html, body, #root {
   gap: 12px;
   padding: 13px 14px;
   border-radius: 16px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.03);
-  color: var(--text);
+  color: var(--dash-text);
   cursor: pointer;
 }
 
@@ -192,7 +192,7 @@ html, body, #root {
   justify-content: space-between;
   gap: 16px;
   padding: 16px 22px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--dash-line);
   background: rgba(8, 17, 31, 0.72);
   backdrop-filter: blur(18px);
   position: sticky;
@@ -219,7 +219,7 @@ html, body, #root {
 
 .topbar-title p {
   margin: 4px 0 0;
-  color: var(--muted);
+  color: var(--dash-muted);
   font-size: 13px;
 }
 
@@ -227,9 +227,9 @@ html, body, #root {
   width: 42px;
   height: 42px;
   border-radius: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
+  color: var(--dash-text);
   display: grid;
   place-items: center;
   cursor: pointer;
@@ -238,7 +238,7 @@ html, body, #root {
 
 .icon-btn:hover {
   background: rgba(255, 255, 255, 0.08);
-  border-color: var(--line-2);
+  border-color: var(--dash-line-2);
 }
 
 .search-box {
@@ -250,9 +250,9 @@ html, body, #root {
   width: 100%;
   height: 42px;
   border-radius: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
+  color: var(--dash-text);
   padding: 0 44px 0 14px;
   outline: none;
 }
@@ -276,9 +276,9 @@ html, body, #root {
   height: 42px;
   padding: 0 12px 0 10px;
   border-radius: 14px;
-  border: 1px solid var(--line);
+  border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.04);
-  color: var(--text);
+  color: var(--dash-text);
   cursor: pointer;
 }
 
@@ -288,7 +288,7 @@ html, body, #root {
   border-radius: 10px;
   display: grid;
   place-items: center;
-  background: linear-gradient(180deg, rgba(212, 175, 55, 0.96), rgba(181, 143, 33, 0.96));
+  background: linear-gradient(180deg, var(--dash-accent), #b58f21);
   color: #111827;
   font-weight: 800;
 }
@@ -304,15 +304,13 @@ html, body, #root {
   overflow: auto;
 }
 
-/* Empty dashboard page styling */
 .dashboard-blank {
   min-height: calc(100vh - 140px);
-  border: 1px dashed rgba(255, 255, 255, 0.08);
+  border: 1px dashed var(--dash-line);
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.02);
 }
 
-/* Mobile */
 .mobile-menu-btn {
   display: none;
 }
@@ -379,5 +377,3 @@ html, body, #root {
     padding: 16px;
   }
 }
-
-

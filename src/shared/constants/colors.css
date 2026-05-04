@@ -1,18 +1,66 @@
 :root {
-  /* =========================
-     Login theme
-     ========================= */
-  --color-bg: #1a1a2e;
+  /* ========== LIGHT MODE (default) ========== */
+
+  /* Login */
+   --login-shell-bg: #f4f7fb;
+  --login-shell-bg-2: #e8eef7;
+  --login-panel-bg: #f4f7fb;
+  --login-panel-border: rgba(0, 0, 0, 0.2);
+
+  --login-title: #2563eb;
+  --login-text: #111827;
+  --login-icon: #2563eb;
+  --login-label: #2563eb;
+
+  --login-accent: #2563eb;
+  --login-accent-dark: #1e40af;
+  --login-shadow: rgba(37, 99, 235, 0.25);
+
+  --login-autofill-bg: #f4f7fb;
+  --login-autofill-text: #111827;
+
+  /* Dashboard */
+  --dash-bg: #f4f7fb;
+  --dash-bg-2: #e8eef7;
+  --dash-surface: rgba(255, 255, 255, 0.95);
+  --dash-surface-2: rgba(248, 250, 252, 0.98);
+  --dash-line: rgba(0, 0, 0, 0.08);
+  --dash-line-2: rgba(0, 0, 0, 0.14);
+  --dash-text: #0f172a;
+  --dash-muted: rgba(15, 23, 42, 0.6);
+  --dash-accent: #c79f2d;
+  --dash-accent-soft: rgba(199, 159, 45, 0.14);
+  --dash-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+/* ========== DARK MODE ========== */
+:root[data-theme="dark"] {
+  /* Login */
+  /* --color-bg: #1a1a2e;
   --color-bg-dark: #0f0f1e;
   --color-primary: #00d4ff;
   --color-primary-dark: #008fb3;
   --color-white: #ffffff;
   --color-border-soft: rgba(255, 255, 255, 0.8);
-  --color-shadow-primary: rgba(0, 212, 255, 0.4);
+  --color-shadow-primary: rgba(0, 212, 255, 0.4); */
+    --login-shell-bg: #1a1a2e;
+  --login-shell-bg-2: #0f0f1e;
+  --login-panel-bg: #1a1a2e;
+  --login-panel-border: rgba(255, 255, 255, 0.8);
 
-  /* =========================
-     Dashboard theme
-     ========================= */
+  --login-title: #ffffff;
+  --login-text: #ffffff;
+  --login-icon: #ffffff;
+  --login-label: #ffffff;
+
+  --login-accent: #00d4ff;
+  --login-accent-dark: #008fb3;
+  --login-shadow: rgba(0, 212, 255, 0.4);
+
+  --login-autofill-bg: #1a1a2e;
+  --login-autofill-text: #ffffff;
+
+  /* Dashboard */
   --dash-bg: #08111f;
   --dash-bg-2: #0d1728;
   --dash-surface: rgba(15, 23, 42, 0.92);
@@ -24,5 +72,4 @@
   --dash-accent: #d4af37;
   --dash-accent-soft: rgba(212, 175, 55, 0.14);
   --dash-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-  --dash-radius: 22px;
 }
