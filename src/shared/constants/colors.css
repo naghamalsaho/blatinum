@@ -7,42 +7,53 @@
   --login-panel-bg: #f4f7fb;
   --login-panel-border: rgba(0, 0, 0, 0.2);
 
-  --login-title: #2563eb;
+  --login-title: #008fb3;
   --login-text: #111827;
-  --login-icon: #2563eb;
-  --login-label: #2563eb;
+  --login-icon: #00d4ff;
+  --login-label: #008fb3;
 
-  --login-accent: #2563eb;
-  --login-accent-dark: #1e40af;
+  --login-accent: #00d4ff;
+  --login-accent-dark: #008fb3;
   --login-shadow: rgba(37, 99, 235, 0.25);
 
   --login-autofill-bg: #f4f7fb;
   --login-autofill-text: #111827;
 
   /* Dashboard */
-  --dash-bg: #f4f7fb;
-  --dash-bg-2: #e8eef7;
-  --dash-surface: rgba(255, 255, 255, 0.95);
-  --dash-surface-2: rgba(248, 250, 252, 0.98);
-  --dash-line: rgba(0, 0, 0, 0.08);
-  --dash-line-2: rgba(0, 0, 0, 0.14);
-  --dash-text: #0f172a;
-  --dash-muted: rgba(15, 23, 42, 0.6);
-  --dash-accent: #c79f2d;
-  --dash-accent-soft: rgba(199, 159, 45, 0.14);
-  --dash-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+   --dash-bg: #ffffff;
+  --dash-bg-2: #f3f6fa;
+  --dash-surface: rgba(255, 255, 255, 0.96);
+  --dash-surface-2: rgba(247, 249, 252, 0.98);
+
+  --dash-line: rgba(0, 143, 179, 0.18);
+  --dash-line-2: rgba(0, 143, 179, 0.34);
+
+  --dash-text: #111827;
+  --dash-muted: rgba(17, 24, 39, 0.62);
+
+  --dash-accent: #008fb3;
+  --dash-accent-strong: #00ccff;
+  --dash-accent-soft: rgba(189, 233, 244, 0.75);
+
+  --dash-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); 
+   --dash-shell-glow-1: rgba(0, 204, 255, 0.12);
+  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
+
+  --dash-topbar-bg: rgba(255, 255, 255, 0.88);
+  --dash-icon-bg: rgba(255, 255, 255, 0.92);
+  --dash-icon-hover-bg: rgba(189, 233, 244, 0.45);
+
+  --dash-input-bg: rgba(255, 255, 255, 0.95);
+  --dash-pill-bg: rgba(255, 255, 255, 0.95);
+  --dash-blank-bg: rgba(255, 255, 255, 0.45);
+
+  --dash-brand-glow: rgba(0, 143, 179, 0.22);
 }
 
 /* ========== DARK MODE ========== */
 :root[data-theme="dark"] {
   /* Login */
-  /* --color-bg: #1a1a2e;
-  --color-bg-dark: #0f0f1e;
-  --color-primary: #00d4ff;
-  --color-primary-dark: #008fb3;
-  --color-white: #ffffff;
-  --color-border-soft: rgba(255, 255, 255, 0.8);
-  --color-shadow-primary: rgba(0, 212, 255, 0.4); */
+  
     --login-shell-bg: #1a1a2e;
   --login-shell-bg-2: #0f0f1e;
   --login-panel-bg: #1a1a2e;
@@ -68,8 +79,20 @@
   --dash-line: rgba(255, 255, 255, 0.08);
   --dash-line-2: rgba(255, 255, 255, 0.12);
   --dash-text: #eef2ff;
-  --dash-muted: rgba(238, 242, 255, 0.62);
-  --dash-accent: #d4af37;
-  --dash-accent-soft: rgba(212, 175, 55, 0.14);
+  --dash-muted: rgba(238, 255, 255, 0.62);
+  --dash-accent: #008fb3;
+  --dash-accent-soft: rgba(34, 133, 199, 0.14);
   --dash-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
+    --dash-shell-glow-1: rgba(26, 133, 169, 0.08);
+  --dash-shell-glow-2: rgba(99, 102, 241, 0.08);
+
+  --dash-topbar-bg: rgba(8, 17, 31, 0.72);
+  --dash-icon-bg: rgba(255, 255, 255, 0.04);
+  --dash-icon-hover-bg: rgba(255, 255, 255, 0.08);
+
+  --dash-input-bg: rgba(255, 255, 255, 0.04);
+  --dash-pill-bg: rgba(255, 255, 255, 0.04);
+  --dash-blank-bg: rgba(255, 255, 255, 0.02);
+
+  --dash-brand-glow: rgba(16, 113, 151, 0.25);
 }
