@@ -1,7 +1,11 @@
 import { Routes, Route } from "react-router-dom";
-import LoginPage from "../Rools/admin/pages/LoginPage.jsx";
+import LoginPage from "@/pages/LoginPage";
 import AdminLayout from "./layouts/adminLayout";
-import DashboardPage from "../Rools/admin/pages/DashboardPage.jsx"
+import DashboardPage from "@/pages/DashboardPage.jsx"
+import LegalLayout from "@/app/layouts/LegalLayout";
+import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
+import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
+import LegalEngineersPage from "@/Rools/legal/pages/LegalEngineersPage";
 export default function AppRouter() {
   return (
     <Routes>
@@ -11,7 +15,12 @@ export default function AppRouter() {
 
         
       </Route>
-
+  <Route path="/legal" element={<LegalLayout />}>
+        <Route index element={<LegalDashboardPage />} />
+        <Route path="slots" element={<LegalAvailableSlotsPage />} />
+        <Route path="engineers" element={<LegalEngineersPage />} />
+      </Route>
+    
     </Routes>
   );
 }
