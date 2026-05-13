@@ -8,6 +8,65 @@ import { loginUser } from "@/Rools/admin/features/auth/model/auth.thunks";
 import { validateLogin, validatePassword } from "@/shared/utils/validation";
 import "@/shared/ui/login.css";
 
+const normalizeText = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase();
+
+const collectUserText = (user = {}) =>
+  [
+    user.role,
+    user.type,
+    user.position,
+    user.job_title,
+    user.department,
+    user.department?.name,
+    user.department?.slug,
+    user.employee?.department,
+    user.employee?.department?.name,
+    user.employee?.department?.slug,
+  ]
+    .map(normalizeText)
+    .filter(Boolean)
+    .join(" ");
+
+const hasAnyMatch = (value, words) =>
+  words.some((word) => value.includes(word));
+
+const getLoginPath = (payload = {}) => {
+  const user = payload.user || payload.data?.user || {};
+  const permissions =
+    payload.permissions ||
+    payload.user?.permissions ||
+    payload.data?.permissions ||
+    [];
+
+  const userText = collectUserText(user);
+
+  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
+    return "/admin";
+  }
+
+  if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
+    return "/legal/slots";
+  }
+
+  const permissionsText = permissions
+    .map((permission) =>
+      typeof permission === "string"
+        ? permission
+        : permission?.name || permission?.key || permission?.slug || ""
+    )
+    .map(normalizeText)
+    .join(" ");
+
+  if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
+    return "/legal/slots";
+  }
+
+  return "/admin";
+};
+
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -71,7 +130,7 @@ export default function LoginPage() {
       setIsToggled(true);
 
       setTimeout(() => {
-        navigate("/admin");
+        navigate(getLoginPath(result.payload));
       }, 2200);
     }
   };
