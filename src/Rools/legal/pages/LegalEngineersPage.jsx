@@ -34,9 +34,9 @@ export default function LegalEngineersPage() {
       />
 
       <div className="legal-stats-grid">
-        <StatCard title="إجمالي المهندسين" value={total} note="السجلات الحالية" icon={UserRound} />
-        <StatCard title="نشط" value={active} note="جاهز للعمل" icon={BriefcaseBusiness} />
-        <StatCard title="متوقف" value={inactive} note="غير نشط" icon={Phone} />
+        <StatCard key="total-engineers" title="إجمالي المهندسين" value={total} note="السجلات الحالية" icon={UserRound} />
+        <StatCard key="active" title="نشط" value={active} note="جاهز للعمل" icon={BriefcaseBusiness} />
+        <StatCard key="inactive" title="متوقف" value={inactive} note="غير نشط" icon={Phone} />
       </div>
 
       <Toolbar

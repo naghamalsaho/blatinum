@@ -25,10 +25,10 @@ export default function LegalDashboardPage() {
       />
 
       <div className="legal-stats-grid">
-        <StatCard title="إجمالي السلات" value={totalSlots} note="كل المواعيد" icon={CalendarClock} />
-        <StatCard title="السلات المتاحة" value={availableSlots} note="جاهزة للحجز" icon={BadgeCheck} />
-        <StatCard title="السلات المغلقة" value={closedSlots} note="غير متاحة" icon={CircleSlash2} />
-        <StatCard title="المهندسون" value={totalEngineers} note="ضمن القسم" icon={Users2} />
+        <StatCard key="total-slots" title="إجمالي السلات" value={totalSlots} note="كل المواعيد" icon={CalendarClock} />
+        <StatCard key="available-slots" title="السلات المتاحة" value={availableSlots} note="جاهزة للحجز" icon={BadgeCheck} />
+        <StatCard key="closed-slots" title="السلات المغلقة" value={closedSlots} note="غير متاحة" icon={CircleSlash2} />
+        <StatCard key="engineers" title="المهندسون" value={totalEngineers} note="ضمن القسم" icon={Users2} />
       </div>
 
       <div className="legal-summary-grid">
