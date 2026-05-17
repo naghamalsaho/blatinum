@@ -3,20 +3,21 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   Archive,
   Building2,
-  PencilLine,
-  Plus,
+  Eye,
   MapPin,
   PackageSearch,
+  PencilLine,
+  Plus,
   Trash2,
 } from "lucide-react";
 
-import PageHeader from "@/shared/components/PageHeader";
-import StatCard from "@/shared/components/StatCard";
-import Toolbar from "@/shared/components/Toolbar";
-import TableCard from "@/shared/components/TableCard";
 import Button from "@/shared/components/Button";
 import Field from "@/shared/components/Field";
 import Modal from "@/shared/components/Modal";
+import PageHeader from "@/shared/components/PageHeader";
+import StatCard from "@/shared/components/StatCard";
+import TableCard from "@/shared/components/TableCard";
+import Toolbar from "@/shared/components/Toolbar";
 import {
   createWarehouse,
   deleteWarehouse,
@@ -29,21 +30,27 @@ import "../features/warehouses/styles/warehouses.css";
 const FILTER_OPTIONS = [
   {
     value: "all",
-    label: "All warehouses",
+    label: "All",
     dotClass: "",
   },
   {
-    value: "with-location",
-    label: "With location",
+    value: "stocked",
+    label: "With items",
     dotClass: "ok",
   },
   {
-    value: "without-location",
-    label: "No location",
+    value: "empty",
+    label: "Empty",
     dotClass: "off",
   },
 ];
 
+const getWarehouseItems = (warehouse) => warehouse.items || [];
+const getWarehouseDescription = (warehouse) =>
+  warehouse.description || warehouse.location || "-";
+
+const getItemTotals = (warehouses) =>
+  warehouses.reduce((sum, warehouse) => sum + getWarehouseItems(warehouse).length, 0);
 
 export default function AdminWarehousesPage() {
   const dispatch = useDispatch();
@@ -55,11 +62,12 @@ export default function AdminWarehousesPage() {
   } = useSelector((state) => state.warehouses || {});
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [locationFilter, setLocationFilter] = useState("all");
+  const [itemFilter, setItemFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
+  const [itemsWarehouse, setItemsWarehouse] = useState(null);
   const [createFormData, setCreateFormData] = useState({
     name: "",
     location: "",
@@ -77,13 +85,26 @@ export default function AdminWarehousesPage() {
     const q = searchTerm.trim().toLowerCase();
 
     return warehouses.filter((warehouse) => {
-      const hasLocation = Boolean(warehouse.location);
+      const warehouseItems = getWarehouseItems(warehouse);
+      const hasItems = warehouseItems.length > 0;
       const searchableText = [
         warehouse.id,
         warehouse.name,
+        warehouse.description,
         warehouse.location,
         warehouse.created_at,
         warehouse.updated_at,
+        ...warehouseItems.flatMap((item) => [
+          item.id,
+          item.sku,
+          item.name,
+          item.description,
+          item.quantity,
+          item.status,
+          item.expiry_date,
+          item.purchase_date,
+          item.received_date,
+        ]),
       ]
         .filter(Boolean)
         .join(" ")
@@ -91,18 +112,18 @@ export default function AdminWarehousesPage() {
 
       const matchesSearch = q === "" || searchableText.includes(q);
       const matchesFilter =
-        locationFilter === "all" ||
-        (locationFilter === "with-location" && hasLocation) ||
-        (locationFilter === "without-location" && !hasLocation);
+        itemFilter === "all" ||
+        (itemFilter === "stocked" && hasItems) ||
+        (itemFilter === "empty" && !hasItems);
 
       return matchesSearch && matchesFilter;
     });
-  }, [warehouses, searchTerm, locationFilter]);
+  }, [warehouses, searchTerm, itemFilter]);
 
   const total = warehouses.length;
-  const withLocation = warehouses.filter((warehouse) => warehouse.location).length;
-  const withoutLocation = total - withLocation;
-  const latestWarehouse = warehouses[0]?.id ? `#${warehouses[0].id}` : "-";
+  const withItems = warehouses.filter((warehouse) => getWarehouseItems(warehouse).length > 0).length;
+  const empty = total - withItems;
+  const totalItems = getItemTotals(warehouses);
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -134,6 +155,10 @@ export default function AdminWarehousesPage() {
   const openDeleteModal = (warehouse) => {
     setSelectedWarehouse(warehouse);
     setDeleteOpen(true);
+  };
+
+  const openItemsModal = (warehouse) => {
+    setItemsWarehouse(warehouse);
   };
 
   const closeEditModal = () => {
@@ -198,9 +223,7 @@ export default function AdminWarehousesPage() {
   return (
     <div className="warehouse-page" dir="ltr">
       <PageHeader
-        kicker="Admin Core"
         title="Warehouses"
-        subtitle="Review every warehouse registered in the system with its name, location, and latest update details."
         action={
           <button
             type="button"
@@ -208,96 +231,93 @@ export default function AdminWarehousesPage() {
             onClick={() => setCreateOpen(true)}
           >
             <Plus size={18} />
-            <span>Create warehouse</span>
+            <span>New warehouse</span>
           </button>
         }
       />
 
       <div className="legal-stats-grid">
-        <StatCard
-          title="Total warehouses"
-          value={total}
-          note="All storage records"
-          icon={Building2}
-        />
-        <StatCard
-          title="With location"
-          value={withLocation}
-          note="Ready for tracking"
-          icon={MapPin}
-        />
-        <StatCard
-          title="Missing location"
-          value={withoutLocation}
-          note="Needs completion"
-          icon={PackageSearch}
-        />
-        <StatCard
-          title="Latest record"
-          value={latestWarehouse}
-          note="Newest item in the list"
-          icon={Archive}
-        />
+        <StatCard title="Total" value={total} note="Warehouses" icon={Building2} />
+        <StatCard title="With items" value={withItems} note="Stocked stores" icon={MapPin} />
+        <StatCard title="Empty" value={empty} note="No items" icon={PackageSearch} />
+        <StatCard title="Items" value={totalItems} note="Assigned" icon={Archive} />
       </div>
 
       <Toolbar
-        placeholder="Search by name, location, or date..."
+        placeholder="Search warehouses..."
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
-        filterValue={locationFilter}
-        onFilterChange={setLocationFilter}
+        filterValue={itemFilter}
+        onFilterChange={setItemFilter}
         selectOptions={FILTER_OPTIONS}
       />
 
-      <TableCard title="Warehouse list" count={filteredWarehouses.length}>
+      <TableCard title="Warehouse List" count={filteredWarehouses.length}>
         {loading ? (
-          <div style={{ padding: "16px" }}>Loading warehouses...</div>
+          <div className="table-state">Loading warehouses...</div>
         ) : error ? (
-          <div style={{ padding: "16px", color: "red" }}>{error}</div>
+          <div className="table-state is-error">{error}</div>
         ) : (
           <table className="legal-table">
             <thead>
               <tr>
                 <th>ID</th>
                 <th>Name</th>
-                <th>Location</th>
+                <th>Description</th>
+                <th>Items</th>
                 <th>Actions</th>
               </tr>
             </thead>
 
             <tbody>
               {filteredWarehouses.length > 0 ? (
-                filteredWarehouses.map((warehouse) => (
-                  <tr key={warehouse.id}>
-                    <td>{warehouse.id}</td>
-                    <td>{warehouse.name || "-"}</td>
-                    <td>{warehouse.location || "-"}</td>
-                    <td>
-                      <div className="row-actions">
-                        <button
-                          type="button"
-                          className="icon-action-btn"
-                          onClick={() => openEditModal(warehouse)}
-                          title="Edit warehouse"
-                        >
-                          <PencilLine size={16} />
-                        </button>
+                filteredWarehouses.map((warehouse) => {
+                  const warehouseItems = getWarehouseItems(warehouse);
 
-                        <button
-                          type="button"
-                          className="icon-action-btn danger"
-                          onClick={() => openDeleteModal(warehouse)}
-                          title="Delete warehouse"
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                  return (
+                    <tr key={warehouse.id}>
+                      <td data-label="ID">{warehouse.id}</td>
+                      <td data-label="Name">{warehouse.name || "-"}</td>
+                      <td data-label="Description">
+                        {getWarehouseDescription(warehouse)}
+                      </td>
+                      <td data-label="Items">{warehouseItems.length}</td>
+                      <td data-label="Actions">
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => openItemsModal(warehouse)}
+                            title="View items"
+                          >
+                            <Eye size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => openEditModal(warehouse)}
+                            title="Edit warehouse"
+                          >
+                            <PencilLine size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="icon-action-btn danger"
+                            onClick={() => openDeleteModal(warehouse)}
+                            title="Delete warehouse"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan="4" style={{ padding: "16px", textAlign: "center" }}>
+                  <td colSpan="5" className="empty-cell">
                     No warehouses found
                   </td>
                 </tr>
@@ -317,7 +337,6 @@ export default function AdminWarehousesPage() {
           });
         }}
         title="Create warehouse"
-        description="The create endpoint is ready to be connected. This form matches the warehouse fields."
         size="md"
       >
         <form className="modal-form" onSubmit={handleCreate}>
@@ -367,10 +386,86 @@ export default function AdminWarehousesPage() {
       </Modal>
 
       <Modal
+        open={Boolean(itemsWarehouse)}
+        onClose={() => setItemsWarehouse(null)}
+        title={itemsWarehouse?.name || "Warehouse items"}
+        description={`${getWarehouseItems(itemsWarehouse || {}).length} items assigned`}
+        size="lg"
+      >
+        <section className="warehouse-items-panel">
+          <div className="warehouse-items-toolbar">
+            <div>
+              <strong>{getWarehouseDescription(itemsWarehouse || {})}</strong>
+              <span>Manage the items stored in this warehouse.</span>
+            </div>
+
+            <button
+              type="button"
+              className="primary-action-btn"
+              title="Add item endpoint pending"
+              disabled
+            >
+              <Plus size={16} />
+              <span>Add item</span>
+            </button>
+          </div>
+
+          {getWarehouseItems(itemsWarehouse || {}).length > 0 ? (
+            <div className="warehouse-item-list">
+              {getWarehouseItems(itemsWarehouse).map((item) => (
+                <article className="warehouse-item-card" key={item.id}>
+                  <div className="warehouse-item-topline">
+                    <div>
+                      <strong>{item.name || "-"}</strong>
+                      <small>{item.sku || "-"}</small>
+                    </div>
+
+                    <span className={`warehouse-item-status ${item.status || ""}`}>
+                      {(item.status || "-").replaceAll("_", " ")}
+                    </span>
+                  </div>
+
+                  <p>{item.description || "-"}</p>
+
+                  <div className="warehouse-item-meta">
+                    <span>Qty: {item.quantity ?? "-"}</span>
+                    <span>Purchased: {item.purchase_date || "-"}</span>
+                    <span>Received: {item.received_date || "-"}</span>
+                    <span>Expires: {item.expiry_date || "-"}</span>
+                  </div>
+
+                  <div className="warehouse-item-actions">
+                    <button
+                      type="button"
+                      className="icon-action-btn"
+                      title="Edit item endpoint pending"
+                      disabled
+                    >
+                      <PencilLine size={15} />
+                    </button>
+
+                    <button
+                      type="button"
+                      className="icon-action-btn danger"
+                      title="Delete item endpoint pending"
+                      disabled
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          ) : (
+            <div className="empty-cell">No items assigned</div>
+          )}
+        </section>
+      </Modal>
+
+      <Modal
         open={editOpen}
         onClose={closeEditModal}
         title="Update warehouse"
-        description="Edit the warehouse name and location, then save the changes."
         size="md"
       >
         <form className="modal-form" onSubmit={handleUpdate}>
@@ -420,7 +515,6 @@ export default function AdminWarehousesPage() {
           setSelectedWarehouse(null);
         }}
         title="Delete warehouse"
-        description="This action will remove the selected warehouse from the system."
         size="sm"
       >
         <div className="modal-form">

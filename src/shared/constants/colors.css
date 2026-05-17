@@ -1,98 +1,97 @@
 :root {
-  /* ========== LIGHT MODE (default) ========== */
-
   /* Login */
-   --login-shell-bg: #f4f7fb;
+  --login-shell-bg: #f4f7fb;
   --login-shell-bg-2: #e8eef7;
   --login-panel-bg: #f4f7fb;
   --login-panel-border: rgba(0, 0, 0, 0.2);
-
   --login-title: #008fb3;
   --login-text: #111827;
   --login-icon: #00d4ff;
   --login-label: #008fb3;
-
   --login-accent: #00d4ff;
   --login-accent-dark: #008fb3;
   --login-shadow: rgba(37, 99, 235, 0.25);
-
   --login-autofill-bg: #f4f7fb;
   --login-autofill-text: #111827;
 
   /* Dashboard */
-   --dash-bg: #ffffff;
-  --dash-bg-2: #f3f6fa;
-  --dash-surface: rgba(255, 255, 255, 0.96);
-  --dash-surface-2: rgba(247, 249, 252, 0.98);
-
-  --dash-line: rgba(0, 143, 179, 0.18);
-  --dash-line-2: rgba(0, 143, 179, 0.34);
-
-  --dash-text: #111827;
-  --dash-muted: rgba(17, 24, 39, 0.62);
-
-  --dash-accent: #008fb3;
-  --dash-accent-strong: #00ccff;
-  --dash-accent-soft: rgba(189, 233, 244, 0.75);
-
-  --dash-shadow: 0 12px 30px rgba(15, 23, 42, 0.08); 
-   --dash-shell-glow-1: rgba(0, 204, 255, 0.12);
-  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
-
+  --dash-bg: #f4f7fb;
+  --dash-bg-2: #e8eef7;
+  --dash-sidebar-bg: #ffffff;
   --dash-topbar-bg: rgba(255, 255, 255, 0.88);
-  --dash-icon-bg: rgba(255, 255, 255, 0.92);
-  --dash-icon-hover-bg: rgba(189, 233, 244, 0.45);
-
-  --dash-input-bg: rgba(255, 255, 255, 0.95);
-  --dash-pill-bg: rgba(255, 255, 255, 0.95);
+  --dash-surface: #ffffff;
+  --dash-surface-2: #f9fbfd;
+  --dash-card-bg: rgba(255, 255, 255, 0.86);
+  --dash-panel-bg: rgba(255, 255, 255, 0.88);
+  --dash-input-bg: rgba(255, 255, 255, 0.72);
+  --dash-pill-bg: rgba(255, 255, 255, 0.72);
   --dash-blank-bg: rgba(255, 255, 255, 0.45);
 
-  --dash-brand-glow: rgba(0, 143, 179, 0.22);
+  --dash-line: rgba(15, 23, 42, 0.09);
+  --dash-line-2: rgba(0, 143, 179, 0.28);
+
+  --dash-text: #111827;
+  --dash-muted: #667085;
+
+  --dash-accent: #008fb3;
+  --dash-accent-strong: #00d4ff;
+  --dash-accent-soft: rgba(0, 212, 255, 0.12);
+  --dash-hover-bg: rgba(0, 143, 179, 0.07);
+  --dash-active-bg: linear-gradient(135deg, rgba(0, 143, 179, 0.13), rgba(0, 212, 255, 0.12));
+  --dash-icon-bg: rgba(255, 255, 255, 0.72);
+  --dash-icon-hover-bg: rgba(0, 212, 255, 0.12);
+
+  --dash-shadow: 0 16px 40px rgba(37, 99, 235, 0.08);
+  --dash-brand-glow: rgba(37, 99, 235, 0.25);
+  --dash-shell-glow-1: rgba(0, 212, 255, 0.11);
+  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
 }
 
-/* ========== DARK MODE ========== */
 :root[data-theme="dark"] {
   /* Login */
-  
-    --login-shell-bg: #1a1a2e;
+  --login-shell-bg: #1a1a2e;
   --login-shell-bg-2: #0f0f1e;
   --login-panel-bg: #1a1a2e;
   --login-panel-border: rgba(255, 255, 255, 0.8);
-
   --login-title: #ffffff;
   --login-text: #ffffff;
   --login-icon: #ffffff;
   --login-label: #ffffff;
-
   --login-accent: #00d4ff;
   --login-accent-dark: #008fb3;
   --login-shadow: rgba(0, 212, 255, 0.4);
-
   --login-autofill-bg: #1a1a2e;
   --login-autofill-text: #ffffff;
 
   /* Dashboard */
-  --dash-bg: #08111f;
-  --dash-bg-2: #0d1728;
-  --dash-surface: rgba(15, 23, 42, 0.92);
-  --dash-surface-2: rgba(18, 27, 46, 0.96);
-  --dash-line: rgba(255, 255, 255, 0.08);
-  --dash-line-2: rgba(255, 255, 255, 0.12);
-  --dash-text: #eef2ff;
-  --dash-muted: rgba(238, 255, 255, 0.62);
-  --dash-accent: #008fb3;
-  --dash-accent-soft: rgba(34, 133, 199, 0.14);
-  --dash-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    --dash-shell-glow-1: rgba(26, 133, 169, 0.08);
-  --dash-shell-glow-2: rgba(99, 102, 241, 0.08);
-
-  --dash-topbar-bg: rgba(8, 17, 31, 0.72);
-  --dash-icon-bg: rgba(255, 255, 255, 0.04);
-  --dash-icon-hover-bg: rgba(255, 255, 255, 0.08);
-
-  --dash-input-bg: rgba(255, 255, 255, 0.04);
-  --dash-pill-bg: rgba(255, 255, 255, 0.04);
+  --dash-bg: #080d18;
+  --dash-bg-2: #0d1423;
+  --dash-sidebar-bg: #0b1220;
+  --dash-topbar-bg: rgba(8, 13, 24, 0.84);
+  --dash-surface: #111827;
+  --dash-surface-2: #0f172a;
+  --dash-card-bg: rgba(17, 24, 39, 0.82);
+  --dash-panel-bg: rgba(17, 24, 39, 0.84);
+  --dash-input-bg: rgba(255, 255, 255, 0.045);
+  --dash-pill-bg: rgba(255, 255, 255, 0.045);
   --dash-blank-bg: rgba(255, 255, 255, 0.02);
 
-  --dash-brand-glow: rgba(16, 113, 151, 0.25);
+  --dash-line: rgba(226, 232, 240, 0.10);
+  --dash-line-2: rgba(0, 212, 255, 0.26);
+
+  --dash-text: #f8fafc;
+  --dash-muted: #94a3b8;
+
+  --dash-accent: #00d4ff;
+  --dash-accent-strong: #008fb3;
+  --dash-accent-soft: rgba(0, 212, 255, 0.12);
+  --dash-hover-bg: rgba(255, 255, 255, 0.045);
+  --dash-active-bg: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 143, 179, 0.12));
+  --dash-icon-bg: rgba(255, 255, 255, 0.04);
+  --dash-icon-hover-bg: rgba(0, 212, 255, 0.10);
+
+  --dash-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
+  --dash-brand-glow: rgba(0, 212, 255, 0.32);
+  --dash-shell-glow-1: rgba(0, 212, 255, 0.07);
+  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
 }

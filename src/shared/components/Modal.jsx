@@ -70,7 +70,7 @@ export default function Modal({
         type="button"
         className="app-modal__backdrop"
         onClick={onClose}
-        aria-label="إغلاق النافذة"
+        aria-label="Close modal"
       />
 
       <div
@@ -87,7 +87,7 @@ export default function Modal({
             type="button"
             className="app-modal__close"
             onClick={onClose}
-            aria-label="إغلاق"
+            aria-label="Close"
           >
             <X size={18} />
           </button>

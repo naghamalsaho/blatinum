@@ -9,17 +9,21 @@ export default function PageHeader({
   return (
     <div className="legal-page-header">
       <div>
-        <p className="page-kicker">
-          {kicker}
-        </p>
+        {kicker ? (
+          <p className="page-kicker">
+            {kicker}
+          </p>
+        ) : null}
 
         <h1 className="page-title">
           {title}
         </h1>
 
-        <p className="page-subtitle">
-          {subtitle}
-        </p>
+        {subtitle ? (
+          <p className="page-subtitle">
+            {subtitle}
+          </p>
+        ) : null}
       </div>
 
       {action}
