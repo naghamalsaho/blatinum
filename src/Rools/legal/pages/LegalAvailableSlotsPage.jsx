@@ -61,6 +61,22 @@ const STATUS_OPTIONS = [
   },
 ];
 
+function getEmployeeName(slot) {
+  return slot?.employee?.account?.full_name || "-";
+}
+
+function getEmployeeEmail(slot) {
+  return slot?.employee?.account?.email || "-";
+}
+
+function getEmployeePhone(slot) {
+  return slot?.employee?.account?.phone || "-";
+}
+
+function getEmployeeId(slot) {
+  return slot?.employee?.additional_info?.employee_id ?? "-";
+}
+
 export default function LegalAvailableSlotsPage() {
   const dispatch = useDispatch();
 
@@ -92,19 +108,23 @@ export default function LegalAvailableSlotsPage() {
 
       const searchableText = [
         slot.id,
-        slot.employee_id,
-        slot.batch_id,
         slot.start_time,
+        slot.batch_id,
         slot.status,
         statusLabel,
         slot.created_at,
+        getEmployeeId(slot),
+        getEmployeeName(slot),
+        getEmployeeEmail(slot),
+        getEmployeePhone(slot),
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
       const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesStatus = statusFilter === "all" || slot.status === statusFilter;
+      const matchesStatus =
+        statusFilter === "all" || slot.status === statusFilter;
 
       return matchesSearch && matchesStatus;
     });
@@ -202,37 +222,34 @@ export default function LegalAvailableSlotsPage() {
       </div>
 
       <Toolbar
-  placeholder="ابحث بالوقت أو الحالة..."
-  searchValue={searchTerm}
-  onSearchChange={setSearchTerm}
-  filterValue={statusFilter}
-  onFilterChange={setStatusFilter}
-  selectOptions={[
-    {
-      value: "all",
-      label: "كل الحالات",
-      dotClass: "",
-    },
-
-    {
-      value: "available",
-      label: "متاح",
-      dotClass: "ok",
-    },
-
-    {
-      value: "booked",
-      label: "محجوز",
-      dotClass: "busy",
-    },
-
-    {
-      value: "cancelled",
-      label: "ملغاة",
-      dotClass: "off",
-    },
-  ]}
-/>
+        placeholder="ابحث باسم الموظف أو الإيميل أو الوقت..."
+        searchValue={searchTerm}
+        onSearchChange={setSearchTerm}
+        filterValue={statusFilter}
+        onFilterChange={setStatusFilter}
+        selectOptions={[
+          {
+            value: "all",
+            label: "كل الحالات",
+            dotClass: "",
+          },
+          {
+            value: "available",
+            label: "متاح",
+            dotClass: "ok",
+          },
+          {
+            value: "booked",
+            label: "محجوز",
+            dotClass: "busy",
+          },
+          {
+            value: "cancelled",
+            label: "ملغاة",
+            dotClass: "off",
+          },
+        ]}
+      />
 
       <TableCard title="جدول السلات" count={filteredSlots.length}>
         {loading ? (
@@ -244,7 +261,10 @@ export default function LegalAvailableSlotsPage() {
             <thead>
               <tr>
                 <th>ID</th>
-                <th>الموظف</th>
+                <th>اسم الموظف</th>
+                <th>رقم الموظف</th>
+                <th>البريد</th>
+                <th>الهاتف</th>
                 <th>الباتش</th>
                 <th>بداية الوقت</th>
                 <th>الحالة</th>
@@ -264,7 +284,10 @@ export default function LegalAvailableSlotsPage() {
                   return (
                     <tr key={slot.id}>
                       <td>{slot.id}</td>
-                      <td>{slot.employee_id ?? "-"}</td>
+                      <td>{getEmployeeName(slot)}</td>
+                      <td>{getEmployeeId(slot)}</td>
+                      <td>{getEmployeeEmail(slot)}</td>
+                      <td>{getEmployeePhone(slot)}</td>
                       <td>{slot.batch_id ?? "-"}</td>
                       <td>{slot.start_time ?? "-"}</td>
                       <td>
@@ -300,7 +323,7 @@ export default function LegalAvailableSlotsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" style={{ padding: "16px", textAlign: "center" }}>
+                  <td colSpan="10" style={{ padding: "16px", textAlign: "center" }}>
                     لا توجد نتائج مطابقة
                   </td>
                 </tr>
