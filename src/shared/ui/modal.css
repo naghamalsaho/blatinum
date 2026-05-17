@@ -164,4 +164,27 @@
   .app-modal {
     padding: 14px;
   }
+
+  .app-modal__panel {
+    border-radius: 16px;
+    max-height: calc(100vh - 28px);
+    overflow: auto;
+  }
+
+  .app-modal__header,
+  .app-modal__body,
+  .app-modal__footer {
+    padding-left: 14px;
+    padding-right: 14px;
+  }
+
+  .modal-actions,
+  .app-modal__footer {
+    flex-direction: column-reverse;
+  }
+
+  .modal-actions > *,
+  .app-modal__footer > * {
+    width: 100%;
+  }
 }

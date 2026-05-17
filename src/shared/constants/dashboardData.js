@@ -1,66 +1,69 @@
 import {
-  LayoutGrid,
   Bell,
-  ClipboardList,
-  FileText,
-  Folder,
-  Scale,
-  Users,
   Building2,
-  Settings,
-  LogOut,
+  BriefcaseBusiness,
   Globe,
+  LayoutGrid,
+  LogOut,
+  UsersRound,
 } from "lucide-react";
 
 export const adminDashboardConfig = {
   brand: {
-    short: "عق",
-    title: "نظام العقارات",
-    subtitle: "لوحة الإدارة",
+    title: "Platinum",
+    subtitle: "Admin Suite",
   },
 
   sidebarSections: [
     {
-      title: "الرئيسية",
+      title: "Main",
       items: [
-        { key: "dashboard", to: "/admin", label: "لوحة التحكم", icon: LayoutGrid, end: true },
-        { key: "notifications", to: "/admin/notifications", label: "الإشعارات", icon: Bell },
+        {
+          key: "dashboard",
+          to: "/admin",
+          label: "Dashboard",
+          icon: LayoutGrid,
+          end: true,
+        },
       ],
     },
     {
-      title: "إدارة النظام",
+      title: "Resources",
       items: [
-        { key: "orders", to: "/admin/orders", label: "الطلبات", icon: ClipboardList },
-        { key: "payments", to: "/admin/payments", label: "الدفعات", icon: FileText },
-        { key: "contracts", to: "/admin/contracts", label: "العقود", icon: Scale },
-        { key: "files", to: "/admin/files", label: "المستندات", icon: Folder },
-      ],
-    },
-    {
-      title: "الموارد",
-      items: [
-        { key: "users", to: "/admin/users", label: "المستخدمون", icon: Users },
-        { key: "warehouses", to: "/admin/warehouses", label: "المستودعات", icon: Building2 },
-        { key: "settings", to: "/admin/settings", label: "الإعدادات", icon: Settings },
+        {
+          key: "departments",
+          to: "/admin/departments",
+          label: "Departments",
+          icon: BriefcaseBusiness,
+        },
+        {
+          key: "employees",
+          to: "/admin/employees",
+          label: "Employees",
+          icon: UsersRound,
+        },
+        {
+          key: "warehouses",
+          to: "/admin/warehouses",
+          label: "Warehouses",
+          icon: Building2,
+        },
       ],
     },
   ],
 
   topbar: {
-    title: "لوحة التحكم",
-    subtitle: "مرحباً، هذه نظرة عامة على النظام",
-    searchPlaceholder: "بحث...",
+    title: "Platinum",
+    subtitle: "",
+    searchPlaceholder: "Search...",
     actions: [
-      { key: "lang", label: "اللغة", icon: Globe },
+      { key: "notifications", label: "Notifications", icon: Bell },
+      { key: "lang", label: "Language", icon: Globe },
     ],
-    user: {
-      name: "المدير",
-      avatar: "ع",
-    },
   },
 
   footer: {
-    label: "تسجيل الخروج",
+    label: "Sign out",
     icon: LogOut,
     onClick: () => {},
   },

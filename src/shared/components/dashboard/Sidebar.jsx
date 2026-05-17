@@ -1,18 +1,17 @@
 import PropTypes from "prop-types";
 import { NavLink } from "react-router-dom";
-import { LogOut } from "lucide-react";
+import { Gem, LogOut } from "lucide-react";
 
 export default function Sidebar({
   open = true,
   onClose = () => {},
   brand = {
-    short: "عق",
-    title: "نظام العقارات",
-    subtitle: "لوحة الإدارة",
+    title: "Platinum",
+    subtitle: "Admin",
   },
   sections = [],
   footer = {
-    label: "تسجيل الخروج",
+    label: "Sign out",
     onClick: () => {},
     icon: LogOut,
   },
@@ -23,7 +22,9 @@ export default function Sidebar({
     <aside className={`dashboard-sidebar ${open ? "is-open" : ""}`}>
       <div className="sidebar-header">
         <div className="sidebar-brand">
-          <span className="brand-badge">{brand.short}</span>
+          <span className="brand-badge" aria-hidden="true">
+            <Gem size={22} />
+          </span>
 
           <div className="brand-text">
             <h1>{brand.title}</h1>
@@ -35,7 +36,7 @@ export default function Sidebar({
           type="button"
           className="sidebar-close"
           onClick={onClose}
-          aria-label="إغلاق القائمة"
+          aria-label="Close menu"
         >
           ×
         </button>
@@ -53,7 +54,7 @@ export default function Sidebar({
                   <NavLink
                     key={item.key || item.to}
                     to={item.to}
-                   end={item.end ?? false}
+                    end={item.end ?? false}
                     className={({ isActive }) =>
                       `nav-item ${isActive ? "active" : ""}`
                     }
@@ -82,7 +83,6 @@ Sidebar.propTypes = {
   open: PropTypes.bool,
   onClose: PropTypes.func,
   brand: PropTypes.shape({
-    short: PropTypes.string,
     title: PropTypes.string,
     subtitle: PropTypes.string,
   }),

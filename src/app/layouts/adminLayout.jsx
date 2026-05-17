@@ -9,7 +9,7 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="dashboard-shell" dir="rtl">
+    <div className="dashboard-shell" dir="ltr">
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}
@@ -25,7 +25,6 @@ export default function AdminLayout() {
           subtitle={adminDashboardConfig.topbar.subtitle}
           searchPlaceholder={adminDashboardConfig.topbar.searchPlaceholder}
           actions={adminDashboardConfig.topbar.actions}
-          user={adminDashboardConfig.topbar.user}
         />
 
         <section className="dashboard-content">
@@ -38,7 +37,7 @@ export default function AdminLayout() {
           type="button"
           className="dashboard-backdrop"
           onClick={() => setSidebarOpen(false)}
-          aria-label="إغلاق الخلفية"
+          aria-label="Close backdrop"
         />
       )}
     </div>

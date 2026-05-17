@@ -1,0 +1,441 @@
+@import "@/shared/constants/colors.css";
+
+.employees-page {
+  display: grid;
+  gap: 16px;
+  padding: 4px 0 20px;
+}
+
+.employees-page > * {
+  animation: fade-up 0.34s ease both;
+}
+
+.employees-page .legal-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.employees-page .page-title {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 30px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.employees-page .legal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.employees-page .legal-stat-card,
+.employees-page .legal-table-card,
+.employees-page .legal-toolbar {
+  background: var(--dash-card-bg);
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  box-shadow: var(--dash-shadow);
+  backdrop-filter: blur(18px);
+}
+
+.employees-page .legal-stat-card {
+  min-height: 112px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.employees-page .legal-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-shell-glow-1);
+  color: var(--dash-accent);
+  flex: 0 0 auto;
+}
+
+.employees-page .legal-stat-title {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.employees-page .legal-stat-value {
+  margin: 4px 0;
+  color: var(--dash-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.employees-page .legal-stat-note,
+.employees-page .table-card-header span {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.employees-page .legal-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+.employees-page .toolbar-search {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-input-bg);
+  color: var(--dash-accent);
+}
+
+.employees-page .toolbar-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.employees-page .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.employees-page .ghost-filter-btn,
+.employees-page .status-dropdown-trigger {
+  height: 40px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.employees-page .ghost-filter-btn {
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.employees-page .status-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.employees-page .status-dropdown-trigger {
+  min-width: 132px;
+  padding: 0 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.employees-page .status-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 180px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  box-shadow: var(--dash-shadow);
+  z-index: 50;
+  display: grid;
+  gap: 6px;
+}
+
+.employees-page .status-dropdown-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--dash-text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.employees-page .status-dropdown-item:hover,
+.employees-page .status-dropdown-item.active {
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line);
+}
+
+.employees-page .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  background: var(--dash-muted);
+}
+
+.employees-page .status-dot.ok {
+  background: var(--dash-accent);
+}
+
+.employees-page .status-dot.busy {
+  background: var(--dash-accent-strong);
+}
+
+.employees-page .legal-table-card {
+  overflow: hidden;
+}
+
+.employees-page .table-card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--dash-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.employees-page .table-card-header h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 17px;
+}
+
+.employees-page .table-scroll {
+  overflow: auto;
+}
+
+.employees-page .legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1040px;
+}
+
+.employees-page .legal-table th,
+.employees-page .legal-table td {
+  padding: 14px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 14px;
+  vertical-align: top;
+}
+
+.employees-page .legal-table th {
+  font-size: 12px;
+  color: var(--dash-muted);
+  font-weight: 700;
+}
+
+.employee-name-cell {
+  display: grid;
+  gap: 3px;
+}
+
+.employee-name-cell strong {
+  color: var(--dash-text);
+}
+
+.employee-name-cell span,
+.employee-muted {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.employee-roles,
+.employee-departments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.employee-role-pill,
+.employee-department-pill,
+.employee-position {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.employee-department-pill {
+  align-items: flex-start;
+  flex-direction: column;
+  justify-content: flex-start;
+  gap: 3px;
+  min-width: 152px;
+  text-transform: none;
+}
+
+.employee-department-pill strong {
+  color: var(--dash-text);
+  font-size: 12px;
+  line-height: 1.25;
+}
+
+.employee-department-pill small {
+  color: var(--dash-muted);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+
+.employee-position.manager {
+  color: var(--dash-accent);
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line-2);
+}
+
+.employee-position.supervisor {
+  color: var(--dash-accent-strong);
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line-2);
+}
+
+.employees-page .table-state,
+.employees-page .empty-cell {
+  padding: 18px;
+  text-align: center;
+  color: var(--dash-muted);
+}
+
+.employees-page .table-state.is-error {
+  color: #ef4444;
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .employees-page .legal-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .employees-page .legal-page-header,
+  .employees-page .legal-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .employees-page .toolbar-filters {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .employees-page .page-title {
+    font-size: 24px;
+  }
+
+  .employees-page .ghost-filter-btn,
+  .employees-page .toolbar-search {
+    width: 100%;
+  }
+
+  .employees-page .toolbar-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .employees-page .legal-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employees-page .table-scroll {
+    overflow: visible;
+  }
+
+  .employees-page .legal-table {
+    min-width: 0;
+  }
+
+  .employees-page .legal-table thead {
+    display: none;
+  }
+
+  .employees-page .legal-table,
+  .employees-page .legal-table tbody,
+  .employees-page .legal-table tr,
+  .employees-page .legal-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .employees-page .legal-table tbody {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .employees-page .legal-table tbody tr {
+    border: 1px solid var(--dash-line);
+    border-radius: 8px;
+    background: var(--dash-input-bg);
+    overflow: hidden;
+  }
+
+  .employees-page .legal-table td {
+    display: grid;
+    grid-template-columns: minmax(92px, 34%) 1fr;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dash-line);
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .employees-page .legal-table td::before {
+    content: attr(data-label);
+    color: var(--dash-muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .employees-page .legal-table td[colspan] {
+    display: block;
+  }
+
+  .employees-page .legal-table td[colspan]::before {
+    content: none;
+  }
+}

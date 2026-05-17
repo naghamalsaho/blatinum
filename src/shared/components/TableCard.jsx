@@ -9,7 +9,7 @@ export default function TableCard({
     <div className="legal-table-card">
       <div className="table-card-header">
         <h2>{title}</h2>
-        <span>{count} سجل</span>
+        <span>{count} records</span>
       </div>
 
       <div className="table-scroll">
