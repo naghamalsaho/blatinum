@@ -34,34 +34,42 @@ const normalizeToken = (value) => {
 
 const getAuthToken = (payload = {}) =>
   normalizeToken(
-    payload.token ||
+    payload.tokens?.access_token ||
+      payload.tokens?.accessToken ||
       payload.access_token ||
       payload.accessToken ||
-      payload.plainTextToken ||
-      payload.plain_text_token ||
-      payload.auth_token ||
+      payload.token ||
       payload.user?.token ||
       payload.user?.access_token ||
       payload.user?.accessToken ||
-      payload.user?.plainTextToken ||
-      payload.user?.plain_text_token ||
-      payload.user?.auth_token ||
-      payload.data?.token ||
+      payload.data?.tokens?.access_token ||
+      payload.data?.tokens?.accessToken ||
       payload.data?.access_token ||
       payload.data?.accessToken ||
-      payload.data?.plainTextToken ||
-      payload.data?.plain_text_token ||
-      payload.data?.auth_token
+      payload.data?.token
+  );
+
+const getRefreshToken = (payload = {}) =>
+  normalizeToken(
+    payload.tokens?.refresh_token ||
+      payload.tokens?.refreshToken ||
+      payload.refresh_token ||
+      payload.refreshToken ||
+      payload.data?.tokens?.refresh_token ||
+      payload.data?.tokens?.refreshToken ||
+      payload.data?.refresh_token ||
+      payload.data?.refreshToken
   );
 
 const getAuthUser = (payload = {}) => payload.user || payload.data?.user || null;
 
 const getAuthPermissions = (payload = {}) =>
-  payload.permissions || payload.user?.permissions || payload.data?.permissions || [];
+  payload.permissions || payload.data?.permissions || [];
 
 const initialState = {
   user: readJsonStorage("user", null),
-  token: localStorage.getItem("token"),
+  token: normalizeToken(localStorage.getItem("token")),
+  refreshToken: normalizeToken(localStorage.getItem("refreshToken")),
   permissions: readJsonStorage("permissions", []),
   loading: false,
   error: null,
@@ -76,10 +84,12 @@ const authSlice = createSlice({
 
       state.user = null;
       state.token = null;
+      state.refreshToken = null;
       state.permissions = [];
       state.error = null;
 
       localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
       localStorage.removeItem("permissions");
     },
@@ -88,7 +98,6 @@ const authSlice = createSlice({
     builder
       .addCase(loginUser.pending, (state) => {
         console.log("[auth.slice] login pending");
-
         state.loading = true;
         state.error = null;
       })
@@ -96,14 +105,15 @@ const authSlice = createSlice({
         console.log("[auth.slice] login fulfilled payload:", action.payload);
 
         const token = getAuthToken(action.payload);
+        const refreshToken = getRefreshToken(action.payload);
         const user = getAuthUser(action.payload);
         const permissions = getAuthPermissions(action.payload);
 
         console.log("[auth.slice] extracted auth:", {
-          payloadKeys: action.payload ? Object.keys(action.payload) : [],
           hasToken: Boolean(token),
           tokenLength: token?.length || 0,
-          tokenType: typeof token,
+          hasRefreshToken: Boolean(refreshToken),
+          refreshTokenLength: refreshToken?.length || 0,
           user,
           permissions,
         });
@@ -111,6 +121,7 @@ const authSlice = createSlice({
         state.loading = false;
         state.user = user;
         state.token = token;
+        state.refreshToken = refreshToken;
         state.permissions = permissions;
 
         if (token) {
@@ -119,17 +130,24 @@ const authSlice = createSlice({
           localStorage.removeItem("token");
         }
 
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+        } else {
+          localStorage.removeItem("refreshToken");
+        }
+
         localStorage.setItem("user", JSON.stringify(user));
         localStorage.setItem("permissions", JSON.stringify(permissions));
 
         console.log("[auth.slice] token saved:", token);
+        console.log("[auth.slice] refreshToken saved:", refreshToken);
         console.log("[auth.slice] user saved:", user);
         console.log("[auth.slice] permissions saved:", permissions);
       })
-     .addCase(loginUser.rejected, (state, action) => {
-  state.loading = false;
-  state.error = action.payload || "Login failed";
-});
+      .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Login failed";
+      });
   },
 });
 

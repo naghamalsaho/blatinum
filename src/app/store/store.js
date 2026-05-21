@@ -5,7 +5,8 @@ import departmentReducer from "@/Rools/admin/features/departments/model/departme
 import employeeReducer from "@/Rools/admin/features/employees/model/employee.slice";
 import warehouseReducer from "@/Rools/admin/features/warehouses/model/warehouse.slice";
 import itemReducer from "@/Rools/admin/features/items/model/item.slice";
-
+import projectEngineerReducer from "@/Rools/engineering/features/engineerProjects/model/engineerProject.slice";
+import engineerReducer from "@/Rools/engineering/features/engineers/model/engineer.slice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -14,5 +15,7 @@ export const store = configureStore({
     employees: employeeReducer,
     warehouses: warehouseReducer,
     items: itemReducer,
+    projectEngineer: projectEngineerReducer,
+    engineers: engineerReducer,
   },
 });

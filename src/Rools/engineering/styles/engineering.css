@@ -332,3 +332,110 @@
     min-width: 760px;
   }
 }
+.engineering-stats-grid .legal-stat-card,
+.engineering-summary-card,
+.engineering-form-card,
+.engineering-table-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+  will-change: transform;
+}
+
+.engineering-stats-grid .legal-stat-card::before,
+.engineering-summary-card::before,
+.engineering-form-card::before,
+.engineering-table-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    transparent 0%,
+    rgba(0, 204, 255, 0.08) 45%,
+    transparent 100%
+  );
+  opacity: 0;
+  transition: opacity 220ms ease;
+  pointer-events: none;
+}
+
+.engineering-stats-grid .legal-stat-card:hover,
+.engineering-summary-card:hover,
+.engineering-form-card:hover,
+.engineering-table-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
+  border-color: var(--dash-line-2);
+}
+
+.engineering-stats-grid .legal-stat-card:hover::before,
+.engineering-summary-card:hover::before,
+.engineering-form-card:hover::before,
+.engineering-table-card:hover::before {
+  opacity: 1;
+}
+
+.engineering-stats-grid .legal-stat-icon {
+  transition: transform 220ms ease, box-shadow 220ms ease;
+}
+
+.engineering-stats-grid .legal-stat-card:hover .legal-stat-icon {
+  transform: scale(1.06) rotate(-3deg);
+}
+
+.engineering-summary-head h2,
+.engineering-form-card .engineering-summary-head h2,
+.engineering-table-card .table-card-header h2 {
+  position: relative;
+}
+
+.engineering-summary-head h2::after,
+.engineering-form-card .engineering-summary-head h2::after,
+.engineering-table-card .table-card-header h2::after {
+  content: "";
+  display: block;
+  width: 42px;
+  height: 3px;
+  margin-top: 8px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--dash-accent), var(--dash-accent-strong));
+  transform: scaleX(0.6);
+  transform-origin: left;
+  transition: transform 220ms ease;
+}
+
+.engineering-summary-card:hover h2::after,
+.engineering-form-card:hover h2::after,
+.engineering-table-card:hover h2::after {
+  transform: scaleX(1);
+}
+.engineering-stats-grid .legal-stat-card {
+  animation: engineeringCardIn 320ms ease both;
+}
+
+@keyframes engineeringCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.engineering-stats-grid .legal-stat-card,
+.engineering-summary-card,
+.engineering-form-card,
+.engineering-table-card {
+  border-radius: 16px !important;
+}
+
+.engineering-stats-grid .legal-stat-icon {
+  border-radius: 12px !important;
+}
+
+.engineering-table {
+  border-radius: 14px;
+  overflow: hidden;
+}

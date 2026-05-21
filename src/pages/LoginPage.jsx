@@ -25,13 +25,17 @@ const collectUserText = (user = {}) =>
     user.employee?.department,
     user.employee?.department?.name,
     user.employee?.department?.slug,
+    user.account?.type,
+    user.account?.full_name,
+    user.account?.email,
+    user.account?.roles?.join(" "),
+    user.additional_info?.position,
   ]
     .map(normalizeText)
     .filter(Boolean)
     .join(" ");
 
-const hasAnyMatch = (value, words) =>
-  words.some((word) => value.includes(word));
+const hasAnyMatch = (value, words) => words.some((word) => value.includes(word));
 
 const getLoginPath = (payload = {}) => {
   const user = payload.user || payload.data?.user || {};
@@ -43,12 +47,16 @@ const getLoginPath = (payload = {}) => {
 
   const userText = collectUserText(user);
 
-  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
-    return "/admin";
+  if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
+    return "/engineering";
   }
 
   if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
+  }
+
+  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
+    return "/admin";
   }
 
   const permissionsText = permissions
@@ -59,6 +67,10 @@ const getLoginPath = (payload = {}) => {
     )
     .map(normalizeText)
     .join(" ");
+
+  if (hasAnyMatch(permissionsText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
+    return "/engineering";
+  }
 
   if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
     return "/legal/slots";

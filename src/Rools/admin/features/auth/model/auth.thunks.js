@@ -7,7 +7,7 @@ export const loginUser = createAsyncThunk(
     const result = await loginRequest(payload);
 
     if (result.ok) {
-      return result.data?.data ?? result.data; // user + token + permissions
+      return result.data?.data ?? result.data;
     }
 
     return thunkAPI.rejectWithValue(result.message);
