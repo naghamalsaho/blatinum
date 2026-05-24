@@ -2,113 +2,75 @@ import { createSlice } from "@reduxjs/toolkit";
 
 import {
   fetchProjectEngineers,
-  fetchProjectsForEngineer,
+  fetchEngineersAllocatedToProject,
+  fetchAllocatedLocationsForEngineer,
   assignEngineerProject,
 } from "./engineerProject.thunks";
 
 const initialState = {
   items: [],
-  engineerProjects: [],
+  projectEngineers: [],
+  allocatedLocations: [],
   loading: false,
   error: null,
 };
 
 const projectEngineerSlice = createSlice({
   name: "projectEngineer",
-
   initialState,
-
   reducers: {},
-
   extraReducers: (builder) => {
     builder
+      .addCase(fetchProjectEngineers.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchProjectEngineers.fulfilled, (state, action) => {
+        state.loading = false;
+        state.items = action.payload;
+      })
+      .addCase(fetchProjectEngineers.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch data";
+      })
 
-      // ============================
-      // FETCH ALL
-      // ============================
-      .addCase(
-        fetchProjectEngineers.pending,
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
+      .addCase(fetchEngineersAllocatedToProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchEngineersAllocatedToProject.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projectEngineers = action.payload;
+      })
+      .addCase(fetchEngineersAllocatedToProject.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch project engineers";
+      })
 
-      .addCase(
-        fetchProjectEngineers.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.items = action.payload;
-        }
-      )
+      .addCase(fetchAllocatedLocationsForEngineer.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllocatedLocationsForEngineer.fulfilled, (state, action) => {
+        state.loading = false;
+        state.allocatedLocations = action.payload;
+      })
+      .addCase(fetchAllocatedLocationsForEngineer.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch allocated locations";
+      })
 
-      .addCase(
-        fetchProjectEngineers.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error =
-            action.payload ||
-            "Failed to fetch data";
-        }
-      )
-
-      // ============================
-      // FETCH ENGINEER PROJECTS
-      // ============================
-      .addCase(
-        fetchProjectsForEngineer.pending,
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
-
-      .addCase(
-        fetchProjectsForEngineer.fulfilled,
-        (state, action) => {
-          state.loading = false;
-          state.engineerProjects =
-            action.payload;
-        }
-      )
-
-      .addCase(
-        fetchProjectsForEngineer.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error =
-            action.payload ||
-            "Failed to fetch engineer projects";
-        }
-      )
-
-      // ============================
-      // ASSIGN
-      // ============================
-      .addCase(
-        assignEngineerProject.pending,
-        (state) => {
-          state.loading = true;
-          state.error = null;
-        }
-      )
-
-      .addCase(
-        assignEngineerProject.fulfilled,
-        (state) => {
-          state.loading = false;
-        }
-      )
-
-      .addCase(
-        assignEngineerProject.rejected,
-        (state, action) => {
-          state.loading = false;
-          state.error =
-            action.payload ||
-            "Assignment failed";
-        }
-      );
+      .addCase(assignEngineerProject.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(assignEngineerProject.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(assignEngineerProject.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Assignment failed";
+      });
   },
 });
 

@@ -1,5 +1,8 @@
 @import "../constants/colors.css";
 
+/* =======================================================
+   إعدادات البنية الأساسية للمتصفح
+   ======================================================= */
 * {
   box-sizing: border-box;
 }
@@ -18,42 +21,47 @@ body,
   display: block !important;
 }
 
+/* =======================================================
+   الحاوية الرئيسية (Dashboard Shell)
+   ======================================================= */
 .dashboard-shell {
+  height: 100vh; /* تحديد الارتفاع بارتفاع الشاشة تماماً */
   min-height: 100vh;
   display: flex;
   flex-direction: row;
-  position: fixed;
-  inset: 0;
   background:
     radial-gradient(circle at 18% 0%, var(--dash-shell-glow-1), transparent 26%),
     radial-gradient(circle at 92% 8%, var(--dash-shell-glow-2), transparent 24%),
     linear-gradient(180deg, var(--dash-bg), var(--dash-bg-2));
   color: var(--dash-text);
-  overflow: hidden;
+  overflow: hidden; /* منع التمرير على مستوى اللوحة بالكامل */
 }
 
+/* =======================================================
+   السايدبار (Dashboard Sidebar) - الشاشات الكبيرة
+   ======================================================= */
 .dashboard-sidebar {
   width: 248px;
   min-width: 248px;
-  height: 100vh;
+  height: 100vh; /* ثابت بكامل الشاشة */
   position: sticky;
   top: 0;
   background: var(--dash-sidebar-bg, linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2)));
-  border-right: 1px solid var(--dash-line);
-  box-shadow: 10px 0 28px rgba(15, 23, 42, 0.04);
+  border-left: 1px solid var(--dash-line);
+  box-shadow: -10px 0 28px rgba(15, 23, 42, 0.04);
   padding: 18px 14px;
   display: flex;
   flex-direction: column;
   gap: 22px;
   z-index: 40;
-  animation: sidebar-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sidebar-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
+  width: 100%;
 }
 
 .sidebar-brand {
@@ -77,52 +85,38 @@ body,
   animation: logo-float 3.6s ease-in-out infinite;
 }
 
-.brand-badge::after {
-  content: "";
-  position: absolute;
-  inset: -40%;
-  background: linear-gradient(120deg, transparent 30%, rgba(255, 255, 255, 0.38), transparent 70%);
-  transform: translateX(-120%) rotate(18deg);
-  animation: logo-shine 3.8s ease-in-out infinite;
-}
-
 .brand-text h1 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 850;
   line-height: 1.2;
-  letter-spacing: 0;
 }
 
 .brand-text p {
   margin: 4px 0 0;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 600;
-}
-
-.brand-text p,
-.nav-group-title,
-.nav-item {
-  color: var(--dash-muted);
 }
 
 .sidebar-close {
   display: none;
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   border: 1px solid var(--dash-line);
   background: rgba(255, 255, 255, 0.04);
   color: var(--dash-text);
-  border-radius: 8px;
+  border-radius: 6px;
   cursor: pointer;
-  font-size: 24px;
+  font-size: 20px;
   line-height: 1;
 }
 
+/* =======================================================
+   محتويات السايدبار والتنقل
+   ======================================================= */
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding-right: 2px;
 }
 
 .nav-group {
@@ -135,24 +129,11 @@ body,
   color: var(--dash-muted);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 0;
 }
 
 .nav-group-items {
   display: grid;
   gap: 6px;
-}
-
-.nav-group-items .nav-item {
-  animation: item-enter 0.32s ease both;
-}
-
-.nav-group-items .nav-item:nth-child(2) {
-  animation-delay: 0.04s;
-}
-
-.nav-group-items .nav-item:nth-child(3) {
-  animation-delay: 0.08s;
 }
 
 .nav-item {
@@ -164,28 +145,12 @@ body,
   border-radius: 8px;
   color: var(--dash-muted);
   text-decoration: none;
-  border: 1px solid transparent;
   transition: 0.2s ease;
-  background: transparent;
 }
 
-.nav-item:hover {
-  background: var(--dash-hover-bg, rgba(0, 143, 179, 0.06));
+.nav-item:hover, .nav-item.active {
+  background: var(--dash-active-bg, rgba(0, 143, 179, 0.06));
   color: var(--dash-text);
-  border-color: var(--dash-line-2);
-  transform: translateX(2px);
-}
-
-.nav-item.active {
-  background: var(--dash-active-bg, linear-gradient(180deg, var(--dash-accent-soft), rgba(0, 204, 255, 0.12)));
-  color: var(--dash-text);
-  border-color: var(--dash-line-2);
-  box-shadow: inset 0 0 0 1px rgba(0, 143, 179, 0.08);
-}
-
-.nav-item span {
-  font-size: 14px;
-  font-weight: 600;
 }
 
 .sidebar-footer {
@@ -207,21 +172,18 @@ body,
   cursor: pointer;
 }
 
-.logout-btn:hover {
-  background: rgba(255, 255, 255, 0.06);
-}
-
+/* =======================================================
+   الجزء الرئيسي والـ Topbar
+   ======================================================= */
 .dashboard-main {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .dashboard-topbar {
   height: 72px;
-  flex: 0 0 auto;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -235,33 +197,14 @@ body,
   z-index: 30;
 }
 
-.topbar-right,
-.topbar-left {
+.topbar-right, .topbar-left {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.topbar-right {
-  min-width: 0;
-}
-
-.topbar-left {
-  flex: 1;
-  justify-content: flex-end;
-}
-
-.topbar-title h2 {
-  margin: 0;
-  font-size: 20px;
-  font-weight: 850;
-}
-
-.topbar-title p {
-  margin: 3px 0 0;
-  color: var(--dash-muted);
-  font-size: 12px;
-}
+.topbar-title h2 { margin: 0; font-size: 18px; font-weight: 850; }
+.topbar-title p { margin: 2px 0 0; font-size: 11px; color: var(--dash-muted); }
 
 .icon-btn {
   width: 40px;
@@ -273,35 +216,11 @@ body,
   display: grid;
   place-items: center;
   cursor: pointer;
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
-}
-
-.icon-btn:hover {
-  background: var(--dash-icon-hover-bg);
-  border-color: var(--dash-line-2);
-  transform: translateY(-1px);
-}
-
-.notification-btn {
-  position: relative;
-}
-
-.notification-btn::after {
-  content: "";
-  position: absolute;
-  top: 10px;
-  left: 10px;
-  width: 7px;
-  height: 7px;
-  border-radius: 999px;
-  background: var(--dash-accent-strong);
-  box-shadow: 0 0 0 3px var(--dash-icon-bg);
-  animation: notify-pulse 1.9s ease-in-out infinite;
 }
 
 .search-box {
   position: relative;
-  width: min(360px, 36vw);
+  width: min(300px, 30vw);
 }
 
 .search-box input {
@@ -311,315 +230,132 @@ body,
   border: 1px solid var(--dash-line);
   background: var(--dash-input-bg);
   color: var(--dash-text);
-  padding: 0 44px 0 14px;
+  padding: 0 38px 0 14px;
   outline: none;
-}
-
-.search-box input::placeholder {
-  color: var(--dash-muted);
 }
 
 .search-icon {
   position: absolute;
-  right: 14px;
+  right: 12px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--dash-accent);
 }
 
-.dashboard-content {
+.dashboard-content.dashboard-content {
   flex: 1;
-  padding: 24px 34px;
-  overflow: auto;
+  padding: 24px;
+  overflow-y: auto; /* هنا السحر! إذا زاد المحتوى تظهر أسهم التمرير هنا فقط */
+  height: calc(100vh - 72px); /* الارتفاع الكلي ناقص ارتفاع التوب بار */
 }
 
-.admin-home {
-  display: grid;
-  gap: 20px;
-  max-width: 1120px;
-}
-
-.admin-home-hero {
-  min-height: 180px;
-  display: flex;
-  align-items: center;
-  padding: 28px;
-  border: 1px solid var(--dash-line);
-  border-radius: 8px;
-  background: var(--dash-panel-bg, linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2)));
-  box-shadow: var(--dash-shadow);
-}
-
-.admin-home-kicker {
-  margin: 0 0 8px;
-  color: var(--dash-accent);
-  font-size: 13px;
-  font-weight: 800;
-}
-
-.admin-home-hero h1 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: clamp(28px, 4vw, 42px);
-  line-height: 1.25;
-}
-
-.admin-home-hero p:not(.admin-home-kicker) {
-  max-width: 640px;
-  margin: 12px 0 0;
-  color: var(--dash-muted);
-  font-size: 15px;
-  line-height: 1.8;
-}
-
-.admin-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-}
-
-.admin-overview-card {
-  min-height: 108px;
-  padding: 18px;
-  border: 1px solid var(--dash-line);
-  border-radius: 8px;
-  background: var(--dash-card-bg, linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2)));
-  color: var(--dash-text);
-  text-decoration: none;
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  box-shadow: var(--dash-shadow);
-  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
-}
-
-.admin-overview-card:hover {
-  transform: translateY(-2px);
-  border-color: var(--dash-line-2);
-  box-shadow: var(--dash-shadow);
-}
-
-@keyframes sidebar-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-14px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes item-enter {
-  from {
-    opacity: 0;
-    transform: translateX(-8px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes logo-float {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-2px);
-  }
-}
-
-@keyframes logo-shine {
-  0%,
-  48% {
-    transform: translateX(-120%) rotate(18deg);
-  }
-
-  72%,
-  100% {
-    transform: translateX(120%) rotate(18deg);
-  }
-}
-
-@keyframes notify-pulse {
-  0%,
-  100% {
-    box-shadow: 0 0 0 3px var(--dash-icon-bg), 0 0 0 0 rgba(0, 212, 255, 0.26);
-  }
-
-  50% {
-    box-shadow: 0 0 0 3px var(--dash-icon-bg), 0 0 0 6px rgba(0, 212, 255, 0);
-  }
-}
-
-.admin-overview-card.is-disabled {
-  opacity: 0.62;
-}
-
-.admin-overview-icon {
-  width: 46px;
-  height: 46px;
-  border-radius: 8px;
-  display: grid;
-  place-items: center;
-  flex: 0 0 auto;
-  background: var(--dash-accent-soft);
-  color: var(--dash-accent);
-}
-
-.admin-overview-copy {
-  display: grid;
-  gap: 8px;
-  min-width: 0;
-}
-
-.admin-overview-copy strong {
-  font-size: 17px;
-}
-
-.admin-overview-copy small {
-  color: var(--dash-muted);
-  font-size: 13px;
-  line-height: 1.6;
-}
-
-.dashboard-blank {
-  min-height: calc(100vh - 140px);
-  border: 1px dashed var(--dash-line);
-  border-radius: 8px;
-  background: var(--dash-blank-bg);
-}
-
-.mobile-menu-btn {
+.mobile-menu-btn, .dashboard-backdrop {
   display: none;
 }
 
-.dashboard-backdrop {
-  display: none;
-}
-
-@media (max-width: 1024px) {
+/* =======================================================
+   تجاوب الموبايل الذكي (نمط الشريط النحيف للأيقونات)
+   ======================================================= */
+@media (max-width: 768px) {
+  
+  /* 1. تحويل السايدبار الافتراضي إلى شريط أيقونات نحيف */
   .dashboard-sidebar {
-    position: fixed;
-    left: 0;
-    top: 0;
-    transform: translateX(-110%);
-    transition: transform 0.25s ease;
-    width: 300px;
+    width: 72px !important;
+    min-width: 72px !important;
+    padding: 18px 0;
+    align-items: center;
+    overflow: hidden;
   }
 
+  /* إخفاء نصوص السايدبار ليبقى الأيقونة فقط */
+  .dashboard-sidebar .brand-text,
+  .dashboard-sidebar .nav-group-title,
+  .dashboard-sidebar .nav-item span,
+  .dashboard-sidebar .logout-btn span,
+  .dashboard-sidebar .sidebar-close {
+    display: none !important;
+  }
+
+  .dashboard-sidebar .sidebar-brand,
+  .dashboard-sidebar .sidebar-header {
+    justify-content: center;
+  }
+
+  .dashboard-sidebar .nav-item, 
+  .dashboard-sidebar .logout-btn {
+    justify-content: center;
+    width: 46px;
+    height: 46px;
+    padding: 0;
+    margin: 4px auto;
+  }
+
+  /* 2. حالة الفتح التام (عند النقر على زر القائمة لتمديد السايدبار) */
   .dashboard-sidebar.is-open {
-    transform: translateX(0);
+    width: 260px !important;
+    min-width: 260px !important;
+    position: fixed;
+    right: 0;
+    top: 0;
+    height: 100vh;
+    background: var(--dash-surface, #ffffff);
+    box-shadow: -5px 0 25px rgba(0, 0, 0, 0.15);
+    align-items: stretch;
+    padding: 18px 14px;
   }
 
-  .sidebar-close {
+  /* إعادة إظهار النصوص داخل القائمة المفتوحة */
+  .dashboard-sidebar.is-open .brand-text,
+  .dashboard-sidebar.is-open .nav-group-title,
+  .dashboard-sidebar.is-open .nav-item span,
+  .dashboard-sidebar.is-open .logout-btn span {
+    display: block !important;
+  }
+
+  .dashboard-sidebar.is-open .sidebar-close {
     display: grid;
     place-items: center;
   }
 
-  .mobile-menu-btn {
-    display: grid;
+  .dashboard-sidebar.is-open .nav-item,
+  .dashboard-sidebar.is-open .logout-btn {
+    justify-content: flex-start;
+    padding: 10px 12px;
+    width: 100%;
   }
 
+  /* 3. تعديل وتأمين الـ Topbar في الموبايل لعدم اختفاء العناصر */
+  .dashboard-topbar {
+    padding: 12px 16px;
+  }
+
+  .mobile-menu-btn {
+    display: grid;
+    place-items: center;
+  }
+
+  /* إخفاء صندوق البحث العريض أو تصغيره لكي لا يزاحم العناوين */
+  .search-box {
+    display: none; /* يحمي العناصر من الاختفاء ويمكن تفعيله كأيقونة لاحقاً */
+  }
+
+  /* 4. تفعيل الخلفية المعتمة لحماية الشاشة عند فتح القائمة بالكامل */
   .dashboard-backdrop {
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.45);
-    border: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
     z-index: 35;
   }
-
-  .search-box {
-    width: min(280px, 42vw);
-  }
-
-  .topbar-title h2 {
-    font-size: 18px;
-  }
 }
 
-@media (max-width: 768px) {
-  .dashboard-topbar {
-    height: auto;
-    min-height: 72px;
-    flex-wrap: wrap;
-    padding: 14px 16px;
-  }
-
-  .topbar-right {
-    display: flex;
-    flex: 1 1 auto;
-    min-width: 0;
-  }
-
-  .topbar-left {
-    flex: 0 1 auto;
-    justify-content: flex-end;
-    min-width: 0;
-    gap: 8px;
-  }
-
-  .topbar-title {
-    min-width: 0;
-  }
-
-  .topbar-title h2,
-  .topbar-title p {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .search-box {
-    order: 2;
-    flex: 1 0 100%;
-    width: 100%;
-  }
-
-  .dashboard-content {
-    padding: 16px;
-  }
-
-  .admin-home-hero {
-    min-height: 180px;
-    padding: 22px;
-  }
-
-  .admin-overview-grid {
-    grid-template-columns: 1fr;
-  }
+/* الأنيميشنز الأساسية */
+@keyframes sidebar-enter {
+  from { opacity: 0; transform: translateX(14px); }
+  to { opacity: 1; transform: translateX(0); }
 }
-
-@media (max-width: 480px) {
-  .dashboard-sidebar {
-    width: min(300px, 86vw);
-    min-width: 0;
-  }
-
-  .dashboard-topbar {
-    gap: 10px;
-  }
-
-  .topbar-title h2 {
-    font-size: 16px;
-  }
-
-  .topbar-title p {
-    display: none;
-  }
-
-  .icon-btn {
-    width: 38px;
-    height: 38px;
-  }
-
-  .dashboard-content {
-    padding: 12px;
-  }
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
 }

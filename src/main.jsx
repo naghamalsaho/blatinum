@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import { Provider } from "react-redux";
 import { store } from "./app/store/store";
-
+import "leaflet/dist/leaflet.css";
 import "./index.css";
 import "./shared/constants/colors.css";
 import App from "./App.jsx";

@@ -21,6 +21,10 @@ import LegalEngineersPage from "@/Rools/legal/pages/LegalEngineersPage";
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
 
+
+import MarketingLayout from "@/app/layouts/MarketingLayout";
+
+import MarketingDashboardPage from "@/Rools/marketing/pages/MarketingDashboardPage";
 export default function AppRouter() {
   return (
     <Routes>
@@ -60,6 +64,26 @@ export default function AppRouter() {
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
+
+
+      <Route
+  path="/marketing"
+  element={
+    <RequireRole
+      allowedRoles={[
+        "marketing",
+        "marketing_staff",
+      ]}
+    />
+  }
+>
+  <Route element={<MarketingLayout />}>
+    <Route
+      index
+      element={<MarketingDashboardPage />}
+    />
+  </Route>
+</Route>
     </Routes>
   );
 }

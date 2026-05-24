@@ -172,7 +172,7 @@ export default function EngineeringEngineersPage() {
   };
 
   return (
-    <div className="engineering-page">
+    <div className="engineering-page engineering-engineers-page">
       <PageHeader
         kicker="القسم الهندسي"
         title="المهندسون"
@@ -312,98 +312,109 @@ export default function EngineeringEngineersPage() {
         size="lg"
       >
         <form className="engineering-form" onSubmit={handleCreate}>
-          <div className="engineering-form-grid">
-            <Field
-              type="text"
-              name="first_name"
-              value={formData.first_name}
-              onChange={handleChange}
-              label="First Name"
-              iconClass="fa-solid fa-user"
-              error=""
-            />
-            <Field
-              type="text"
-              name="last_name"
-              value={formData.last_name}
-              onChange={handleChange}
-              label="Last Name"
-              iconClass="fa-solid fa-user"
-              error=""
-            />
-            <Field
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              label="Email"
-              iconClass="fa-solid fa-envelope"
-              error=""
-            />
-            <Field
-              type="text"
-              name="phone"
-              value={formData.phone}
-              onChange={handleChange}
-              label="Phone"
-              iconClass="fa-solid fa-phone"
-              error=""
-            />
-            <Field
-              type="text"
-              name="address"
-              value={formData.address}
-              onChange={handleChange}
-              label="Address"
-              iconClass="fa-solid fa-location-dot"
-              error=""
-            />
-            <Field
-              type="text"
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              label="Gender"
-              iconClass="fa-solid fa-venus-mars"
-              error=""
-            />
-            <Field
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              label="Password"
-              iconClass="fa-solid fa-lock"
-              error=""
-            />
-            <Field
-              type="password"
-              name="password_confirmation"
-              value={formData.password_confirmation}
-              onChange={handleChange}
-              label="Confirm Password"
-              iconClass="fa-solid fa-lock"
-              error=""
-            />
-            <Field
-              type="text"
-              name="specialization"
-              value={formData.specialization}
-              onChange={handleChange}
-              label="Specialization"
-              iconClass="fa-solid fa-briefcase"
-              error=""
-            />
-            <Field
-              type="number"
-              name="experience_years"
-              value={formData.experience_years}
-              onChange={handleChange}
-              label="Experience Years"
-              iconClass="fa-solid fa-award"
-              error=""
-            />
-          </div>
+         {/* التعديل الجديد: تنظيم الحقول على شكل صفوف ثنائية متناسقة لتوفير المساحة العمودية */}
+<div className="engineering-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+  
+  {/* الصف الأول: الاسم الأول واسم العائلة */}
+  <Field
+    type="text"
+    name="first_name"
+    value={formData.first_name}
+    onChange={handleChange}
+    label="الاسم الأول"
+    iconClass="fa-solid fa-user"
+    error=""
+  />
+  <Field
+    type="text"
+    name="last_name"
+    value={formData.last_name}
+    onChange={handleChange}
+    label="اسم العائلة"
+    iconClass="fa-solid fa-user"
+    error=""
+  />
+
+  {/* الصف الثاني: البريد الإلكتروني والهاتف */}
+  <Field
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    label="البريد الإلكتروني"
+    iconClass="fa-solid fa-envelope"
+    error=""
+  />
+  <Field
+    type="text"
+    name="phone"
+    value={formData.phone}
+    onChange={handleChange}
+    label="رقم الهاتف"
+    iconClass="fa-solid fa-phone"
+    error=""
+  />
+
+  {/* الصف الثالث: التخصص وسنوات الخبرة */}
+  <Field
+    type="text"
+    name="specialization"
+    value={formData.specialization}
+    onChange={handleChange}
+    label="التخصص"
+    iconClass="fa-solid fa-briefcase"
+    error=""
+  />
+  <Field
+    type="number"
+    name="experience_years"
+    value={formData.experience_years}
+    onChange={handleChange}
+    label="سنوات الخبرة"
+    iconClass="fa-solid fa-award"
+    error=""
+  />
+
+  {/* الصف الرابع: العنوان والجنس */}
+  <Field
+    type="text"
+    name="address"
+    value={formData.address}
+    onChange={handleChange}
+    label="العنوان"
+    iconClass="fa-solid fa-location-dot"
+    error=""
+  />
+  <Field
+    type="text"
+    name="gender"
+    value={formData.gender}
+    onChange={handleChange}
+    label="الجنس"
+    iconClass="fa-solid fa-venus-mars"
+    error=""
+  />
+
+  {/* الصف الخامس: كلمة المرور وتأكيدها */}
+  <Field
+    type="password"
+    name="password"
+    value={formData.password}
+    onChange={handleChange}
+    label="كلمة المرور"
+    iconClass="fa-solid fa-lock"
+    error=""
+  />
+  <Field
+    type="password"
+    name="password_confirmation"
+    value={formData.password_confirmation}
+    onChange={handleChange}
+    label="تأكيد كلمة المرور"
+    iconClass="fa-solid fa-lock"
+    error=""
+  />
+</div>
 
           <div className="modal-actions">
             <Button

@@ -188,3 +188,26 @@
     width: 100%;
   }
 }
+.modal-overlay {
+  padding: 16px; /* مسافة أمان لكي لا تلتصق النافذة بحواف الهاتف */
+}
+
+.modal-panel {
+  width: 100%;
+  max-width: 650px; /* العرض الأقصى على شاشات الكمبيوتر */
+  max-height: 90vh; /* منع خروج النافذة عمودياً عن الشاشة */
+  overflow-y: auto; /* إتاحة التمرير الداخلي في حال زيادة الحقول */
+  border-radius: 18px;
+}
+
+/* ضبط ذكي للأحجام بناءً على خاصية الـ size المررتها للـ Component */
+.modal-panel.xl { max-width: 1100px; }
+.modal-panel.lg { max-width: 800px; }
+.modal-panel.md { max-width: 550px; }
+
+@media (max-width: 576px) {
+  .modal-panel {
+    padding: 16px !important;
+    border-radius: 14px;
+  }
+}

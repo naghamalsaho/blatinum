@@ -1,0 +1,1311 @@
+@import "@/shared/constants/colors.css";
+
+.engineering-page {
+  display: grid;
+  gap: 20px;
+  padding: 8px 0 20px;
+}
+
+.engineering-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.engineering-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.engineering-toolbar {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  background: var(--dash-topbar-bg);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--dash-shadow);
+}
+
+.engineering-toolbar .toolbar-search {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: var(--dash-input-bg);
+  color: var(--dash-accent);
+}
+
+.engineering-toolbar .toolbar-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.engineering-toolbar .toolbar-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+.engineering-toolbar .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.engineering-toolbar .toolbar-select {
+  height: 44px;
+  min-width: 170px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 14px;
+  font-weight: 600;
+  outline: none;
+}
+
+.engineering-page .primary-action-btn {
+  height: 46px;
+  padding: 0 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.engineering-page .row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.engineering-page .icon-action-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.engineering-page .icon-action-btn:hover {
+  background: var(--dash-icon-hover-bg);
+}
+
+.engineering-page .icon-action-btn.danger {
+  color: var(--dash-accent-strong);
+}
+
+.project-empty-state {
+  padding: 18px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: var(--dash-blank-bg);
+  color: var(--dash-muted);
+  text-align: center;
+}
+
+.engineering-map-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.engineering-map-board {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineering-map-board-header,
+.engineering-section-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.engineering-map-board-header h2,
+.engineering-section-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--dash-text);
+}
+
+.engineering-map-board-header p,
+.engineering-section-head p {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineering-map-board-header span,
+.engineering-section-head span {
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineering-map-board--compact .engineering-map-real {
+  height: 360px;
+}
+
+.engineering-map-real {
+  height: 360px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  overflow: hidden;
+  background: var(--dash-blank-bg);
+  position: relative;
+}
+
+.leaflet-container {
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+}
+
+.map-popup {
+  min-width: 220px;
+  display: grid;
+  gap: 10px;
+}
+
+.map-popup h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--dash-text);
+}
+
+.map-popup p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.popup-details-btn {
+  border: 0;
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: var(--dash-accent);
+  color: var(--dash-surface);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.popup-details-btn:hover {
+  background: var(--dash-accent-strong);
+}
+
+.engineering-engineers-section {
+  display: grid;
+  gap: 12px;
+}
+
+.engineering-section-head--compact {
+  align-items: center;
+}
+
+.engineering-engineers-strip {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(280px, 340px);
+  gap: 12px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+}
+
+.engineer-compact-card {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+  display: grid;
+  gap: 14px;
+}
+
+.engineer-compact-top {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.engineer-compact-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-text);
+  font-weight: 800;
+}
+
+.engineer-compact-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.engineer-name-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: right;
+}
+
+.engineer-compact-meta {
+  margin: 4px 0 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.engineer-compact-info {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.engineer-compact-info strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.engineer-compact-info p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.engineer-compact-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.project-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 11px;
+  border: 1px solid var(--dash-line);
+  border-radius: 999px;
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-modal-layout--map,
+.engineer-modal-layout {
+  display: grid;
+  gap: 14px;
+  max-height: 72vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.project-modal-hero {
+  position: relative;
+  height: 210px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+}
+
+.project-modal-hero-map {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-muted);
+}
+
+.project-modal-map-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+  font-weight: 700;
+}
+
+.project-modal-map-coords {
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.project-modal-hero-overlay {
+  position: absolute;
+  inset: 12px 12px auto auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.project-modal-hero-chip {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-modal-grid {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;
+  gap: 14px;
+}
+
+.project-modal-panel {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.project-modal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.project-modal-info-card {
+  padding: 12px 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: var(--dash-blank-bg);
+}
+
+.project-modal-info-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.project-modal-info-card p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.project-modal-engineer-list,
+.project-modal-engineer-projects,
+.building-card-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.modal-engineer-row,
+.engineer-project-card,
+.building-card,
+.mini-project-card {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: var(--dash-blank-bg);
+}
+
+.modal-engineer-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  align-items: center;
+  text-align: right;
+  cursor: pointer;
+}
+
+.modal-engineer-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-text);
+  font-weight: 800;
+}
+
+.modal-engineer-info strong,
+.building-card h3 {
+  display: block;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.modal-engineer-info p,
+.modal-engineer-info span,
+.building-description {
+  margin: 4px 0 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.building-card-head,
+.mini-project-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.attachment-card {
+  display: grid;
+  gap: 8px;
+  text-decoration: none;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  padding: 10px;
+  background: var(--dash-blank-bg);
+}
+
+.attachment-thumb {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 10px;
+}
+
+.attachment-thumb--file {
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--dash-line);
+  color: var(--dash-muted);
+  background: var(--dash-card-bg);
+}
+
+.attachment-name {
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.engineering-map-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+}
+
+.pagination-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.pagination-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.pagination-info {
+  color: var(--dash-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.engineering-map-page .engineering-map-board,
+.engineering-map-page .engineering-map-real,
+.engineering-map-page .project-modal-panel,
+.engineering-map-page .project-modal-hero,
+.engineering-map-page .project-modal-info-card,
+.engineering-map-page .engineer-compact-card,
+.engineering-map-page .attachment-card,
+.engineering-map-page .building-card,
+.engineering-map-page .mini-project-card,
+.engineering-map-page .modal-engineer-row,
+.engineering-map-page .pagination-btn {
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  border: 1px solid var(--dash-line);
+  box-shadow: var(--dash-shadow);
+  color: var(--dash-text);
+}
+
+.engineering-map-page .project-chip {
+  background: var(--dash-hover-bg);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  backdrop-filter: blur(10px);
+}
+
+.engineering-map-page .leaflet-popup-content-wrapper,
+.engineering-map-page .leaflet-popup-tip {
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  border: 1px solid var(--dash-line);
+  box-shadow: var(--dash-shadow);
+}
+
+.engineering-map-page .map-popup h3 {
+  color: var(--dash-text);
+}
+
+.engineering-map-page .map-popup p {
+  color: var(--dash-muted);
+}
+
+.engineering-map-page .leaflet-control-zoom a {
+  background: var(--dash-surface) !important;
+  color: var(--dash-text) !important;
+  border-color: var(--dash-line) !important;
+}
+
+.engineering-map-page .leaflet-control-attribution {
+  background: var(--dash-topbar-bg) !important;
+  color: var(--dash-muted) !important;
+}
+
+.engineering-map-page .leaflet-control-attribution a {
+  color: var(--dash-accent) !important;
+}
+
+@media (max-width: 1100px) {
+  .engineering-stats-grid,
+  .project-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .engineering-engineers-strip {
+    grid-auto-columns: minmax(260px, 320px);
+  }
+}
+
+@media (max-width: 768px) {
+  .engineering-page-header,
+  .engineering-toolbar,
+  .engineering-map-board-header,
+  .engineering-section-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .engineering-toolbar .toolbar-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .engineering-map-board--compact .engineering-map-real {
+    height: 320px;
+  }
+
+  .project-modal-info-grid,
+  .engineer-compact-info {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-engineer-row {
+    grid-template-columns: 1fr;
+    justify-items: start;
+  }
+
+  .engineer-compact-top {
+    align-items: flex-start;
+  }
+}
+.engineering-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.engineering-summary-head h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.engineering-summary-head span {
+  color: var(--dash-muted);
+  font-size: 13px;
+  font-weight: 600;
+}
+.engineer-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.engineer-profile-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-text);
+  font-weight: 800;
+  flex-shrink: 0;
+}
+
+.engineer-profile-name {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.engineer-profile-sub {
+  margin: 4px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+.assign-select-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assign-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.assign-select {
+  width: 100%;
+  min-height: 52px;
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  padding: 0 16px;
+  color: var(--text-primary);
+  font-size: 14px;
+  outline: none;
+}
+
+.assign-select:focus {
+  border-color: var(--primary-color);
+}
+
+.assign-buildings-section {
+  margin-top: 28px;
+  border-top: 1px solid var(--border-color);
+  padding-top: 22px;
+}
+
+.assign-buildings-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  gap: 14px;
+}
+
+.assign-buildings-head h3 {
+  font-size: 18px;
+  font-weight: 700;
+}
+
+.assign-all-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.assign-buildings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.assign-building-card {
+  border: 1px solid var(--border-color);
+  background: var(--card-bg);
+  border-radius: 18px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.25s ease;
+}
+
+.assign-building-card:hover {
+  transform: translateY(-2px);
+}
+
+.assign-building-card.active {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.1);
+}
+
+.assign-building-card h4 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
+
+.assign-building-card p {
+  font-size: 13px;
+  opacity: 0.75;
+}
+.assign-modern-form {
+  display: grid;
+  gap: 26px;
+}
+
+.assign-modern-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 18px;
+}
+
+.assign-modern-field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.assign-modern-field label {
+  color: var(--dash-text);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.assign-modern-select,
+.assign-modern-input {
+  width: 100%;
+  height: 54px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  padding: 0 18px;
+  outline: none;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.assign-modern-select:focus,
+.assign-modern-input:focus {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 4px rgba(80, 120, 255, 0.12);
+}
+
+.assign-buildings-wrapper {
+  border: 1px solid var(--dash-line);
+  border-radius: 24px;
+  padding: 22px;
+  background: linear-gradient(
+    180deg,
+    var(--dash-surface),
+    var(--dash-surface-2)
+  );
+}
+
+.assign-buildings-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.assign-buildings-top h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.assign-buildings-top p {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.assign-all-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--dash-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.assign-buildings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.assign-building-modern-card {
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  background: var(--dash-blank-bg);
+  padding: 18px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: 0.25s ease;
+  text-align: right;
+}
+
+.assign-building-modern-card:hover {
+  transform: translateY(-3px);
+}
+
+.assign-building-modern-card.active {
+  border-color: var(--dash-accent);
+  background: rgba(88, 101, 242, 0.12);
+  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
+}
+
+.assign-building-modern-card h4 {
+  margin: 0 0 6px;
+  color: var(--dash-text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.assign-building-modern-card p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.assign-modern-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .assign-modern-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .assign-buildings-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+.engineer-modal-layout {
+  display: grid;
+  gap: 14px;
+  max-height: 74vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.engineer-profile-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.engineer-profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-text);
+  font-weight: 800;
+  font-size: 18px;
+  border: 1px solid var(--dash-line);
+}
+
+.engineer-profile-name {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.engineer-profile-sub {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineer-modal-map-card {
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-modal-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.engineer-modal-map-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.engineer-modal-map-head span {
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineer-modal-map-box {
+  height: 260px;
+  background: var(--dash-blank-bg);
+}
+
+.engineer-modal-section {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.engineer-modal-info {
+  padding: 12px 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: var(--dash-blank-bg);
+}
+
+.engineer-modal-info strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.engineer-modal-info p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.engineer-project-card {
+  padding: 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: var(--dash-blank-bg);
+}
+
+.engineer-project-card .project-title-btn {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.engineer-project-card .project-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+.engineer-modal-layout {
+  display: grid;
+  gap: 16px;
+  max-height: 74vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.engineer-profile-card {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border: 1px solid var(--dash-line);
+  border-radius: 22px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-profile-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.engineer-profile-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+  font-weight: 800;
+  font-size: 18px;
+  border: 1px solid var(--dash-line);
+}
+
+.engineer-profile-name {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.engineer-profile-sub {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineer-modal-section {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.engineer-modal-info {
+  padding: 12px 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: var(--dash-blank-bg);
+}
+
+.engineer-modal-info strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.engineer-modal-info p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.engineer-modal-map-card {
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.engineer-modal-map-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.engineer-modal-map-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.engineer-modal-map-head span {
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.engineer-modal-map-box {
+  height: 260px;
+  background: var(--dash-blank-bg);
+}
+
+/* ==================== اِستبدلي هذا الجزء في ملف الـ CSS ==================== */
+
+/* تحويل الحاوية إلى شبكة متجاوبة تعرض الكروت بجانب بعضها */
+.project-modal-engineer-projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* لتوزيع الكروت بجانب بعضها تلقائياً حسب الشاشة */
+  gap: 12px;
+  padding: 4px;
+}
+
+/* تعديل الكرت ليكون مدمجاً وصغير الحجم */
+.engineer-project-card {
+  padding: 12px 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: var(--dash-blank-bg);
+  box-shadow: var(--dash-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 8px; /* تقليص المسافات الداخلية لتصغير حجم الكرت */
+}
+
+/* تصغير الخطوط داخل الكرت ليتناسب مع الحجم المدمج */
+.engineer-project-card .project-title-btn {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px; /* جعل العنوان ناعم وصغير */
+  font-weight: 700;
+  text-align: right;
+  cursor: pointer;
+}
+
+.engineer-project-card .project-location-line {
+  margin: 4px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.engineer-project-card .building-description {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.engineer-project-card .project-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.engineer-project-card .project-chip {
+  padding: 7px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.project-modal-engineer-projects .project-empty-state {
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .engineer-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .engineer-profile-header {
+    align-items: flex-start;
+  }
+
+  .engineer-modal-map-box {
+    height: 220px;
+  }
+
+  .engineer-project-card .mini-project-card-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
