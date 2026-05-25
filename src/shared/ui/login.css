@@ -273,3 +273,96 @@ color: var(--login-accent);
   text-align: center;
   text-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
 }
+
+@media (max-width: 992px) {
+    .login-page-wrapper {
+        height: auto !important;
+        min-height: 100vh !important;
+        padding: 20px 10px !important;
+        overflow-y: auto;
+    }
+
+    .auth-wrapper {
+        width: 100% !important;
+        max-width: 450px;
+        height: auto !important;
+        flex-direction: column; 
+        padding: 30px 20px;
+        box-shadow: 0 10px 30px var(--login-shadow);
+        border-radius: 12px;
+        overflow: visible; 
+    }
+
+   
+    .background-shape {
+        display: none !important;
+    }
+
+   
+    .welcome-section {
+        position: relative !important;
+        top: 0 !important;
+        right: 0 !important;
+        transform: none !important; 
+        width: 100% !important;
+        margin-bottom: 25px !important; 
+        padding: 0;
+        animation: none !important; 
+    }
+
+    
+    .welcome-section h2 {
+        font-size: 26px !important;
+        text-shadow: none;
+        margin-bottom: 8px;
+        color: var(--login-title);
+    }
+
+    .welcome-section p {
+        font-size: 14px;
+        color: var(--login-label);
+    }
+
+    /* إلغاء تأثيرات الـ Slide الجانبية لعناصر الترحيب لتثبيتها */
+    .welcome-section .slide-element {
+        transform: none !important;
+        opacity: 1 !important;
+        filter: blur(0) !important;
+        transition: none !important; /* إلغاء أي تأخير زمني في الظهور */
+    }
+
+    /* حالة التفعيل على الموبايل: نضمن عدم حدوث أي حركات دخول مشوهة */
+    .auth-wrapper.toggled .welcome-section.signin .slide-element,
+    .auth-wrapper.toggled .welcome-section.signup .slide-element {
+        transform: none !important;
+        opacity: 1 !important;
+        filter: blur(0) !important;
+    }
+
+    /* *******************************************************
+       الخطوة الثانية: تنسيق لوحة المدخلات لتظهر بوضوح تحت الترحيب
+    */
+    .credentials-panel {
+        width: 100% !important;
+        padding: 0 !important;
+        z-index: 5;
+    }
+
+    .credentials-panel h2 {
+        font-size: 26px;
+        margin-bottom: 20px;
+        text-align: center;
+        color: var(--login-title);
+    }
+
+    
+    .field-wrapper {
+        margin-top: 25px;
+    }
+
+    .submit-button {
+        margin-top: 30px;
+        height: 46px;
+        font-size: 16px;
+    }
+}
