@@ -169,6 +169,8 @@
 }
 
 .warehouse-page .legal-toolbar {
+  position: relative;
+  z-index: 20;
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -178,6 +180,7 @@
   border-radius: 8px;
   background: var(--dash-card-bg);
   backdrop-filter: blur(14px);
+  overflow: visible;
 }
 
 .warehouse-page .toolbar-search {
@@ -231,6 +234,8 @@
 }
 
 .warehouse-page .legal-table-card {
+  position: relative;
+  z-index: 1;
   overflow: hidden;
 }
 
@@ -498,7 +503,7 @@
   border: 1px solid var(--dash-line);
   background: var(--dash-pill-bg);
   box-shadow: var(--dash-shadow);
-  z-index: 50;
+  z-index: 100;
   display: grid;
   gap: 6px;
 }

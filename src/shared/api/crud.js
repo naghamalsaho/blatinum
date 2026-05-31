@@ -77,9 +77,12 @@ const logRequest = (method, url, headers, payload) => {
 
 const handleApiError = (error) => {
   const status = error?.response?.status || null;
+  const responseData = error?.response?.data;
   const message =
-    error?.response?.data?.message ||
-    error?.response?.data?.status ||
+    responseData?.errors ||
+    responseData?.error ||
+    responseData?.message ||
+    responseData?.status ||
     error?.message ||
     "Something went wrong";
 

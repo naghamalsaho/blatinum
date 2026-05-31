@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchItems } from "./item.thunks";
+import { createItem, deleteItem, fetchItems, updateItem } from "./item.thunks";
 
 const initialState = {
   items: [],
@@ -25,6 +25,39 @@ const itemSlice = createSlice({
       .addCase(fetchItems.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Failed to load items";
+      })
+      .addCase(createItem.pending, (state) => {
+        state.actionLoading = true;
+        state.error = null;
+      })
+      .addCase(createItem.fulfilled, (state) => {
+        state.actionLoading = false;
+      })
+      .addCase(createItem.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload || "Failed to create item";
+      })
+      .addCase(updateItem.pending, (state) => {
+        state.actionLoading = true;
+        state.error = null;
+      })
+      .addCase(updateItem.fulfilled, (state) => {
+        state.actionLoading = false;
+      })
+      .addCase(updateItem.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload || "Failed to update item";
+      })
+      .addCase(deleteItem.pending, (state) => {
+        state.actionLoading = true;
+        state.error = null;
+      })
+      .addCase(deleteItem.fulfilled, (state) => {
+        state.actionLoading = false;
+      })
+      .addCase(deleteItem.rejected, (state, action) => {
+        state.actionLoading = false;
+        state.error = action.payload || "Failed to delete item";
       });
   },
 });

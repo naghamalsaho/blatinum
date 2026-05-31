@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import {
   Archive,
   Building2,
@@ -18,6 +19,9 @@ import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
+import StatusDropdown from "@/shared/components/StatusDropdown";
+import { getLocationsRequest } from "../features/warehouses/api/warehouse.api";
+import { createItem, deleteItem, updateItem } from "../features/items/model/item.thunks";
 import {
   createWarehouse,
   deleteWarehouse,
@@ -45,12 +49,168 @@ const FILTER_OPTIONS = [
   },
 ];
 
+const ITEM_STATUS_OPTIONS = [
+  {
+    value: "in_stock",
+    label: "In stock",
+    dotClass: "ok",
+  },
+  {
+    value: "out_of_stock",
+    label: "Out of stock",
+    dotClass: "off",
+  },
+  {
+    value: "discontinued",
+    label: "Discontinued",
+    dotClass: "off",
+  },
+];
+
 const getWarehouseItems = (warehouse) => warehouse.items || [];
+const getWarehouseLocationId = (warehouse) => {
+  const location = warehouse?.location;
+
+  return typeof location === "object" && location !== null ? location.id : location || "";
+};
+const getWarehouseLocationName = (warehouse) => {
+  const location = warehouse?.location;
+
+  if (typeof location === "object" && location !== null) {
+    return [location.name, location.type].filter(Boolean).join(" - ") || "-";
+  }
+
+  return location || "-";
+};
 const getWarehouseDescription = (warehouse) =>
-  warehouse.description || warehouse.location || "-";
+  warehouse.description || warehouse.address || getWarehouseLocationName(warehouse);
 
 const getItemTotals = (warehouses) =>
   warehouses.reduce((sum, warehouse) => sum + getWarehouseItems(warehouse).length, 0);
+
+const INITIAL_ITEM_FORM = {
+  sku: "",
+  name: "",
+  description: "",
+  quantity: "",
+  expiry_date: "",
+  purchase_date: "",
+  received_date: "",
+};
+
+const getItemFieldErrors = (formData, existingItems = []) => {
+  const errors = {};
+  const quantity = Number(formData.quantity);
+  const sku = formData.sku.trim().toLowerCase();
+  const purchaseTime = formData.purchase_date ? new Date(formData.purchase_date).getTime() : null;
+  const receivedTime = formData.received_date ? new Date(formData.received_date).getTime() : null;
+  const expiryTime = formData.expiry_date ? new Date(formData.expiry_date).getTime() : null;
+
+  if (!formData.sku.trim()) errors.sku = "SKU is required.";
+  if (!formData.name.trim()) errors.name = "Name is required.";
+  if (!formData.description.trim()) errors.description = "Description is required.";
+  if (sku && existingItems.some((item) => String(item.sku || "").trim().toLowerCase() === sku)) {
+    errors.sku = "SKU must be unique.";
+  }
+  if (formData.quantity === "") errors.quantity = "Quantity is required.";
+  if (formData.quantity !== "" && (!Number.isFinite(quantity) || quantity < 0)) {
+    errors.quantity = "Quantity must be zero or more.";
+  }
+  if (!formData.expiry_date) errors.expiry_date = "Expiry date is required.";
+  if (!formData.purchase_date) errors.purchase_date = "Purchase date is required.";
+  if (!formData.received_date) errors.received_date = "Received date is required.";
+  if (purchaseTime && receivedTime && receivedTime < purchaseTime) {
+    errors.received_date = "Received date cannot be before purchase date.";
+  }
+  if (receivedTime && expiryTime && expiryTime < receivedTime) {
+    errors.expiry_date = "Expiry date cannot be before received date.";
+  }
+
+  return errors;
+};
+
+const getItemFormErrors = (formData, existingItems = []) =>
+  Object.values(getItemFieldErrors(formData, existingItems));
+
+const getTouchedFields = (formData) =>
+  Object.keys(formData).reduce(
+    (fields, key) => ({
+      ...fields,
+      [key]: true,
+    }),
+    {}
+  );
+
+const getLocationLabel = (location) => {
+  if (!location) return "";
+
+  return [
+    `#${location.id}`,
+    location.name,
+    location.type,
+  ]
+    .filter(Boolean)
+    .join(" - ");
+};
+
+const getWarehouseLocation = (warehouse) => {
+  const location = warehouse?.location;
+
+  return typeof location === "object" && location !== null ? location : null;
+};
+
+const getUniqueLocations = (warehouses) => {
+  const locationsById = new Map();
+
+  warehouses.forEach((warehouse) => {
+    const location = getWarehouseLocation(warehouse);
+
+    if (location?.id) {
+      locationsById.set(String(location.id), location);
+    }
+  });
+
+  return Array.from(locationsById.values());
+};
+
+function LocationSelect({ name, value, onChange, locations, disabled = false }) {
+  return (
+    <div className="field-group">
+      <div className="field-wrapper">
+        <select
+          name={name}
+          required
+          value={value}
+          onChange={onChange}
+          disabled={disabled}
+        >
+          <option value="">Select location</option>
+          {locations.map((location) => (
+            <option key={location.id} value={String(location.id)}>
+              {getLocationLabel(location)}
+            </option>
+          ))}
+        </select>
+        <label>Location</label>
+        <i className="fa-solid fa-location-dot"></i>
+      </div>
+    </div>
+  );
+}
+
+LocationSelect.propTypes = {
+  name: PropTypes.string.isRequired,
+  value: PropTypes.string.isRequired,
+  onChange: PropTypes.func.isRequired,
+  locations: PropTypes.arrayOf(
+    PropTypes.shape({
+      id: PropTypes.oneOfType([PropTypes.number, PropTypes.string]).isRequired,
+      name: PropTypes.string,
+      type: PropTypes.string,
+    })
+  ).isRequired,
+  disabled: PropTypes.bool,
+};
 
 export default function AdminWarehousesPage() {
   const dispatch = useDispatch();
@@ -68,18 +228,56 @@ export default function AdminWarehousesPage() {
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedWarehouse, setSelectedWarehouse] = useState(null);
   const [itemsWarehouse, setItemsWarehouse] = useState(null);
+  const [itemCreateWarehouse, setItemCreateWarehouse] = useState(null);
+  const [itemDeleteOpen, setItemDeleteOpen] = useState(false);
+  const [selectedItem, setSelectedItem] = useState(null);
+  const [locations, setLocations] = useState([]);
+  const [locationsLoading, setLocationsLoading] = useState(false);
+  const itemActionLoading = useSelector((state) => state.items?.actionLoading || false);
+  const itemError = useSelector((state) => state.items?.error || "");
   const [createFormData, setCreateFormData] = useState({
     name: "",
-    location: "",
+    location_id: "",
+    address: "",
+    description: "",
   });
   const [formData, setFormData] = useState({
     name: "",
-    location: "",
+    location_id: "",
+    address: "",
+    description: "",
   });
+  const [itemFormData, setItemFormData] = useState(INITIAL_ITEM_FORM);
+  const [itemTouched, setItemTouched] = useState({});
+  const [itemCreateError, setItemCreateError] = useState("");
 
   useEffect(() => {
     dispatch(fetchWarehouses());
   }, [dispatch]);
+
+  useEffect(() => {
+    let ignore = false;
+
+    const loadLocations = async () => {
+      setLocationsLoading(true);
+
+      const result = await getLocationsRequest();
+
+      if (!ignore && result.ok) {
+        setLocations(result.data?.data ?? []);
+      }
+
+      if (!ignore) {
+        setLocationsLoading(false);
+      }
+    };
+
+    loadLocations();
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   const filteredWarehouses = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -91,7 +289,11 @@ export default function AdminWarehousesPage() {
         warehouse.id,
         warehouse.name,
         warehouse.description,
-        warehouse.location,
+        warehouse.address,
+        getWarehouseLocationId(warehouse),
+        getWarehouseLocationName(warehouse),
+        warehouse.location?.parent_id,
+        warehouse.location?.created_at,
         warehouse.created_at,
         warehouse.updated_at,
         ...warehouseItems.flatMap((item) => [
@@ -124,6 +326,34 @@ export default function AdminWarehousesPage() {
   const withItems = warehouses.filter((warehouse) => getWarehouseItems(warehouse).length > 0).length;
   const empty = total - withItems;
   const totalItems = getItemTotals(warehouses);
+  const locationOptions = useMemo(() => {
+    const optionsById = new Map();
+
+    getUniqueLocations(warehouses).forEach((location) => {
+      optionsById.set(String(location.id), location);
+    });
+
+    locations.forEach((location) => {
+      if (location?.id) {
+        optionsById.set(String(location.id), location);
+      }
+    });
+
+    return Array.from(optionsById.values());
+  }, [warehouses, locations]);
+  const activeItemsWarehouse = useMemo(() => {
+    if (!itemsWarehouse) return null;
+
+    return warehouses.find((warehouse) => warehouse.id === itemsWarehouse.id) || itemsWarehouse;
+  }, [warehouses, itemsWarehouse]);
+  const allWarehouseItems = useMemo(
+    () => warehouses.flatMap((warehouse) => getWarehouseItems(warehouse)),
+    [warehouses]
+  );
+  const itemFieldErrors = useMemo(
+    () => getItemFieldErrors(itemFormData, allWarehouseItems),
+    [itemFormData, allWarehouseItems]
+  );
 
   const handleChange = (event) => {
     const { name, value } = event.target;
@@ -143,11 +373,32 @@ export default function AdminWarehousesPage() {
     }));
   };
 
+  const handleItemChange = (event) => {
+    const { name, value } = event.target;
+
+    setItemCreateError("");
+    setItemFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleItemBlur = (event) => {
+    const { name } = event.target;
+
+    setItemTouched((prev) => ({
+      ...prev,
+      [name]: true,
+    }));
+  };
+
   const openEditModal = (warehouse) => {
     setSelectedWarehouse(warehouse);
     setFormData({
       name: warehouse.name || "",
-      location: warehouse.location || "",
+      location_id: String(getWarehouseLocationId(warehouse) || ""),
+      address: warehouse.address || "",
+      description: warehouse.description || "",
     });
     setEditOpen(true);
   };
@@ -161,12 +412,19 @@ export default function AdminWarehousesPage() {
     setItemsWarehouse(warehouse);
   };
 
+  const openItemCreateModal = (warehouse) => {
+    setItemCreateWarehouse(warehouse);
+    setItemsWarehouse(null);
+  };
+
   const closeEditModal = () => {
     setEditOpen(false);
     setSelectedWarehouse(null);
     setFormData({
       name: "",
-      location: "",
+      location_id: "",
+      address: "",
+      description: "",
     });
   };
 
@@ -180,7 +438,9 @@ export default function AdminWarehousesPage() {
         id: selectedWarehouse.id,
         payload: {
           name: formData.name,
-          location: formData.location,
+          location_id: formData.location_id,
+          address: formData.address,
+          description: formData.description,
         },
       })
     );
@@ -196,7 +456,9 @@ export default function AdminWarehousesPage() {
     const result = await dispatch(
       createWarehouse({
         name: createFormData.name,
-        location: createFormData.location,
+        location_id: createFormData.location_id,
+        address: createFormData.address,
+        description: createFormData.description,
       })
     );
 
@@ -204,8 +466,93 @@ export default function AdminWarehousesPage() {
       setCreateOpen(false);
       setCreateFormData({
         name: "",
-        location: "",
+        location_id: "",
+        address: "",
+        description: "",
       });
+    }
+  };
+
+  const closeItemCreateModal = () => {
+    setItemCreateWarehouse(null);
+    setItemFormData(INITIAL_ITEM_FORM);
+    setItemTouched({});
+    setItemCreateError("");
+  };
+
+  const handleCreateItem = async (event) => {
+    event.preventDefault();
+
+    if (!itemCreateWarehouse) return;
+
+    const validationErrors = getItemFormErrors(itemFormData, allWarehouseItems);
+
+    if (validationErrors.length > 0) {
+      const message = validationErrors.join("\n");
+      setItemTouched(getTouchedFields(itemFormData));
+      setItemCreateError(message);
+      return;
+    }
+
+    const result = await dispatch(
+      createItem({
+        warehouse_id: itemCreateWarehouse.id,
+        ...itemFormData,
+        status: Number(itemFormData.quantity || 0) > 0 ? "in_stock" : "out_of_stock",
+      })
+    );
+
+    if (createItem.fulfilled.match(result)) {
+      await dispatch(fetchWarehouses());
+      closeItemCreateModal();
+    } else {
+      setItemCreateError(result.payload || itemError || "Failed to create item.");
+    }
+  };
+
+  const handleItemStatusChange = async (item, status) => {
+    if (!item?.id || item.status === status) return;
+
+    const result = await dispatch(
+      updateItem({
+        id: item.id,
+        payload: { status },
+      })
+    );
+
+    if (updateItem.fulfilled.match(result)) {
+      await dispatch(fetchWarehouses());
+    }
+  };
+
+  const openItemDeleteModal = (item) => {
+    setSelectedItem(item);
+    setItemDeleteOpen(true);
+  };
+
+  const closeItemDeleteModal = () => {
+    setItemDeleteOpen(false);
+    setSelectedItem(null);
+  };
+
+  const handleDeleteItem = async () => {
+    if (!selectedItem?.id) return;
+
+    const result = await dispatch(deleteItem(selectedItem.id));
+
+    if (deleteItem.fulfilled.match(result)) {
+      const deletedItemId = selectedItem.id;
+
+      setItemsWarehouse((prev) =>
+        prev
+          ? {
+              ...prev,
+              items: getWarehouseItems(prev).filter((item) => item.id !== deletedItemId),
+            }
+          : prev
+      );
+      closeItemDeleteModal();
+      await dispatch(fetchWarehouses());
     }
   };
 
@@ -263,6 +610,8 @@ export default function AdminWarehousesPage() {
               <tr>
                 <th>ID</th>
                 <th>Name</th>
+                <th>Location</th>
+                <th>Address</th>
                 <th>Description</th>
                 <th>Items</th>
                 <th>Actions</th>
@@ -278,6 +627,10 @@ export default function AdminWarehousesPage() {
                     <tr key={warehouse.id}>
                       <td data-label="ID">{warehouse.id}</td>
                       <td data-label="Name">{warehouse.name || "-"}</td>
+                      <td data-label="Location">
+                        {getWarehouseLocationName(warehouse)}
+                      </td>
+                      <td data-label="Address">{warehouse.address || "-"}</td>
                       <td data-label="Description">
                         {getWarehouseDescription(warehouse)}
                       </td>
@@ -317,7 +670,7 @@ export default function AdminWarehousesPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="5" className="empty-cell">
+                  <td colSpan="7" className="empty-cell">
                     No warehouses found
                   </td>
                 </tr>
@@ -333,7 +686,9 @@ export default function AdminWarehousesPage() {
           setCreateOpen(false);
           setCreateFormData({
             name: "",
-            location: "",
+            location_id: "",
+            address: "",
+            description: "",
           });
         }}
         title="Create warehouse"
@@ -349,12 +704,29 @@ export default function AdminWarehousesPage() {
               iconClass="fa-solid fa-warehouse"
             />
 
-            <Field
-              name="location"
-              value={createFormData.location}
+            <LocationSelect
+              name="location_id"
+              value={createFormData.location_id}
               onChange={handleCreatePreviewChange}
-              label="Location"
-              iconClass="fa-solid fa-location-dot"
+              locations={locationOptions}
+              disabled={locationsLoading && locationOptions.length === 0}
+            />
+
+            <Field
+              name="address"
+              value={createFormData.address}
+              onChange={handleCreatePreviewChange}
+              label="Address"
+              iconClass="fa-solid fa-map"
+            />
+
+            <Field
+              name="description"
+              value={createFormData.description}
+              onChange={handleCreatePreviewChange}
+              label="Description"
+              iconClass="fa-solid fa-align-left"
+              required={false}
             />
           </div>
 
@@ -366,7 +738,9 @@ export default function AdminWarehousesPage() {
                 setCreateOpen(false);
                 setCreateFormData({
                   name: "",
-                  location: "",
+                  location_id: "",
+                  address: "",
+                  description: "",
                 });
               }}
               disabled={actionLoading}
@@ -386,33 +760,32 @@ export default function AdminWarehousesPage() {
       </Modal>
 
       <Modal
-        open={Boolean(itemsWarehouse)}
+        open={Boolean(activeItemsWarehouse)}
         onClose={() => setItemsWarehouse(null)}
-        title={itemsWarehouse?.name || "Warehouse items"}
-        description={`${getWarehouseItems(itemsWarehouse || {}).length} items assigned`}
+        title={activeItemsWarehouse?.name || "Warehouse items"}
+        description={`${getWarehouseItems(activeItemsWarehouse || {}).length} items assigned`}
         size="lg"
       >
         <section className="warehouse-items-panel">
           <div className="warehouse-items-toolbar">
             <div>
-              <strong>{getWarehouseDescription(itemsWarehouse || {})}</strong>
+              <strong>{getWarehouseDescription(activeItemsWarehouse || {})}</strong>
               <span>Manage the items stored in this warehouse.</span>
             </div>
 
             <button
               type="button"
               className="primary-action-btn"
-              title="Add item endpoint pending"
-              disabled
+              onClick={() => openItemCreateModal(activeItemsWarehouse)}
             >
               <Plus size={16} />
               <span>Add item</span>
             </button>
           </div>
 
-          {getWarehouseItems(itemsWarehouse || {}).length > 0 ? (
+          {getWarehouseItems(activeItemsWarehouse || {}).length > 0 ? (
             <div className="warehouse-item-list">
-              {getWarehouseItems(itemsWarehouse).map((item) => (
+              {getWarehouseItems(activeItemsWarehouse).map((item) => (
                 <article className="warehouse-item-card" key={item.id}>
                   <div className="warehouse-item-topline">
                     <div>
@@ -420,9 +793,12 @@ export default function AdminWarehousesPage() {
                       <small>{item.sku || "-"}</small>
                     </div>
 
-                    <span className={`warehouse-item-status ${item.status || ""}`}>
-                      {(item.status || "-").replaceAll("_", " ")}
-                    </span>
+                    <StatusDropdown
+                      trigger="button"
+                      value={item.status || "out_of_stock"}
+                      options={ITEM_STATUS_OPTIONS}
+                      onChange={(status) => handleItemStatusChange(item, status)}
+                    />
                   </div>
 
                   <p>{item.description || "-"}</p>
@@ -437,18 +813,10 @@ export default function AdminWarehousesPage() {
                   <div className="warehouse-item-actions">
                     <button
                       type="button"
-                      className="icon-action-btn"
-                      title="Edit item endpoint pending"
-                      disabled
-                    >
-                      <PencilLine size={15} />
-                    </button>
-
-                    <button
-                      type="button"
                       className="icon-action-btn danger"
-                      title="Delete item endpoint pending"
-                      disabled
+                      title="Delete item"
+                      onClick={() => openItemDeleteModal(item)}
+                      disabled={itemActionLoading}
                     >
                       <Trash2 size={15} />
                     </button>
@@ -460,6 +828,152 @@ export default function AdminWarehousesPage() {
             <div className="empty-cell">No items assigned</div>
           )}
         </section>
+      </Modal>
+
+      <Modal
+        open={itemDeleteOpen}
+        onClose={closeItemDeleteModal}
+        title="Delete item"
+        size="sm"
+      >
+        <div className="modal-form">
+          <p className="warehouse-delete-copy">
+            {selectedItem
+              ? `Delete ${selectedItem.name || selectedItem.sku || `item #${selectedItem.id}`}?`
+              : "Delete this item?"}
+          </p>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={closeItemDeleteModal}
+              disabled={itemActionLoading}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              className="primary-action-btn"
+              onClick={handleDeleteItem}
+              disabled={itemActionLoading}
+            >
+              {itemActionLoading ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal
+        open={Boolean(itemCreateWarehouse)}
+        onClose={closeItemCreateModal}
+        title="Create item"
+        description={
+          itemCreateWarehouse
+            ? `Warehouse: ${itemCreateWarehouse.name || `#${itemCreateWarehouse.id}`}`
+            : undefined
+        }
+        size="md"
+      >
+        <form className="modal-form" onSubmit={handleCreateItem}>
+          {itemCreateError ? <div className="form-alert">{itemCreateError}</div> : null}
+
+          <div className="modal-grid">
+            <Field
+              name="sku"
+              value={itemFormData.sku}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="SKU"
+              iconClass="fa-solid fa-barcode"
+              error={itemTouched.sku ? itemFieldErrors.sku : ""}
+            />
+
+            <Field
+              name="name"
+              value={itemFormData.name}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Name"
+              iconClass="fa-solid fa-box"
+              error={itemTouched.name ? itemFieldErrors.name : ""}
+            />
+
+            <Field
+              name="description"
+              value={itemFormData.description}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Description"
+              iconClass="fa-solid fa-align-left"
+              error={itemTouched.description ? itemFieldErrors.description : ""}
+            />
+
+            <Field
+              type="number"
+              name="quantity"
+              value={itemFormData.quantity}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Quantity"
+              iconClass="fa-solid fa-hashtag"
+              error={itemTouched.quantity ? itemFieldErrors.quantity : ""}
+            />
+
+            <Field
+              type="date"
+              name="expiry_date"
+              value={itemFormData.expiry_date}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Expiry date"
+              iconClass="fa-solid fa-calendar-xmark"
+              error={itemTouched.expiry_date ? itemFieldErrors.expiry_date : ""}
+            />
+
+            <Field
+              type="date"
+              name="purchase_date"
+              value={itemFormData.purchase_date}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Purchase date"
+              iconClass="fa-solid fa-calendar-day"
+              error={itemTouched.purchase_date ? itemFieldErrors.purchase_date : ""}
+            />
+
+            <Field
+              type="date"
+              name="received_date"
+              value={itemFormData.received_date}
+              onChange={handleItemChange}
+              onBlur={handleItemBlur}
+              label="Received date"
+              iconClass="fa-solid fa-calendar-check"
+              error={itemTouched.received_date ? itemFieldErrors.received_date : ""}
+            />
+          </div>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={closeItemCreateModal}
+              disabled={itemActionLoading}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="submit"
+              className="primary-action-btn"
+              disabled={itemActionLoading}
+            >
+              {itemActionLoading ? "Saving..." : "Save"}
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       <Modal
@@ -478,12 +992,29 @@ export default function AdminWarehousesPage() {
               iconClass="fa-solid fa-warehouse"
             />
 
-            <Field
-              name="location"
-              value={formData.location}
+            <LocationSelect
+              name="location_id"
+              value={formData.location_id}
               onChange={handleChange}
-              label="Location"
-              iconClass="fa-solid fa-location-dot"
+              locations={locationOptions}
+              disabled={locationsLoading && locationOptions.length === 0}
+            />
+
+            <Field
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              label="Address"
+              iconClass="fa-solid fa-map"
+            />
+
+            <Field
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              label="Description"
+              iconClass="fa-solid fa-align-left"
+              required={false}
             />
           </div>
 

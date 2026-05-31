@@ -5,10 +5,13 @@ export default function Field({
   name,
   value,
   onChange,
+  onBlur,
   label,
   iconClass,
   required = true,
   error = "",
+  readOnly = false,
+  disabled = false,
 }) {
   return (
     <div className="field-group">
@@ -19,6 +22,9 @@ export default function Field({
           required={required}
           value={value}
           onChange={onChange}
+          onBlur={onBlur}
+          readOnly={readOnly}
+          disabled={disabled}
         />
         <label>{label}</label>
         <i className={iconClass}></i>
@@ -34,8 +40,11 @@ Field.propTypes = {
   name: PropTypes.string.isRequired,
   value: PropTypes.string.isRequired,
   onChange: PropTypes.func.isRequired,
+  onBlur: PropTypes.func,
   label: PropTypes.string.isRequired,
   iconClass: PropTypes.string.isRequired,
   required: PropTypes.bool,
   error: PropTypes.string,
+  readOnly: PropTypes.bool,
+  disabled: PropTypes.bool,
 };
