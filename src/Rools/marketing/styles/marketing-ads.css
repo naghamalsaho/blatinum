@@ -1,0 +1,1116 @@
+@import "@/shared/constants/colors.css";
+
+.marketing-ads-page {
+  --marketing-accent: var(--dash-accent);
+  --marketing-accent-strong: var(--dash-accent-strong);
+  --marketing-soft: var(--dash-shell-glow-1);
+
+  display: grid;
+  gap: 22px;
+  width: 100%;
+}
+
+.marketing-ads-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.marketing-primary-btn,
+.marketing-secondary-btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.marketing-primary-btn {
+  background: linear-gradient(
+    180deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+}
+
+.marketing-secondary-btn {
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.marketing-primary-btn:hover,
+.marketing-secondary-btn:hover {
+  transform: translateY(-1px);
+  border-color: var(--dash-accent);
+}
+
+.marketing-full-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.marketing-ads-hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 28px;
+  border-radius: 28px;
+  border: 1px solid var(--dash-line);
+  background:
+    radial-gradient(circle at top right, var(--dash-shell-glow-1), transparent 32%),
+    linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+  width: 100%;
+}
+
+.marketing-ads-hero-copy {
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+  flex: 1;
+}
+
+.marketing-ads-kicker {
+  margin: 0;
+  color: var(--dash-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.marketing-ads-hero h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(20px, 3vw, 36px);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.marketing-ads-text {
+  margin: 0;
+  max-width: 720px;
+  color: var(--dash-muted);
+  line-height: 1.8;
+  font-size: 14px;
+}
+
+.marketing-ads-badges {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.marketing-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ==========================================
+   كارد أحدث إعلان نشط 
+   ========================================== */
+.marketing-ads-summary-card {
+  min-width: 280px;
+  max-width: 340px;
+  width: 100%;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-card-bg), var(--dash-panel-bg));
+  box-shadow: var(--dash-shadow);
+  display: grid;
+  gap: 18px;
+  flex-shrink: 0;
+}
+
+.marketing-ads-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.marketing-ads-summary-head p {
+  margin: 0 0 4px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.marketing-ads-summary-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 16px; 
+  font-weight: 800;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.marketing-summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+  flex-shrink: 0;
+}
+
+.marketing-ads-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.marketing-ads-summary-metrics div {
+  padding: 10px 6px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  text-align: center;
+}
+
+.marketing-ads-summary-metrics strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.marketing-ads-summary-metrics span {
+  color: var(--dash-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+/* ==========================================
+   تلوين وتنسيق زر عرض التفاصيل ليتماشى مع النمط اللوني كاملاً
+   ========================================== */
+/* ==========================================
+   تلوين وتنسيق زر عرض التفاصيل ليتماشى مع النمط اللوني كاملاً
+   ========================================== */
+.marketing-summary-preview-btn {
+  position: relative;
+  width: 62px;
+  height: 62px;
+  /* تغيير نوع الحدود لضمان قراءة المتغير بوضوح في اللايت مود */
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 16px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: var(--dash-input-bg);
+  /* إجبار تلوين الخط والأيقونات على قراءة متغير النص المحدث */
+  color: var(--dash-text) !important;
+  flex-shrink: 0;
+  outline: none;
+  transition: all 0.25s ease-in-out;
+}
+
+.marketing-summary-preview-btn:hover {
+  border-color: var(--dash-accent) !important;
+  box-shadow: 0 0 12px var(--dash-shell-glow-1);
+}
+
+.marketing-summary-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: 0.25s ease;
+}
+
+.marketing-summary-preview-btn:hover .marketing-summary-preview-img {
+  transform: scale(1.08);
+}
+
+/* طبقة الأوفرلاي عند التحويم تم ضبطها كلياً لتفادي ثبات اللون الأبيض */
+.marketing-summary-overlay {
+  position: absolute;
+  inset: 0;
+  /* استخدام لون السطح المتغير بدلاً من قيم rgba الثابتة */
+  background: var(--dash-surface);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  /* تلوين النص أو السهم الداخلي ليعكس متغير النص المعتمد باللايت مود */
+  color: var(--dash-text) !important;
+}
+
+/* في حال وجود أيقونة SVG داخل الأوفرلاي، يتم إجبارها على أخذ لون النص المتغير */
+.marketing-summary-overlay svg {
+  fill: currentColor;
+  stroke: currentColor;
+}
+
+.marketing-summary-preview-btn:hover .marketing-summary-overlay {
+  opacity: 0.9; /* تعتيم متوازن يضمن الرؤية في النمطين */
+}
+
+.marketing-summary-preview-empty {
+  width: 62px;
+  height: 62px;
+  border-radius: 16px;
+  border: 1px dashed var(--dash-line) !important;
+  background: var(--dash-blank-bg);
+  display: grid;
+  place-items: center;
+  color: var(--dash-muted) !important;
+  flex-shrink: 0;
+}
+
+/* باقي الواجهة والجداول */
+.marketing-ads-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.marketing-panel {
+  min-width: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.marketing-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.marketing-panel-head h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.marketing-panel-head p {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.marketing-ads-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+
+.marketing-search {
+  flex: 1;
+  min-width: 240px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+}
+
+.marketing-search input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.marketing-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+.marketing-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-color: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.marketing-select option {
+  background: var(--dash-surface);
+  color: var(--dash-text);
+}
+
+.marketing-ads-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+  max-height: 400px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.marketing-ads-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.marketing-ads-table {
+  width: 100%;
+  min-width: 860px;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+
+.marketing-ads-table th,
+.marketing-ads-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  text-align: right;
+  vertical-align: middle;
+  overflow: hidden;
+}
+
+.marketing-ads-table th {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.marketing-ads-table td {
+  color: var(--dash-text);
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.marketing-ads-table th:nth-child(1), .marketing-ads-table td:nth-child(1) { width: 22%; }
+.marketing-ads-table th:nth-child(2), .marketing-ads-table td:nth-child(2) { width: 16%; }
+.marketing-ads-table th:nth-child(3), .marketing-ads-table td:nth-child(3) { width: 12%; }
+.marketing-ads-table th:nth-child(4), .marketing-ads-table td:nth-child(4) { width: 12%; }
+.marketing-ads-table th:nth-child(5), .marketing-ads-table td:nth-child(5) { width: 12%; }
+.marketing-ads-table th:nth-child(6), .marketing-ads-table td:nth-child(6) { width: 10%; }
+.marketing-ads-table th:nth-child(7), .marketing-ads-table td:nth-child(7) { width: 10%; }
+.marketing-ads-table th:nth-child(8), .marketing-ads-table td:nth-child(8) { width: 8%; }
+
+.marketing-primary-td {
+  font-weight: 800;
+}
+
+.marketing-ad-title-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.marketing-ad-title-cell span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--dash-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.marketing-ad-thumb-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  background: var(--dash-card-bg);
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.marketing-ad-thumb-btn:disabled {
+  cursor: default;
+  opacity: 0.9;
+}
+
+.marketing-ad-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.marketing-ad-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--dash-muted);
+  background: var(--dash-blank-bg);
+}
+
+.marketing-desc-cell {
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.marketing-date {
+  color: var(--dash-muted);
+  font-size: 11px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+.marketing-metric--duration {
+  color: var(--dash-text);
+  font-weight: 700;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.marketing-type-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: var(--dash-pill-bg);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 10px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.marketing-type-chip svg {
+  width: 10px;
+  height: 10px;
+}
+
+.marketing-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.marketing-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+  flex-shrink: 0;
+}
+
+.marketing-icon-btn:hover {
+  background: var(--dash-icon-hover-bg);
+  transform: translateY(-1px);
+}
+
+.marketing-icon-btn.danger {
+  color: var(--dash-accent-strong);
+}
+
+.marketing-ads-table tbody tr {
+  height: 84px;
+}
+
+.marketing-ads-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
+.marketing-side-column {
+  display: grid;
+  gap: 18px;
+}
+
+.marketing-activity-list {
+  display: grid;
+  gap: 12px;
+}
+
+.marketing-activity-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+}
+
+.activity-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--dash-accent);
+  box-shadow: 0 0 14px var(--dash-accent);
+  flex-shrink: 0;
+}
+
+.marketing-activity-item p {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.marketing-quick-panel {
+  display: grid;
+  gap: 14px;
+}
+
+.marketing-quick-actions {
+  display: grid;
+  gap: 12px;
+}
+
+.marketing-portfolio-section {
+  display: grid;
+  gap: 14px;
+  width: 100%;
+}
+
+.marketing-section-head {
+  margin-bottom: 2px;
+}
+
+.marketing-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+
+.marketing-portfolio-card {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.marketing-portfolio-hero {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  font-size: 48px;
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+}
+
+.marketing-portfolio-body {
+  padding: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.marketing-portfolio-body h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.marketing-portfolio-body p {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.marketing-portfolio-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.marketing-unit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.marketing-modal-form {
+  display: grid;
+  gap: 16px;
+}
+
+.marketing-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.marketing-modal-grid--single {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.marketing-mini-preview {
+  display: grid;
+  place-items: center;
+  min-height: 120px;
+}
+
+.marketing-mini-preview-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.marketing-mini-preview-btn img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+}
+
+.marketing-mini-preview-empty {
+  width: 100%;
+  min-height: 120px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed var(--dash-line);
+  border-radius: 16px;
+  color: var(--dash-muted);
+  background: var(--dash-blank-bg);
+}
+
+.marketing-image-preview {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+}
+
+.marketing-image-preview img {
+  width: 100%;
+  max-height: 75vh;
+  object-fit: contain;
+  display: block;
+}
+
+.marketing-ads-main-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  align-items: start;
+  width: 100%;
+}
+
+.marketing-panel--full {
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+}
+
+.marketing-preview-modal {
+  display: grid;
+  gap: 14px;
+}
+
+.marketing-preview-image-btn {
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+  border-radius: 16px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+}
+
+.marketing-image-preview-img {
+  width: 100%;
+  max-height: 380px;
+  object-fit: contain;
+  display: block;
+  background: var(--dash-blank-bg);
+}
+
+.marketing-preview-details {
+  display: grid;
+  gap: 8px;
+}
+
+.marketing-preview-details h3 {
+  font-size: 14px;
+  line-height: 1.4;
+  margin: 0;
+  color: var(--dash-text);
+  font-weight: 800;
+}
+
+.marketing-preview-details p {
+  font-size: 12px;
+  line-height: 1.7;
+  margin: 0;
+  color: var(--dash-muted);
+}
+
+/* ==========================================================================
+   Media Queries المحسّنة بدقة - ريسبونسب بالكامل
+   ========================================================================== */
+
+@media (max-width: 1180px) {
+  .marketing-ads-stats-grid,
+  .marketing-portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 991px) {
+  .marketing-ads-hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+  }
+
+  .marketing-ads-summary-card {
+    max-width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .marketing-ads-hero {
+    padding: 20px;
+    border-radius: 20px;
+  }
+
+  .marketing-ads-stats-grid,
+  .marketing-portfolio-grid,
+  .marketing-modal-grid,
+  .marketing-modal-grid--single {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .marketing-ads-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .marketing-search,
+  .marketing-select {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .marketing-panel {
+    padding: 16px;
+  }
+
+  .marketing-panel-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 8px;
+  }
+
+  .marketing-ads-actions {
+    width: 100%;
+  }
+
+  .marketing-ads-actions > * {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .marketing-ads-hero h1 {
+    font-size: 20px;
+  }
+
+  .marketing-ads-summary-card {
+    padding: 16px;
+  }
+
+  .marketing-ads-summary-metrics {
+    gap: 6px;
+  }
+
+  .marketing-ads-summary-metrics div {
+    padding: 8px 4px;
+  }
+
+  .marketing-ads-summary-metrics span {
+    font-size: 12px;
+  }
+}
+/* ==========================================
+   تنسيق زر عرض تفاصيل الإعلان النشط ليتوافق مع اللايت والدارك مود
+   ========================================== */
+.marketing-view-dialog-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 12px;
+  /* الاعتماد على متغيرات اللوحة الترابية بدلاً من القيم الثابتة البيضاء */
+  background: var(--dash-input-bg);
+  border: 1px dashed var(--dash-line);
+  border-radius: 8px;
+  color: var(--dash-text);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.marketing-view-dialog-btn:hover {
+  border-color: var(--dash-accent);
+  background: var(--dash-hover-bg);
+  color: var(--dash-accent);
+}
+
+.marketing-view-dialog-btn svg {
+  fill: transparent;
+  stroke: currentColor;
+}
+/* =========================
+   MARKETING MODAL - UNIFIED FIELDS
+========================= */
+
+.marketing-modal-form {
+  display: grid;
+  gap: 18px;
+}
+
+.marketing-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.marketing-modal-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.marketing-modal-form .custom-form-group,
+.marketing-modal-form .project-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.marketing-modal-form .project-label,
+.marketing-modal-form label {
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.marketing-modal-form .marketing-select,
+.marketing-modal-form input[type="text"],
+.marketing-modal-form input[type="number"],
+.marketing-modal-form input[type="date"],
+.marketing-modal-form textarea {
+  width: 100%;
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.marketing-modal-form .marketing-select,
+.marketing-modal-form input[type="text"],
+.marketing-modal-form input[type="number"],
+.marketing-modal-form input[type="date"] {
+  height: 44px;
+  padding: 0 14px;
+}
+
+.marketing-modal-form textarea {
+  min-height: 96px;
+  padding: 12px 14px;
+  resize: vertical;
+  line-height: 1.7;
+}
+
+.marketing-modal-form .marketing-select::placeholder,
+.marketing-modal-form input::placeholder,
+.marketing-modal-form textarea::placeholder {
+  color: var(--dash-muted);
+}
+
+.marketing-modal-form .marketing-select:focus,
+.marketing-modal-form input:focus,
+.marketing-modal-form textarea:focus {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-shell-glow-1);
+}
+
+.marketing-modal-form .marketing-select option {
+  background: var(--dash-surface);
+  color: var(--dash-text);
+}
+
+/* file row */
+.marketing-modal-form .file-row,
+.marketing-modal-form .attachment-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.marketing-modal-form .file-name,
+.marketing-modal-form .attachment-name,
+.marketing-modal-form .selected-file-name {
+  color: var(--dash-muted);
+  font-size: 12px;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 220px;
+}
+
+/* file button */
+.marketing-modal-form .marketing-secondary-btn {
+  height: 44px;
+  padding: 0 16px;
+  white-space: nowrap;
+}
+
+/* modal footer actions */
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+/* responsive */
+@media (max-width: 768px) {
+  .marketing-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-modal-form .file-row,
+  .marketing-modal-form .attachment-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .marketing-modal-form .file-name,
+  .marketing-modal-form .attachment-name,
+  .marketing-modal-form .selected-file-name {
+    max-width: 100%;
+  }
+}
+.marketing-modal-form .marketing-file-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.marketing-modal-form .marketing-file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+  height: 44px;
+}
+
+.marketing-modal-form .marketing-file-name {
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marketing-modal-form input[type="text"],
+.marketing-modal-form input[type="number"],
+.marketing-modal-form input[type="date"] {
+  border-bottom: 1px solid var(--dash-line) !important;
+  box-shadow: none !important;
+}
+
+.marketing-modal-form textarea {
+  border: 1px solid var(--dash-line);
+  box-shadow: none !important;
+}
+/* إزالة المحيط من حقول العنوان ومدة الإعلان فقط */
+.marketing-modal-form input[name="title"],
+.marketing-modal-form input[name="duration_days"] {
+  border: 0 !important;
+  outline: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+}
+
+/* لو كان في خط سفلي من الـ Field نفسه */
+.marketing-modal-form input[name="title"]::before,
+.marketing-modal-form input[name="duration_days"]::before,
+.marketing-modal-form input[name="title"]::after,
+.marketing-modal-form input[name="duration_days"]::after {
+  display: none !important;
+}

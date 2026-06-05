@@ -50,7 +50,16 @@ const getLoginPath = (payload = {}) => {
   if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
     return "/engineering";
   }
-
+if (
+  hasAnyMatch(userText, [
+    "marketing_staff",
+    "marketing",
+    "marketer",
+    "تسويق",
+  ])
+) {
+  return "/marketing";
+}
   if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
   }

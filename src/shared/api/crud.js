@@ -1,7 +1,12 @@
 import { http } from "./http";
 
 const normalizeStoredToken = (value) => {
-  if (!value || value === "undefined" || value === "null" || value === "[object Object]") {
+  if (
+    !value ||
+    value === "undefined" ||
+    value === "null" ||
+    value === "[object Object]"
+  ) {
     return null;
   }
 
@@ -31,11 +36,11 @@ const getToken = () => {
   const token = localStorage.getItem("token");
   return normalizeStoredToken(token);
 };
+
 const getLanguage = () => localStorage.getItem("lang") || "en";
 
 const maskToken = (token) => {
   if (!token) return null;
-
   return `${token.slice(0, 8)}...${token.slice(-6)}`;
 };
 
@@ -75,20 +80,45 @@ const logRequest = (method, url, headers, payload) => {
   });
 };
 
+const stringifyMaybeObject = (value) => {
+  if (typeof value === "string") return value;
+  if (!value) return null;
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => stringifyMaybeObject(item))
+      .filter(Boolean)
+      .join(" ، ");
+  }
+
+  if (typeof value === "object") {
+    const entries = Object.entries(value)
+      .map(([key, val]) => `${key}: ${stringifyMaybeObject(val)}`)
+      .filter(Boolean);
+
+    return entries.length ? entries.join(" | ") : JSON.stringify(value);
+  }
+
+  return String(value);
+};
+
 const handleApiError = (error) => {
   const status = error?.response?.status || null;
-  const message =
+
+  const rawMessage =
     error?.response?.data?.message ||
     error?.response?.data?.status ||
     error?.message ||
     "Something went wrong";
+
+  const message = stringifyMaybeObject(rawMessage) || "Something went wrong";
 
   console.error("[API ERROR]", {
     url: error?.config?.url,
     baseURL: error?.config?.baseURL,
     method: error?.config?.method,
     status,
-    message,
+    message: rawMessage,
     response: error?.response?.data,
     sentAuthorization: error?.config?.headers?.Authorization
       ? "Bearer <token>"
@@ -144,6 +174,22 @@ export const api = {
     }
   },
 
+  postForm: async (url, formData) => {
+    try {
+      const headers = buildHeaders(true);
+      logRequest("POST FORM", url, headers, formData);
+
+      const response = await http.post(url, formData, {
+        headers,
+      });
+
+      console.log(`[API POST FORM SUCCESS] ${url}`, response.data);
+      return normalizeSuccess(response);
+    } catch (error) {
+      return handleApiError(error);
+    }
+  },
+
   put: async (url, data = {}) => {
     try {
       const headers = buildHeaders(false);
@@ -162,14 +208,7 @@ export const api = {
 
   putForm: async (url, formData) => {
     try {
-      const token = getToken();
-      const headers = {
-        Accept: "application/json",
-        "Accept-Language": getLanguage(),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        "Content-Type": "multipart/form-data",
-      };
-
+      const headers = buildHeaders(true);
       logRequest("PUT FORM", url, headers, formData);
 
       const response = await http.put(url, formData, {
@@ -217,14 +256,7 @@ export const api = {
 
   upload: async (url, formData) => {
     try {
-      const token = getToken();
-      const headers = {
-        Accept: "application/json",
-        "Accept-Language": getLanguage(),
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        "Content-Type": "multipart/form-data",
-      };
-
+      const headers = buildHeaders(true);
       logRequest("UPLOAD", url, headers, formData);
 
       const response = await http.post(url, formData, {

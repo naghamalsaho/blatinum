@@ -3,7 +3,8 @@ import {
   Megaphone,
   BadgeDollarSign,
   TicketPercent,
-  ChartNoAxesCombined,
+    Building2,
+  
 } from "lucide-react";
 
 
@@ -43,14 +44,14 @@ export const marketingSidebar = [
     ],
   },
 
-  {
-    title: "التحليلات",
-    items: [
-      {
-        label: "التقارير والإحصائيات",
-        icon: ChartNoAxesCombined,
-        to: "/marketing/analytics",
-      },
-    ],
-  },
+ {
+  title: "إدارة المشاريع",
+  items: [
+    {
+      label: "المشاريع والخدمات",
+      icon: Building2,
+      to: "/marketing/projects",
+    },
+  ],
+},
 ];
