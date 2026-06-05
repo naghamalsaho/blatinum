@@ -109,5 +109,5 @@ Modal.propTypes = {
   onClose: PropTypes.func.isRequired,
   children: PropTypes.node.isRequired,
   footer: PropTypes.node,
-  size: PropTypes.oneOf(["sm", "md", "lg"]),
+  size: PropTypes.oneOf(["sm", "md", "lg", "xl"]),
 };

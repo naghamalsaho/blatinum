@@ -104,10 +104,13 @@ const stringifyMaybeObject = (value) => {
 
 const handleApiError = (error) => {
   const status = error?.response?.status || null;
+  const responseData = error?.response?.data;
 
   const rawMessage =
-    error?.response?.data?.message ||
-    error?.response?.data?.status ||
+    responseData?.message ||
+    responseData?.status ||
+    responseData?.error ||
+    responseData?.errors ||
     error?.message ||
     "Something went wrong";
 
@@ -119,7 +122,7 @@ const handleApiError = (error) => {
     method: error?.config?.method,
     status,
     message: rawMessage,
-    response: error?.response?.data,
+    response: responseData,
     sentAuthorization: error?.config?.headers?.Authorization
       ? "Bearer <token>"
       : "missing",
