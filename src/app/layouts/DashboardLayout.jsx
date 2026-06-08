@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 
 import Sidebar from "@/shared/components/dashboard/Sidebar";
 import Topbar from "@/shared/components/dashboard/Topbar";
-
+import GlobalErrorDialog from "@/shared/components/GlobalErrorDialog";
 export default function DashboardLayout({
   sidebarConfig = [],
   topbar = {},
@@ -14,40 +14,42 @@ export default function DashboardLayout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="dashboard-shell" dir="rtl">
-      <Sidebar
-        open={sidebarOpen}
-        onClose={() => setSidebarOpen(false)}
-        brand={brand}
-        sections={sidebarConfig}
-        footer={footer}
+  <div className="dashboard-shell" dir="rtl">
+    <Sidebar
+      open={sidebarOpen}
+      onClose={() => setSidebarOpen(false)}
+      brand={brand}
+      sections={sidebarConfig}
+      footer={footer}
+    />
+
+    <main className="dashboard-main">
+      <Topbar
+        onMenuClick={() => setSidebarOpen(true)}
+        title={topbar.title}
+        subtitle={topbar.subtitle}
+        searchPlaceholder={topbar.searchPlaceholder}
+        actions={topbar.actions}
+        user={topbar.user}
       />
 
-      <main className="dashboard-main">
-        <Topbar
-          onMenuClick={() => setSidebarOpen(true)}
-          title={topbar.title}
-          subtitle={topbar.subtitle}
-          searchPlaceholder={topbar.searchPlaceholder}
-          actions={topbar.actions}
-          user={topbar.user}
-        />
+      <section className="dashboard-content">
+        {children}
+      </section>
+    </main>
 
-        <section className="dashboard-content">
-          {children}
-        </section>
-      </main>
+    {sidebarOpen && (
+      <button
+        type="button"
+        className="dashboard-backdrop"
+        onClick={() => setSidebarOpen(false)}
+        aria-label="إغلاق الخلفية"
+      />
+    )}
 
-      {sidebarOpen && (
-        <button
-          type="button"
-          className="dashboard-backdrop"
-          onClick={() => setSidebarOpen(false)}
-          aria-label="إغلاق الخلفية"
-        />
-      )}
-    </div>
-  );
+    <GlobalErrorDialog />
+  </div>
+);
 }
 
 DashboardLayout.propTypes = {

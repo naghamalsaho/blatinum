@@ -8,9 +8,15 @@ import itemReducer from "@/Rools/admin/features/items/model/item.slice";
 import projectEngineerReducer from "@/Rools/engineering/features/engineerProjects/model/engineerProject.slice";
 import engineerReducer from "@/Rools/engineering/features/engineers/model/engineer.slice";
 import advertisementReducer from "@/Rools/marketing/features/advertisements/model/advertisement.slice";
+import projectReducer from "@/Rools/marketing/features/projects/model/project.slice";
+import buildingReducer from "@/Rools/marketing/features/buildings/model/building.slice";
+import unitReducer from "@/Rools/marketing/features/units/model/unit.slice";
+import locationReducer from "@/Rools/marketing/features/locations/model/location.slice";
+import errorReducer from "@/shared/store/error/error.slice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    error: errorReducer,
     availableSlots: availableSlotReducer,
     departments: departmentReducer,
     employees: employeeReducer,
@@ -19,5 +25,9 @@ export const store = configureStore({
     projectEngineer: projectEngineerReducer,
     engineers: engineerReducer,
     advertisements: advertisementReducer,
+    projects: projectReducer,
+    buildings: buildingReducer,
+    units: unitReducer,
+    locations: locationReducer,
   },
 });

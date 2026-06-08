@@ -1,0 +1,143 @@
+.api-error-dialog {
+  display: grid;
+  gap: 16px;
+}
+
+.api-error-dialog__art {
+  display: grid;
+  place-items: center;
+  min-height: 160px;
+}
+
+.api-error-dialog__fallback {
+  position: relative;
+  width: 150px;
+  height: 150px;
+  display: grid;
+  place-items: center;
+}
+
+.api-error-dialog__orb {
+  position: absolute;
+  border-radius: 999px;
+  animation: apiErrorPulse 2.2s infinite ease-in-out;
+}
+
+.api-error-dialog__orb--one {
+  width: 150px;
+  height: 150px;
+  background: var(--dash-accent-soft);
+  opacity: 0.55;
+}
+
+.api-error-dialog__orb--two {
+  width: 88px;
+  height: 88px;
+  background: var(--dash-blank-bg);
+  opacity: 0.85;
+  animation-delay: 0.35s;
+}
+
+.api-error-dialog__icon {
+  width: 64px;
+  height: 64px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-card-bg);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-accent);
+  position: relative;
+  z-index: 1;
+  animation: apiErrorFloat 1.8s ease-in-out infinite;
+}
+
+.api-error-dialog__image {
+  width: min(220px, 100%);
+  height: auto;
+  display: block;
+  animation: apiErrorFloat 1.8s ease-in-out infinite;
+}
+
+.api-error-dialog__body {
+  display: grid;
+  gap: 14px;
+}
+
+.api-error-dialog__text {
+  margin: 0;
+  color: var(--dash-muted);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.api-error-dialog__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.api-error-dialog__primary,
+.api-error-dialog__secondary {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 11px;
+  border: 1px solid var(--dash-line);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  transition: 0.2s ease;
+}
+
+.api-error-dialog__primary {
+  color: var(--dash-text);
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+}
+
+.api-error-dialog__secondary {
+  color: var(--dash-text);
+  background: var(--dash-card-bg);
+}
+
+.api-error-dialog__primary:hover,
+.api-error-dialog__secondary:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dash-shadow);
+}
+
+@keyframes apiErrorPulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.35;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.75;
+  }
+}
+
+@keyframes apiErrorFloat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@media (max-width: 768px) {
+  .api-error-dialog__actions {
+    flex-direction: column;
+  }
+
+  .api-error-dialog__actions > * {
+    width: 100%;
+    justify-content: center;
+  }
+}

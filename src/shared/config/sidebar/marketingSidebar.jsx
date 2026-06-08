@@ -1,8 +1,8 @@
 import {
   LayoutDashboard,
-  Megaphone,
+ 
   BadgeDollarSign,
-  TicketPercent,
+ 
     Building2,
   
 } from "lucide-react";
@@ -24,11 +24,7 @@ export const marketingSidebar = [
   {
     title: "إدارة التسويق",
     items: [
-      {
-        label: "الحملات الإعلانية",
-        icon: Megaphone,
-        to: "/marketing/campaigns",
-      },
+     
 
       {
         label: "الإعلانات",
@@ -36,11 +32,7 @@ export const marketingSidebar = [
         to: "/marketing/ads",
       },
 
-      {
-        label: "العروض",
-        icon: TicketPercent,
-        to: "/marketing/offers",
-      },
+     
     ],
   },
 

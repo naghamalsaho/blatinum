@@ -21,6 +21,7 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
+import ErrorMessage from "@/shared/ui/ErrorMessage";
 
 import {
   fetchAdvertisements,
@@ -28,6 +29,7 @@ import {
   deleteAdvertisement,
   createAdvertisement,
 } from "../features/advertisements/model/advertisement.thunks";
+import { validateAdvertisementForm } from "../features/advertisements/validation/advertisement.validation";
 
 import "../styles/marketing-ads.css";
 
@@ -66,8 +68,7 @@ const portfolio = [
 
 function isAdvertisementActive(advertisement) {
   if (typeof advertisement?.status === "boolean") return advertisement.status;
-  if (typeof advertisement?.is_active === "boolean")
-    return advertisement.is_active;
+  if (typeof advertisement?.is_active === "boolean") return advertisement.is_active;
   if (advertisement?.status === "active") return true;
   if (advertisement?.status === 1) return true;
   if (advertisement?.status === "1") return true;
@@ -87,17 +88,11 @@ function getAdvertisementRowMeta(advertisement) {
     return getStatusMeta(advertisement.is_active ? "active" : "draft");
   }
 
-  if (
-    advertisement?.status === 1 ||
-    advertisement?.status === "1"
-  ) {
+  if (advertisement?.status === 1 || advertisement?.status === "1") {
     return getStatusMeta("active");
   }
 
-  if (
-    advertisement?.status === 0 ||
-    advertisement?.status === "0"
-  ) {
+  if (advertisement?.status === 0 || advertisement?.status === "0") {
     return getStatusMeta("draft");
   }
 
@@ -147,6 +142,8 @@ export default function MarketingAdsPage() {
     duration_days: "",
     attachmentFile: null,
   });
+
+  const [formErrors, setFormErrors] = useState({});
 
   useEffect(() => {
     dispatch(fetchAdvertisements());
@@ -230,12 +227,22 @@ export default function MarketingAdsPage() {
         ...prev,
         attachmentFile: files?.[0] || null,
       }));
+
+      setFormErrors((prev) => ({
+        ...prev,
+        attachmentFile: "",
+      }));
       return;
     }
 
     setFormData((prev) => ({
       ...prev,
       [name]: value,
+    }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
     }));
   };
 
@@ -244,27 +251,38 @@ export default function MarketingAdsPage() {
   };
 
   const handleDelete = (id) => {
-    if (
-      window.confirm(
-        "هل أنتِ متأكدة من رغبتكِ في حذف هذا الإعلان نهائياً؟"
-      )
-    ) {
+    if (window.confirm("هل أنتِ متأكدة من رغبتكِ في حذف هذا الإعلان نهائياً؟")) {
       dispatch(deleteAdvertisement(id));
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      title: "",
+      description: "",
+      status: "1",
+      duration_days: "",
+      attachmentFile: null,
+    });
+    setFormErrors({});
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    const errors = validateAdvertisementForm(formData);
+    setFormErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      return;
+    }
 
     const data = new FormData();
 
     data.append("title", formData.title);
     data.append("description", formData.description);
     data.append("status", formData.status);
-    data.append(
-      "duration_days",
-      String(formData.duration_days)
-    );
+    data.append("duration_days", String(formData.duration_days));
 
     if (formData.attachmentFile) {
       data.append(
@@ -277,15 +295,7 @@ export default function MarketingAdsPage() {
     dispatch(createAdvertisement(data)).then((res) => {
       if (!res.error) {
         setCreateOpen(false);
-
-        setFormData({
-          title: "",
-          description: "",
-          status: "1",
-          duration_days: "",
-          attachmentFile: null,
-        });
-
+        resetForm();
         dispatch(fetchAdvertisements());
         dispatch(fetchActiveAdvertisements());
       }
@@ -332,18 +342,13 @@ export default function MarketingAdsPage() {
 
       <section className="marketing-ads-hero">
         <div className="marketing-ads-hero-copy">
-          <p className="marketing-ads-kicker">
-            Marketing Ads Center
-          </p>
+          <p className="marketing-ads-kicker">Marketing Ads Center</p>
 
-          <h1>
-            واجهة إعلانات حديثة وسريعة لإدارة الحملات والعروض
-          </h1>
+          <h1>واجهة إعلانات حديثة وسريعة لإدارة الحملات والعروض</h1>
 
           <p className="marketing-ads-text">
-            كل شيء مصمم ليعطيك نظرة واضحة: المدة، البداية،
-            النهاية، المرفقات، والصور الخاصة بكل إعلان مع
-            معاينة كاملة عند الضغط عليها.
+            كل شيء مصمم ليعطيك نظرة واضحة: المدة، البداية، النهاية، المرفقات،
+            والصور الخاصة بكل إعلان مع معاينة كاملة عند الضغط عليها.
           </p>
 
           <div className="marketing-ads-badges">
@@ -364,10 +369,7 @@ export default function MarketingAdsPage() {
             <div>
               <p>أحدث إعلان نشط</p>
 
-              <h3>
-                {latestActiveAd?.title ||
-                  "لا يوجد إعلان نشط"}
-              </h3>
+              <h3>{latestActiveAd?.title || "لا يوجد إعلان نشط"}</h3>
             </div>
 
             <div className="marketing-summary-icon">
@@ -380,9 +382,7 @@ export default function MarketingAdsPage() {
               <button
                 type="button"
                 className="marketing-view-dialog-btn"
-                onClick={() =>
-                  openImagePreview(latestActiveAd)
-                }
+                onClick={() => openImagePreview(latestActiveAd)}
                 title="عرض التفاصيل"
               >
                 <Eye size={18} />
@@ -398,23 +398,17 @@ export default function MarketingAdsPage() {
           <div className="marketing-ads-summary-metrics">
             <div>
               <strong>البداية</strong>
-              <span>
-                {formatDate(latestActiveAd?.starts_at)}
-              </span>
+              <span>{formatDate(latestActiveAd?.starts_at)}</span>
             </div>
 
             <div>
               <strong>النهاية</strong>
-              <span>
-                {formatDate(latestActiveAd?.ends_at)}
-              </span>
+              <span>{formatDate(latestActiveAd?.ends_at)}</span>
             </div>
 
             <div>
               <strong>المدة</strong>
-              <span>
-                {latestActiveAd?.duration_days || "—"} يوم
-              </span>
+              <span>{latestActiveAd?.duration_days || "—"} يوم</span>
             </div>
           </div>
         </div>
@@ -458,18 +452,14 @@ export default function MarketingAdsPage() {
                 type="text"
                 placeholder="ابحث بعنوان الإعلان..."
                 value={searchTerm}
-                onChange={(e) =>
-                  setSearchTerm(e.target.value)
-                }
+                onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
 
             <select
               className="marketing-select"
               value={statusFilter}
-              onChange={(e) =>
-                setStatusFilter(e.target.value)
-              }
+              onChange={(e) => setStatusFilter(e.target.value)}
             >
               <option value="all">كل الحالات</option>
               <option value="active">نشط</option>
@@ -477,17 +467,9 @@ export default function MarketingAdsPage() {
           </div>
 
           {pageLoading ? (
-            <div className="project-empty-state">
-              جاري تحميل الإعلانات...
-            </div>
+            <div className="project-empty-state">جاري تحميل الإعلانات...</div>
           ) : error ? (
-            <div
-              className="project-empty-state"
-              style={{
-                
-                fontWeight: 600,
-              }}
-            >
+            <div className="project-empty-state">
               {typeof error === "string"
                 ? error
                 : error
@@ -513,18 +495,13 @@ export default function MarketingAdsPage() {
                   {filteredAds.length === 0 ? (
                     <tr>
                       <td colSpan="7">
-                        <div className="project-empty-state">
-                          لا توجد إعلانات حالياً
-                        </div>
+                        <div className="project-empty-state">لا توجد إعلانات حالياً</div>
                       </td>
                     </tr>
                   ) : (
                     filteredAds.map((item) => {
-                      const meta =
-                        getAdvertisementRowMeta(item);
-
-                      const firstImage =
-                        getFirstImage(item);
+                      const meta = getAdvertisementRowMeta(item);
+                      const firstImage = getFirstImage(item);
 
                       return (
                         <tr key={item.id}>
@@ -533,10 +510,8 @@ export default function MarketingAdsPage() {
                               <button
                                 type="button"
                                 className="marketing-ad-thumb-btn"
-                                disabled={true}
-                                style={{
-                                  cursor: "default",
-                                }}
+                                disabled
+                                style={{ cursor: "default" }}
                               >
                                 {firstImage ? (
                                   <img
@@ -551,59 +526,39 @@ export default function MarketingAdsPage() {
                                 )}
                               </button>
 
-                              <span className="marketing-ad-title">
-                                {item.title}
-                              </span>
+                              <span className="marketing-ad-title">{item.title}</span>
                             </div>
                           </td>
 
-                          <td className="marketing-date">
-                            {formatDate(item.starts_at)}
-                          </td>
-
-                          <td className="marketing-date">
-                            {formatDate(item.ends_at)}
-                          </td>
-
+                          <td className="marketing-date">{formatDate(item.starts_at)}</td>
+                          <td className="marketing-date">{formatDate(item.ends_at)}</td>
                           <td className="marketing-metric marketing-metric--duration">
                             {item.duration_days || "—"} يوم
                           </td>
-
                           <td>
                             <span className="marketing-type-chip">
                               <ImageIcon size={12} />
-                              {item.attachments?.length || 0}{" "}
-                              مرفق
+                              {item.attachments?.length || 0} مرفق
                             </span>
                           </td>
-
                           <td>
-                            <StatusBadge
-                              status={meta.label}
-                              type={meta.type}
-                            />
+                            <StatusBadge status={meta.label} type={meta.type} />
                           </td>
-
                           <td>
                             <div className="marketing-row-actions">
                               <button
                                 type="button"
                                 className="marketing-icon-btn"
-                                onClick={() =>
-                                  openImagePreview(item)
-                                }
+                                onClick={() => openImagePreview(item)}
                                 title="عرض التفاصيل"
                               >
                                 <Eye size={14} />
                               </button>
 
-
                               <button
                                 type="button"
                                 className="marketing-icon-btn danger"
-                                onClick={() =>
-                                  handleDelete(item.id)
-                                }
+                                onClick={() => handleDelete(item.id)}
                                 title="حذف الإعلان"
                               >
                                 <Trash2 size={14} />
@@ -625,50 +580,32 @@ export default function MarketingAdsPage() {
         <div className="marketing-panel-head marketing-section-head">
           <div>
             <h2>معرض الأعمال</h2>
-
-            <p>
-              المشاريع التي يمكن الترويج لها في الحملات
-              التسويقية
-            </p>
+            <p>المشاريع التي يمكن الترويج لها في الحملات التسويقية</p>
           </div>
         </div>
 
         <div className="marketing-portfolio-grid">
           {portfolio.map((item) => (
-            <article
-              key={item.id}
-              className="marketing-portfolio-card"
-            >
-              <div className="marketing-portfolio-hero">
-                {item.icon}
-              </div>
+            <article key={item.id} className="marketing-portfolio-card">
+              <div className="marketing-portfolio-hero">{item.icon}</div>
 
               <div className="marketing-portfolio-body">
                 <div>
                   <h3>{item.name}</h3>
-
                   <p>
                     {item.type} · {item.year}
                   </p>
                 </div>
 
                 <div className="marketing-portfolio-footer">
-                  <span className="marketing-unit-chip">
-                    {item.units} وحدة
-                  </span>
+                  <span className="marketing-unit-chip">{item.units} وحدة</span>
 
                   <div className="marketing-row-actions">
-                    <button
-                      type="button"
-                      className="marketing-icon-btn"
-                    >
+                    <button type="button" className="marketing-icon-btn">
                       <Eye size={13} />
                     </button>
 
-                    <button
-                      type="button"
-                      className="marketing-icon-btn"
-                    >
+                    <button type="button" className="marketing-icon-btn">
                       <Edit size={13} />
                     </button>
                   </div>
@@ -681,113 +618,128 @@ export default function MarketingAdsPage() {
 
       <Modal
         open={createOpen}
-        onClose={() => setCreateOpen(false)}
+        onClose={() => {
+          setCreateOpen(false);
+          resetForm();
+        }}
         title="إعلان / عرض جديد"
         description="أدخل البيانات الأساسية ثم احفظ التغييرات."
         size="lg"
       >
-       <form className="marketing-modal-form" onSubmit={handleSubmit}>
-  <div className="marketing-modal-grid">
-    <Field
-      type="text"
-      name="title"
-      value={formData.title}
-      onChange={handleChange}
-      label="العنوان"
-      iconClass="fa-solid fa-heading"
-      error=""
-      required
-    />
+        <form className="marketing-modal-form" onSubmit={handleSubmit}>
+          <div className="marketing-modal-grid">
+            <div className="custom-form-group">
+              <Field
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                label="العنوان"
+                iconClass="fa-solid fa-heading"
+              />
+              <ErrorMessage message={formErrors.title} />
+            </div>
 
-    <Field
-      type="number"
-      name="duration_days"
-      value={formData.duration_days}
-      onChange={handleChange}
-      label="مدة الإعلان (بالأيام)"
-      iconClass="fa-solid fa-calendar-days"
-      error=""
-      required
-    />
-  </div>
+            <div className="custom-form-group">
+              <Field
+                type="number"
+                name="duration_days"
+                value={formData.duration_days}
+                onChange={handleChange}
+                label="مدة الإعلان (بالأيام)"
+                iconClass="fa-solid fa-calendar-days"
+              />
+              <ErrorMessage message={formErrors.duration_days} />
+            </div>
+          </div>
 
-  <div className="marketing-modal-grid marketing-modal-grid--single">
-    <Field
-      type="textarea"
-      name="description"
-      value={formData.description}
-      onChange={handleChange}
-      label="الوصف"
-      iconClass="fa-solid fa-file-lines"
-      error=""
-      required
-    />
-  </div>
+          <div className="marketing-modal-grid marketing-modal-grid--single">
+            <div className="custom-form-group">
+              <Field
+                type="text"
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                label="الوصف"
+                iconClass="fa-solid fa-file-lines"
+              />
+              <ErrorMessage message={formErrors.description} />
+            </div>
+          </div>
 
-  <div className="marketing-modal-grid">
-    <Field
-      type="select"
-      name="status"
-      value={formData.status}
-      onChange={handleChange}
-      label="الحالة"
-      iconClass="fa-solid fa-circle-info"
-      error=""
-      required
-    >
-      <option value="1">نشط</option>
-      <option value="0">مسودة</option>
-    </Field>
+          <div className="marketing-modal-grid">
+            <div className="custom-form-group">
+              <label className="marketing-file-label">
+                <i className="fa-solid fa-circle-info" style={{ marginLeft: "6px" }} />
+                الحالة
+              </label>
 
-    <div className="custom-form-group marketing-file-field">
-      <label className="marketing-file-label">
-        <i className="fa-solid fa-paperclip" style={{ marginLeft: "6px" }} />
-       
-      </label>
+              <select
+                name="status"
+                value={formData.status}
+                onChange={handleChange}
+                className="marketing-select"
+              >
+                <option value="1">نشط</option>
+                <option value="0">مسودة</option>
+              </select>
+              <ErrorMessage message={formErrors.status} />
+            </div>
 
-      <div className="marketing-file-row">
-        <input
-          type="file"
-          name="attachment"
-          ref={fileInputRef}
-          onChange={handleChange}
-          accept="image/*,application/pdf"
-          style={{ display: "none" }}
-        />
+            <div className="custom-form-group marketing-file-field">
+              <label className="marketing-file-label">
+                <i className="fa-solid fa-paperclip" style={{ marginLeft: "6px" }} />
+                المرفق
+              </label>
 
-        <Button
-          type="button"
-          className="marketing-secondary-btn"
-          onClick={handleButtonClick}
-        >
-          <Upload size={16} />
-          اختر ملف
-        </Button>
+              <div className="marketing-file-row">
+                <input
+                  type="file"
+                  name="attachment"
+                  ref={fileInputRef}
+                  onChange={handleChange}
+                  accept="image/*,application/pdf"
+                  style={{ display: "none" }}
+                />
 
-        <span className="marketing-file-name">
-          {formData.attachmentFile
-            ? formData.attachmentFile.name
-            : "لم يتم اختيار ملف"}
-        </span>
-      </div>
-    </div>
-  </div>
+                <Button
+                  type="button"
+                  className="marketing-secondary-btn"
+                  onClick={handleButtonClick}
+                >
+                  <Upload size={16} />
+                  اختر ملف
+                </Button>
 
-  <div className="modal-actions">
-    <Button
-      type="button"
-      className="marketing-secondary-btn"
-      onClick={() => setCreateOpen(false)}
-    >
-      إلغاء
-    </Button>
+                <span className="marketing-file-name">
+                  {formData.attachmentFile
+                    ? formData.attachmentFile.name
+                    : "لم يتم اختيار ملف"}
+                </span>
+              </div>
 
-    <Button type="submit" className="marketing-primary-btn" disabled={loading}>
-      <Plus size={16} />
-      <span>{loading ? "جاري الحفظ..." : "حفظ الإعلان"}</span>
-    </Button>
-  </div>
-</form>
+              <ErrorMessage message={formErrors.attachmentFile} />
+            </div>
+          </div>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="marketing-secondary-btn"
+              onClick={() => {
+                setCreateOpen(false);
+                resetForm();
+              }}
+            >
+              إلغاء
+            </Button>
+
+            <Button type="submit" className="marketing-primary-btn" disabled={loading}>
+              <Plus size={16} />
+              <span>{loading ? "جاري الحفظ..." : "حفظ الإعلان"}</span>
+            </Button>
+          </div>
+        </form>
       </Modal>
 
       <Modal
@@ -800,22 +752,13 @@ export default function MarketingAdsPage() {
         <div className="marketing-preview-modal">
           {previewImage ? (
             <div className="marketing-image-preview">
-              <img
-                src={previewImage}
-                alt="advertisement preview"
-              />
+              <img src={previewImage} alt="advertisement preview" />
             </div>
           ) : null}
 
           <div className="marketing-preview-details">
-            <h3>
-              {previewAdvertisement?.title || "-"}
-            </h3>
-
-            <p>
-              {previewAdvertisement?.description ||
-                "لا يوجد وصف."}
-            </p>
+            <h3>{previewAdvertisement?.title || "-"}</h3>
+            <p>{previewAdvertisement?.description || "لا يوجد وصف."}</p>
           </div>
         </div>
       </Modal>

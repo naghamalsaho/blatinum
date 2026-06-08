@@ -259,3 +259,36 @@
     border-radius: 14px;
   }
 }
+.field-group,
+.field-wrapper {
+  min-width: 0;
+}
+
+.field-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.field-wrapper input {
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 18px 14px 8px 44px;
+}
+
+.field-wrapper label {
+  position: absolute;
+  top: 6px;
+  right: 14px;
+  font-size: 12px;
+  line-height: 1;
+  pointer-events: none;
+  color: var(--dash-muted);
+}
+
+.field-wrapper input:focus + label,
+.field-wrapper input:not(:placeholder-shown) + label,
+.field-wrapper input[type="date"] + label {
+  top: 6px;
+  font-size: 12px;
+}
