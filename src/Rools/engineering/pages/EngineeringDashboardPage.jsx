@@ -12,8 +12,8 @@ import {
   MapPinned,
 } from "lucide-react";
 import { divIcon } from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, Circle } from "react-leaflet";
-
+import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMap } from "react-leaflet";
+import PropTypes from "prop-types";
 import "../styles/dashboard.css";
 
 import PageHeader from "@/shared/components/PageHeader";
@@ -573,16 +573,24 @@ function formatAllocationLabel(allocation = {}) {
 }
 
 function getEngineerDisplayName(item = {}) {
-  return (
+  const rawName =
     item?.account?.full_name ||
     item?.relation?.engineer?.account?.full_name ||
     item?.engineer?.account?.full_name ||
     `${item?.account?.first_name || ""} ${item?.account?.last_name || ""}`.trim() ||
-    `${item?.relation?.engineer?.account?.first_name || ""} ${
-      item?.relation?.engineer?.account?.last_name || ""
-    }`.trim() ||
-    "-"
-  );
+    "-";
+  
+  return parseLocalized(rawName); // حماية الاسم
+}
+
+function getEngineerDisplaySpecialization(item = {}) {
+  const rawSpec =
+    item?.info?.specialization ||
+    item?.relation?.engineer?.additional_info?.specialization ||
+    item?.engineer?.additional_info?.specialization ||
+    "-";
+
+  return parseLocalized(rawSpec); // حماية التخصص (المتهم الأول في الـ ar)
 }
 
 function getEngineerDisplayEmail(item = {}) {
@@ -612,15 +620,26 @@ function getEngineerDisplayAddress(item = {}) {
   );
 }
 
-function getEngineerDisplaySpecialization(item = {}) {
-  return (
-    item?.info?.specialization ||
-    item?.relation?.engineer?.additional_info?.specialization ||
-    item?.engineer?.additional_info?.specialization ||
-    "-"
-  );
-}
+function parseLocalized(value) {
+  if (value == null) {
+    return "-";
+  }
 
+  if (typeof value === "string" || typeof value === "number") {
+    return String(value);
+  }
+
+  if (Array.isArray(value)) {
+    return value.map(parseLocalized).join(", ");
+  }
+
+  if (typeof value === "object") {
+    const candidate = value.ar ?? value.en ?? Object.values(value)[0];
+    return parseLocalized(candidate);
+  }
+
+  return String(value);
+}
 function getEngineerDisplayExperience(item = {}) {
   return (
     item?.info?.experience_years ??
@@ -629,7 +648,23 @@ function getEngineerDisplayExperience(item = {}) {
     "-"
   );
 }
+// 🌐 مكون التحكم الذكي بحركة كاميرا الخريطة (FlyTo)
 
+function MapController({ target }) {
+  const map = useMap();
+  useEffect(() => {
+    if (target) {
+      map.flyTo(target, 16, {
+        animate: true,
+        duration: 1.5,
+      });
+    }
+  }, [target, map]);
+  return null;
+}
+MapController.propTypes = {
+  target: PropTypes.arrayOf(PropTypes.number),
+};
 export default function EngineeringDashboardPage() {
   const dispatch = useDispatch();
   const { theme } = useTheme();
@@ -657,7 +692,8 @@ export default function EngineeringDashboardPage() {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-
+// الحالة الجديدة لتحديد بؤرة التركيز الجغرافي الفوري
+  const [mapCenterTarget, setMapCenterTarget] = useState(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProjectBlock, setSelectedProjectBlock] = useState(null);
   const [selectedProjectEngineers, setSelectedProjectEngineers] = useState([]);
@@ -936,6 +972,8 @@ useEffect(() => {
   };
 
   const openProjectDetails = async (projectBlock) => {
+    const coords = getProjectCoordinates(projectBlock.project);
+    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
     setSelectedProjectBlock(projectBlock);
     setProjectModalOpen(true);
     setBuildingModalOpen(false);
@@ -963,6 +1001,8 @@ useEffect(() => {
   };
 
   const openBuildingDetails = async (building, projectContext) => {
+    const coords = getProjectCoordinates(building);
+    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
     setSelectedBuildingBlock({
       building,
       project: projectContext || selectedProjectBlock?.project || null,
@@ -1005,10 +1045,17 @@ useEffect(() => {
         fetchAllocatedLocationsForEngineer(engineerBlock.engineerId)
       );
 
-      if (fetchAllocatedLocationsForEngineer.fulfilled.match(result)) {
-        setSelectedEngineerAllocations(
-          Array.isArray(result.payload) ? result.payload : []
-        );
+     if (fetchAllocatedLocationsForEngineer.fulfilled.match(result)) {
+        const payloadData = Array.isArray(result.payload) ? result.payload : [];
+        setSelectedEngineerAllocations(payloadData);
+        
+        // 💡 أضيفي هذا الشرط هنا للانتقال لأول موقع تابع للمهندس
+        if (payloadData.length > 0) {
+          const firstAlloc = payloadData[0];
+          const targetObj = firstAlloc.allocation_type === "specific_building" ? firstAlloc.building : firstAlloc.project;
+          const coords = getProjectCoordinates(targetObj);
+          if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+        }
       } else {
         setSelectedEngineerAllocations([]);
       }
@@ -1122,67 +1169,63 @@ useEffect(() => {
             </div>
 
             <div className="engineering-map-real">
-              <MapContainer
-                key={`main-map-${theme}-${filteredProjects.length}`}
-                center={
-                  dashboardMapPoints.length > 0
-                    ? dashboardMapCenter
-                    : [33.5138, 36.2765]
-                }
-                zoom={15}
-                scrollWheelZoom
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution="&copy; OpenStreetMap contributors"
-                  url={
-                    theme === "dark"
-                      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  }
-                />
+             <MapContainer center={dashboardMapCenter} zoom={12} style={{ height: "100%", width: "100%" }}>
+  
+  {/* لوحة التحكم بتبديل المظهر وقمر صناعي Esri */}
+  <LayersControl position="topright">
+    <LayersControl.BaseLayer checked name="قمر صناعي (Satellite View)">
+      <TileLayer
+        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      />
+    </LayersControl.BaseLayer>
+    <LayersControl.BaseLayer name="خريطة الشوارع العادية">
+      <TileLayer
+        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      />
+    </LayersControl.BaseLayer>
+  </LayersControl>
 
-                {dashboardMapPoints.map((point) => (
-                  <Marker
-                    key={point.key}
-                    position={[point.lat, point.lng]}
-                    icon={createMapPinIcon(point.type, theme)}
-                  >
-                    <Popup>
-                      <div className="map-popup">
-                        <h3>{point.label}</h3>
-                        <p>
-                          <MapPinned size={13} />
-                          <span>{point.sublabel}</span>
-                        </p>
-                        <p>
-                          {point.type === "building" ? "بناء" : "مشروع"} •{" "}
-                          {getStatusMeta(point.status).label}
-                        </p>
+  {/* تفعيل متحكم حركة كاميرا الخريطة الفوري */}
+  <MapController target={mapCenterTarget} />
 
-                        <button
-                          type="button"
-                          className="popup-details-btn"
-                          onClick={() => {
-                            if (point.type === "building") {
-                              openBuildingDetails(point.building, point.project);
-                            } else {
-                              openProjectDetails({ project: point.project });
-                            }
-                          }}
-                        >
-                          عرض التفاصيل
-                        </button>
-                      </div>
-                    </Popup>
-
-                    <Circle
-                      center={[point.lat, point.lng]}
-                      radius={Number(point.radius || 500)}
-                    />
-                  </Marker>
-                ))}
-              </MapContainer>
+  {dashboardMapPoints.map((point) => (
+    <div key={point.key}>
+      <Marker
+        position={[point.lat, point.lng]}
+        icon={createMapPinIcon(point.type, theme)}
+        eventHandlers={{
+          click: () => setMapCenterTarget([point.lat, point.lng]) // تحديد الموقع عند النقر على الدبوس
+        }}
+      >
+        <Popup>
+          <div style={{ minWidth: "160px" }}>
+            <h4 style={{ margin: "0 0 4px 0" }}>{point.label}</h4>
+            <p style={{ margin: "0 0 6px 0", fontSize: "12px", opacity: 0.8 }}>{point.sublabel}</p>
+            <StatusBadge status={getStatusMeta(point.status).type} text={getStatusMeta(point.status).label} />
+            <div style={{ marginTop: "10px" }}>
+              {point.type === "project" ? (
+                <Button size="sm" onClick={() => openProjectDetails(point)}>لوحة التحكم</Button>
+              ) : (
+                <Button size="sm" onClick={() => openBuildingDetails(point.building, point.project)}>لوحة البناء</Button>
+              )}
+            </div>
+          </div>
+        </Popup>
+      </Marker>
+      <Circle
+        center={[point.lat, point.lng]}
+        radius={point.radius}
+        pathOptions={{
+          color: point.type === "building" ? "#f59e0b" : "#00d4ff",
+          fillOpacity: 0.1,
+          weight: 1.5
+        }}
+      />
+    </div>
+  ))}
+</MapContainer>
             </div>
           </section>
 
@@ -1205,6 +1248,15 @@ useEffect(() => {
                     <article className="engineer-project-card" key={block.project.id}>
                       <div className="mini-project-card-head">
                         <div>
+                          <div style={{ display: "flex", gap: "6px" }}>
+  {/* الزر الجديد للتنقل السلس الفوري */}
+  <Button size="sm" variant="outline" onClick={() => {
+    const coords = getProjectCoordinates(block.project);
+    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+  }}>تحديد موقع</Button>
+  
+  <Button size="sm" onClick={() => openProjectDetails(block)}>تفاصيل</Button>
+</div>
                           <button
                             type="button"
                             className="project-title-btn project-title-btn--small"
@@ -1215,7 +1267,7 @@ useEffect(() => {
 
                           <p className="project-location-line">
                             <MapPinned size={14} />
-                            <span>{block.project?.location?.name || "-"}</span>
+                            <span>{parseLocalized(block.project?.location?.name) || "-"}</span>
                           </p>
                         </div>
 

@@ -67,7 +67,15 @@ if (
   if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
     return "/admin";
   }
-
+if (
+  hasAnyMatch(userText, [
+    "customer_service_staff",
+    "customer service",
+    "خدمة العملاء",
+  ])
+) {
+  return "/customer-service";
+}
   const permissionsText = permissions
     .map((permission) =>
       typeof permission === "string"
@@ -84,8 +92,17 @@ if (
   if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
   }
-
+if (
+  hasAnyMatch(permissionsText, [
+    "customer_service_staff",
+    "client",
+    "appointment",
+  ])
+) {
+  return "/customer-service";
+}
   return "/admin";
+  
 };
 
 export default function LoginPage() {

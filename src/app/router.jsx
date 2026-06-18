@@ -17,7 +17,7 @@ import AdminItemsPage from "@/Rools/admin/pages/AdminItemsPage";
 
 import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
-import LegalEngineersPage from "@/Rools/legal/pages/LegalEngineersPage";
+
 
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
@@ -25,7 +25,8 @@ import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngin
 import MarketingDashboardPage from "@/Rools/marketing/pages/MarketingDashboardPage";
 import MarketingAdsPage from "@/Rools/marketing/pages/MarketingAdsPage";
 import MarketingProjectsPage from "@/Rools/marketing/pages/MarketingProjectsPage";
-
+import MarketingServicesPage from "@/Rools/marketing/pages/MarketingServicesPage";
+import LegalSalesPage from "@/Rools/legal/pages/LegalSalesPage";
 export default function AppRouter() {
   return (
     <Routes>
@@ -49,7 +50,8 @@ export default function AppRouter() {
           <Route element={<LegalLayout />}>
             <Route index element={<LegalDashboardPage />} />
             <Route path="slots" element={<LegalAvailableSlotsPage />} />
-            <Route path="engineers" element={<LegalEngineersPage />} />
+            <Route path="sales" element={<LegalSalesPage />} />
+            
           </Route>
         </Route>
 
@@ -79,6 +81,7 @@ export default function AppRouter() {
             <Route index element={<MarketingDashboardPage />} />
             <Route path="ads" element={<MarketingAdsPage />} />
             <Route path="projects" element={<MarketingProjectsPage />} />
+            <Route path="/marketing/services" element={<MarketingServicesPage />} />
           </Route>
         </Route>
       </Route>

@@ -13,6 +13,8 @@ import buildingReducer from "@/Rools/marketing/features/buildings/model/building
 import unitReducer from "@/Rools/marketing/features/units/model/unit.slice";
 import locationReducer from "@/Rools/marketing/features/locations/model/location.slice";
 import errorReducer from "@/shared/store/error/error.slice";
+import serviceReducer from "@/Rools/marketing/features/services/model/service.slice";
+import soldUnitOwnershipReducer from "@/Rools/legal/features/soldUnits/model/soldUnitOwnership.slice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -29,5 +31,7 @@ export const store = configureStore({
     buildings: buildingReducer,
     units: unitReducer,
     locations: locationReducer,
+    services: serviceReducer,
+    soldUnitOwnership: soldUnitOwnershipReducer,
   },
 });

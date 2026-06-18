@@ -8,14 +8,14 @@ import {
   Edit,
   Trash2,
   Sparkles,
-  MousePointerClick,
+ 
   Search,
   CalendarDays,
-  Layers3,
+
   Upload,
 } from "lucide-react";
 
-import PageHeader from "@/shared/components/PageHeader";
+
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
@@ -308,111 +308,14 @@ export default function MarketingAdsPage() {
     setPreviewOpen(true);
   };
 
-  const latestActiveAd = activeAdvertisements?.[0] || null;
+  
   const pageLoading = loading || activeLoading;
 
   return (
     <div className="marketing-ads-page">
-      <PageHeader
-        kicker="التسويق"
-        title="الإعلانات والعروض"
-        subtitle="إدارة الإعلانات والعروض الترويجية ومعرض الأعمال من مكان واحد"
-        action={
-          <div className="marketing-ads-actions">
-            <Button
-              type="button"
-              className="marketing-secondary-btn"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Plus size={18} />
-              <span>إعلان جديد</span>
-            </Button>
+     
 
-            <Button
-              type="button"
-              className="marketing-primary-btn"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Sparkles size={18} />
-              <span>عرض جديد</span>
-            </Button>
-          </div>
-        }
-      />
-
-      <section className="marketing-ads-hero">
-        <div className="marketing-ads-hero-copy">
-          <p className="marketing-ads-kicker">Marketing Ads Center</p>
-
-          <h1>واجهة إعلانات حديثة وسريعة لإدارة الحملات والعروض</h1>
-
-          <p className="marketing-ads-text">
-            كل شيء مصمم ليعطيك نظرة واضحة: المدة، البداية، النهاية، المرفقات،
-            والصور الخاصة بكل إعلان مع معاينة كاملة عند الضغط عليها.
-          </p>
-
-          <div className="marketing-ads-badges">
-            <span className="marketing-chip">
-              <CalendarDays size={14} />
-              آخر تحديث: اليوم
-            </span>
-
-            <span className="marketing-chip">
-              <Layers3 size={14} />
-              {activeAdvertisements.length} إعلان نشط
-            </span>
-          </div>
-        </div>
-
-        <div className="marketing-ads-summary-card">
-          <div className="marketing-ads-summary-head">
-            <div>
-              <p>أحدث إعلان نشط</p>
-
-              <h3>{latestActiveAd?.title || "لا يوجد إعلان نشط"}</h3>
-            </div>
-
-            <div className="marketing-summary-icon">
-              <MousePointerClick size={20} />
-            </div>
-          </div>
-
-          <div className="marketing-summary-action-area">
-            {latestActiveAd ? (
-              <button
-                type="button"
-                className="marketing-view-dialog-btn"
-                onClick={() => openImagePreview(latestActiveAd)}
-                title="عرض التفاصيل"
-              >
-                <Eye size={18} />
-                <span>عرض تفاصيل الإعلان</span>
-              </button>
-            ) : (
-              <div className="marketing-summary-preview-empty">
-                <Megaphone size={24} />
-              </div>
-            )}
-          </div>
-
-          <div className="marketing-ads-summary-metrics">
-            <div>
-              <strong>البداية</strong>
-              <span>{formatDate(latestActiveAd?.starts_at)}</span>
-            </div>
-
-            <div>
-              <strong>النهاية</strong>
-              <span>{formatDate(latestActiveAd?.ends_at)}</span>
-            </div>
-
-            <div>
-              <strong>المدة</strong>
-              <span>{latestActiveAd?.duration_days || "—"} يوم</span>
-            </div>
-          </div>
-        </div>
-      </section>
+    
 
       <section className="marketing-ads-stats-grid">
         {stats.map((item) => (

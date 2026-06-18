@@ -1,6 +1,6 @@
 import {
   CalendarDays,
-  Users,
+  Banknote,
   Scale,
   LayoutDashboard,
 } from "lucide-react";
@@ -20,11 +20,11 @@ export const legalSidebar = [
         icon: CalendarDays,
         to: "/legal/slots",
       },
-      {
-        label: "المهندسون",
-        icon: Users,
-        to: "/legal/engineers",
-      },
+     {
+  label: "المبيعات",
+  icon: Banknote,
+  to: "/legal/sales",
+},
     ],
   },
   {

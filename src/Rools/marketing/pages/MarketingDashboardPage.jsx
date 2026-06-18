@@ -1,16 +1,14 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Megaphone,
-  Tag,
   Eye,
-  
-  Plus,
+ 
   TrendingUp,
-  Image as ImageIcon,
   CalendarDays,
   Activity,
   Sparkles,
   ArrowUpRight,
+  MousePointerClick,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,42 +23,21 @@ import {
   Cell,
 } from "recharts";
 
-import PageHeader from "@/shared/components/PageHeader";
+import { useDispatch, useSelector } from "react-redux";
+
 import StatCard from "@/shared/components/StatCard";
-import Button from "@/shared/components/Button";
+
 import Modal from "@/shared/components/Modal";
-import Field from "@/shared/components/Field";
+
+
+import {
+  fetchAdvertisements,
+  fetchActiveAdvertisements,
+} from "../features/advertisements/model/advertisement.thunks";
 
 import "../styles/marketing.css";
 
-const stats = [
-  {
-    title: "إجمالي الإعلانات",
-    value: "12",
-    note: "كل الإعلانات المسجلة",
-    icon: Megaphone,
-  },
-  {
-    title: "الإعلانات النشطة",
-    value: "8",
-    note: "تعمل حاليًا",
-    icon: Activity,
-  },
-  {
-    title: "مشاهدات هذا الشهر",
-    value: "15.4K",
-    note: "أداء جيد خلال 30 يوم",
-    icon: Eye,
-  },
-  {
-    title: "معدل التحويل",
-    value: "6.8%",
-    note: "نمو مستمر",
-    icon: TrendingUp,
-  },
-];
-
-const ads = [
+const adsFallback = [
   {
     id: "AD-001",
     title: "عرض موسم الصيف - برج النخيل",
@@ -69,6 +46,11 @@ const ads = [
     views: "1,240",
     clicks: "87",
     date: "2024-01-10",
+    starts_at: "2024-01-10",
+    ends_at: "2024-02-10",
+    duration_days: 30,
+    description: "عرض موسمي مميز على برج النخيل.",
+    attachments: [],
   },
   {
     id: "AD-002",
@@ -78,6 +60,11 @@ const ads = [
     views: "890",
     clicks: "62",
     date: "2024-01-12",
+    starts_at: "2024-01-12",
+    ends_at: "2024-02-12",
+    duration_days: 30,
+    description: "خصم خاص لفترة محدودة.",
+    attachments: [],
   },
   {
     id: "AD-003",
@@ -87,6 +74,11 @@ const ads = [
     views: "0",
     clicks: "0",
     date: "2024-01-14",
+    starts_at: "2024-01-14",
+    ends_at: "2024-02-14",
+    duration_days: 30,
+    description: "إعلان إطلاق المشروع الجديد.",
+    attachments: [],
   },
   {
     id: "AD-004",
@@ -96,6 +88,11 @@ const ads = [
     views: "430",
     clicks: "25",
     date: "2024-01-18",
+    starts_at: "2024-01-18",
+    ends_at: "2024-02-18",
+    duration_days: 30,
+    description: "عرض دفعة حجز مرنة.",
+    attachments: [],
   },
 ];
 
@@ -126,27 +123,19 @@ const portfolio = [
   },
 ];
 
-const performanceData = [
-  { name: "أغسطس", campaigns: 34, ads: 20 },
-  { name: "سبتمبر", campaigns: 44, ads: 28 },
-  { name: "أكتوبر", campaigns: 41, ads: 22 },
-  { name: "نوفمبر", campaigns: 57, ads: 35 },
-  { name: "ديسمبر", campaigns: 61, ads: 39 },
-  { name: "يناير", campaigns: 72, ads: 48 },
-];
-
-const distributionData = [
-  { name: "نشط", value: 42 },
-  { name: "مجدول", value: 28 },
-  { name: "مسودة", value: 18 },
-  { name: "تحت المراجعة", value: 12 },
-];
-
-const ACTIVITY = [
-  "تم إطلاق حملة جديدة على برج النخيل",
-  "تم تعديل عرض الخصم الموسمي",
-  "تم أرشفة إعلان منخفض الأداء",
-  "تم رفع معدل التفاعل بنسبة 12%",
+const MONTH_LABELS_AR = [
+  "يناير",
+  "فبراير",
+  "مارس",
+  "أبريل",
+  "مايو",
+  "يونيو",
+  "يوليو",
+  "أغسطس",
+  "سبتمبر",
+  "أكتوبر",
+  "نوفمبر",
+  "ديسمبر",
 ];
 
 const STATUS_COLORS = [
@@ -156,96 +145,187 @@ const STATUS_COLORS = [
   "var(--dash-shell-glow-1)",
 ];
 
-function getStatusLabel(status) {
-  if (status === "active") return "نشط";
-  if (status === "draft") return "مسودة";
-  if (status === "scheduled") return "مجدول";
-  return status || "-";
+function isAdvertisementActive(advertisement) {
+  if (typeof advertisement?.status === "boolean") return advertisement.status;
+  if (typeof advertisement?.is_active === "boolean") return advertisement.is_active;
+  if (advertisement?.status === "active") return true;
+  if (advertisement?.status === 1 || advertisement?.status === "1") return true;
+  return false;
+}
+
+function getAdStatus(ad) {
+  const raw = ad?.status;
+
+  if (raw === true || raw === 1 || raw === "1" || raw === "active") return "active";
+  if (raw === false || raw === 0 || raw === "0" || raw === "draft") return "draft";
+  if (raw === "scheduled") return "scheduled";
+  if (raw === "review" || raw === "pending") return "pending";
+
+  return "draft";
+}
+
+function getSafeDate(value) {
+  if (!value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date;
+}
+
+function getAdMonthKey(ad) {
+  const date =
+    getSafeDate(ad?.created_at) ||
+    getSafeDate(ad?.starts_at) ||
+    getSafeDate(ad?.date);
+
+  if (!date) return null;
+
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function getFirstImage(advertisement) {
+  return (
+    advertisement?.attachments?.find((item) => item.type === "image")?.url ||
+    null
+  );
+}
+
+function formatDate(value) {
+  return value || "—";
 }
 
 export default function MarketingDashboardPage() {
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createType, setCreateType] = useState("ad");
-  const [searchTerm, setSearchTerm] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [formData, setFormData] = useState({
-    title: "",
-    type: "إعلان",
-    status: "active",
-    views: "0",
-    clicks: "0",
-    date: "",
-    budget: "",
-  });
+  const dispatch = useDispatch();
 
-  const filteredAds = useMemo(() => {
-    const q = String(searchTerm || "").trim().toLowerCase();
+  const adsState = useSelector((state) => state.advertisements || {});
+  const liveAdvertisements =
+    adsState.advertisements ||
+    adsState.items ||
+    adsState.data ||
+    [];
 
-    return ads.filter((item) => {
-      const matchesStatus =
-        statusFilter === "all" || item.status === statusFilter;
+  const activeAdvertisementsFromStore =
+    adsState.activeAdvertisements ||
+    adsState.activeItems ||
+    [];
 
-      const searchable = [
-        item.title,
-        item.type,
-        item.status,
-        item.views,
-        item.clicks,
-        item.date,
-      ]
-        .join(" ")
-        .toLowerCase();
+  const advertisements =
+    liveAdvertisements.length > 0 ? liveAdvertisements : adsFallback;
 
-      return matchesStatus && (!q || searchable.includes(q));
-    });
-  }, [searchTerm, statusFilter]);
+  const activeAdvertisements =
+    activeAdvertisementsFromStore.length > 0
+      ? activeAdvertisementsFromStore
+      : advertisements.filter(isAdvertisementActive);
 
-  const openCreateModal = (type = "ad") => {
-    setCreateType(type);
-    setCreateOpen(true);
+  
+  
+
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewAdvertisement, setPreviewAdvertisement] = useState(null);
+
+ 
+  useEffect(() => {
+    dispatch(fetchAdvertisements());
+    dispatch(fetchActiveAdvertisements());
+  }, [dispatch]);
+
+  const latestActiveAd = useMemo(() => {
+    return activeAdvertisements[0] || null;
+  }, [activeAdvertisements]);
+
+  const performanceData = useMemo(() => {
+    const result = [];
+
+    for (let i = 5; i >= 0; i -= 1) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+
+      const year = date.getFullYear();
+      const monthIndex = date.getMonth();
+      const monthKey = `${year}-${String(monthIndex + 1).padStart(2, "0")}`;
+
+      const adsInMonth = advertisements.filter((ad) => {
+        const adKey = getAdMonthKey(ad);
+        return adKey === monthKey;
+      });
+
+      result.push({
+        key: monthKey,
+        name: MONTH_LABELS_AR[monthIndex],
+        campaigns: adsInMonth.length,
+        ads: adsInMonth.filter((ad) => getAdStatus(ad) === "active").length,
+      });
+    }
+
+    return result;
+  }, [advertisements]);
+
+  const distributionData = useMemo(() => {
+    const active = advertisements.filter((ad) => getAdStatus(ad) === "active").length;
+    
+    const draft = advertisements.filter((ad) => getAdStatus(ad) === "draft").length;
+   
+
+    return [
+      { name: "نشط", value: active, count: active },
+      
+      { name: "مسودة", value: draft, count: draft },
+     
+    ];
+  }, [advertisements]);
+
+  const stats = useMemo(() => {
+    const totalViews = advertisements.reduce(
+      (sum, ad) => sum + Number(ad.views || ad.view_count || 0),
+      0
+    );
+
+    const totalClicks = advertisements.reduce(
+      (sum, ad) => sum + Number(ad.clicks || ad.click_count || 0),
+      0
+    );
+
+    const conversionRate =
+      totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
+
+    return [
+      {
+        title: "إجمالي الإعلانات",
+        value: String(advertisements.length),
+        note: "كل الإعلانات المسجلة",
+        icon: Megaphone,
+      },
+      {
+        title: "الإعلانات النشطة",
+        value: String(activeAdvertisements.length),
+        note: "تعمل حاليًا",
+        icon: Activity,
+      },
+      {
+        title: "مشاهدات هذا الشهر",
+        value: totalViews ? totalViews.toLocaleString() : "0",
+        note: "حسب البيانات المتوفرة",
+        icon: Eye,
+      },
+      {
+        title: "معدل التحويل",
+        value: `${conversionRate}%`,
+        note: "النقرات ÷ المشاهدات",
+        icon: TrendingUp,
+      },
+    ];
+  }, [advertisements, activeAdvertisements.length]);
+
+ 
+
+  const openImagePreview = (advertisement) => {
+    setPreviewAdvertisement(advertisement);
+    setPreviewOpen(true);
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setCreateOpen(false);
-  };
 
   return (
     <div className="marketing-dashboard-page">
-      <PageHeader
-        kicker="قسم التسويق"
-        title="لوحة التسويق"
-        subtitle="إدارة الإعلانات والعروض والتحليلات من مكان واحد"
-        action={
-          <div className="marketing-header-actions">
-            <Button
-              type="button"
-              className="marketing-secondary-btn"
-              onClick={() => openCreateModal("offer")}
-            >
-              <Plus size={18} />
-              <span>عرض جديد</span>
-            </Button>
-
-            <Button
-              type="button"
-              className="marketing-primary-btn"
-              onClick={() => openCreateModal("ad")}
-            >
-              <Sparkles size={18} />
-              <span>إعلان جديد</span>
-            </Button>
-          </div>
-        }
-      />
+      
 
       <section className="marketing-hero">
         <div className="marketing-hero-copy">
@@ -263,7 +343,7 @@ export default function MarketingDashboardPage() {
             </span>
             <span className="marketing-chip">
               <ArrowUpRight size={14} />
-              +24% نمو هذا الشهر
+              {activeAdvertisements.length} إعلان نشط
             </span>
           </div>
         </div>
@@ -271,26 +351,45 @@ export default function MarketingDashboardPage() {
         <div className="marketing-hero-card">
           <div className="marketing-hero-card-head">
             <div>
-              <p>أداء الحملة الحالية</p>
-              <h3>78%</h3>
+              <p>أحدث إعلان نشط</p>
+              <h3>{latestActiveAd?.title || "لا يوجد إعلان نشط"}</h3>
             </div>
+
             <div className="marketing-hero-icon">
-              <Activity size={20} />
+              <MousePointerClick size={20} />
             </div>
+          </div>
+
+          <div className="marketing-summary-action-area">
+            {latestActiveAd ? (
+              <button
+                type="button"
+                className="marketing-view-dialog-btn"
+                onClick={() => openImagePreview(latestActiveAd)}
+                title="عرض التفاصيل"
+              >
+                <Eye size={18} />
+                <span>عرض تفاصيل الإعلان</span>
+              </button>
+            ) : (
+              <div className="marketing-summary-preview-empty">
+                <Megaphone size={24} />
+              </div>
+            )}
           </div>
 
           <div className="marketing-hero-metrics">
             <div>
-              <strong>الطلبات</strong>
-              <span>1,240</span>
+              <strong>البداية</strong>
+              <span>{formatDate(latestActiveAd?.starts_at)}</span>
             </div>
             <div>
-              <strong>الضغطات</strong>
-              <span>84</span>
+              <strong>النهاية</strong>
+              <span>{formatDate(latestActiveAd?.ends_at)}</span>
             </div>
             <div>
-              <strong>المشاهدات</strong>
-              <span>3.2M</span>
+              <strong>المدة</strong>
+              <span>{latestActiveAd?.duration_days || "—"} يوم</span>
             </div>
           </div>
         </div>
@@ -319,7 +418,10 @@ export default function MarketingDashboardPage() {
 
           <div className="marketing-chart-wrap">
             <ResponsiveContainer width="100%" height={320}>
-              <AreaChart data={performanceData}>
+             <AreaChart
+  data={performanceData}
+  margin={{ top: 10, right: 18, left: 0, bottom: 24 }}
+>
                 <defs>
                   <linearGradient
                     id="campaignFill"
@@ -328,8 +430,16 @@ export default function MarketingDashboardPage() {
                     x2="0"
                     y2="1"
                   >
-                    <stop offset="5%" stopColor="var(--dash-accent)" stopOpacity={0.35} />
-                    <stop offset="95%" stopColor="var(--dash-accent)" stopOpacity={0} />
+                    <stop
+                      offset="5%"
+                      stopColor="var(--dash-accent)"
+                      stopOpacity={0.35}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--dash-accent)"
+                      stopOpacity={0}
+                    />
                   </linearGradient>
 
                   <linearGradient id="adsFill" x1="0" y1="0" x2="0" y2="1">
@@ -346,12 +456,26 @@ export default function MarketingDashboardPage() {
                   </linearGradient>
                 </defs>
 
-                <CartesianGrid
-                  strokeDasharray="4 4"
-                  stroke="var(--dash-line)"
+                <CartesianGrid strokeDasharray="4 4" stroke="var(--dash-line)" />
+
+                <XAxis
+                  dataKey="name"
+                  stroke="var(--dash-muted)"
+                  tick={{ dy: 8 }}
+                  tickMargin={10}
+                  minTickGap={18}
+                  interval={0}
                 />
-                <XAxis dataKey="name" stroke="var(--dash-muted)" />
-                <YAxis stroke="var(--dash-muted)" />
+
+                <YAxis
+                  stroke="var(--dash-muted)"
+                  width={45}
+                  tick={{ dx: -8 }}
+                  tickMargin={10}
+                  allowDecimals={false}
+                  domain={[0, "dataMax + 2"]}
+                />
+
                 <Tooltip
                   contentStyle={{
                     background: "var(--dash-surface)",
@@ -361,19 +485,25 @@ export default function MarketingDashboardPage() {
                   }}
                   labelStyle={{ color: "var(--dash-text)" }}
                 />
+
                 <Area
                   type="monotone"
                   dataKey="campaigns"
                   stroke="var(--dash-accent)"
                   fill="url(#campaignFill)"
                   strokeWidth={3}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
                 />
+
                 <Area
                   type="monotone"
                   dataKey="ads"
                   stroke="var(--dash-accent-strong)"
                   fill="url(#adsFill)"
                   strokeWidth={3}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -391,9 +521,17 @@ export default function MarketingDashboardPage() {
           <div className="marketing-donut-chart">
             <ResponsiveContainer width="100%" height={220}>
               <PieChart>
+                <Tooltip
+                  contentStyle={{
+                    background: "var(--dash-surface)",
+                    border: "1px solid var(--dash-line)",
+                    borderRadius: "16px",
+                    color: "var(--dash-text)",
+                  }}
+                />
                 <Pie
                   data={distributionData}
-                  dataKey="value"
+                  dataKey="count"
                   nameKey="name"
                   innerRadius={56}
                   outerRadius={82}
@@ -418,160 +556,13 @@ export default function MarketingDashboardPage() {
                   style={{ background: STATUS_COLORS[index % STATUS_COLORS.length] }}
                 />
                 <span>{item.name}</span>
-                <strong>{item.value}%</strong>
+                <strong>
+                  {item.count} ({item.value}%)
+                </strong>
               </div>
             ))}
           </div>
         </article>
-      </section>
-
-      <section className="marketing-main-grid">
-        <article className="marketing-panel">
-          <div className="marketing-panel-head">
-            <div>
-              <h2>الإعلانات والعروض</h2>
-              <p>قائمة الإدارة السريعة مع إجراءات مباشرة</p>
-            </div>
-
-            <Button
-              type="button"
-              className="marketing-secondary-btn"
-              onClick={() => openCreateModal("ad")}
-            >
-              <Plus size={16} />
-              <span>إعلان جديد</span>
-            </Button>
-          </div>
-
-          <div className="marketing-toolbar">
-            <div className="marketing-search">
-              <input
-                type="text"
-                placeholder="ابحث بعنوان الإعلان أو نوعه..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-
-            <select
-              className="marketing-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">كل الحالات</option>
-              <option value="active">نشط</option>
-              <option value="draft">مسودة</option>
-              <option value="scheduled">مجدول</option>
-            </select>
-          </div>
-
-          <div className="marketing-table-wrap">
-            <table className="marketing-table">
-              <thead>
-                <tr>
-                  <th>العنوان</th>
-                  <th>النوع</th>
-                  <th>الحالة</th>
-                  <th>المشاهدات</th>
-                  <th>النقرات</th>
-                  <th>تاريخ النشر</th>
-                  <th>إجراءات</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {filteredAds.map((item) => (
-                  <tr key={item.id}>
-                    <td className="marketing-primary-td">{item.title}</td>
-
-                    <td>
-                      <span className="marketing-type-chip">
-                        <Tag size={12} />
-                        {item.type}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span className={`marketing-status-pill ${item.status}`}>
-                        {getStatusLabel(item.status)}
-                      </span>
-                    </td>
-
-                    <td className="marketing-metric marketing-metric--views">
-                      {item.views}
-                    </td>
-
-                    <td className="marketing-metric marketing-metric--clicks">
-                      {item.clicks}
-                    </td>
-
-                    <td className="marketing-date">{item.date}</td>
-
-                    <td>
-                      <div className="marketing-row-actions">
-                        <button type="button" className="marketing-icon-btn">
-                          <Eye size={14} />
-                        </button>
-                        <button type="button" className="marketing-icon-btn">
-                          <Sparkles size={14} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </article>
-
-        <aside className="marketing-side-column">
-          <article className="marketing-panel">
-            <div className="marketing-panel-head">
-              <div>
-                <h2>آخر الإشعارات</h2>
-                <p>تحديثات مباشرة للنشاط التسويقي</p>
-              </div>
-            </div>
-
-            <div className="marketing-activity-list">
-              {ACTIVITY.map((item) => (
-                <div key={item} className="marketing-activity-item">
-                  <span className="activity-dot" />
-                  <p>{item}</p>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className="marketing-panel marketing-settings-panel">
-            <div className="marketing-panel-head">
-              <div>
-                <h2>اختصارات سريعة</h2>
-                <p>الوصول المباشر لأهم العمليات</p>
-              </div>
-            </div>
-
-            <div className="marketing-quick-actions">
-              <Button
-                type="button"
-                className="marketing-secondary-btn marketing-full-btn"
-                onClick={() => openCreateModal("offer")}
-              >
-                <Plus size={16} />
-                <span>إنشاء عرض</span>
-              </Button>
-
-              <Button
-                type="button"
-                className="marketing-secondary-btn marketing-full-btn"
-                onClick={() => openCreateModal("ad")}
-              >
-                <ImageIcon size={16} />
-                <span>إعلان بوسائط</span>
-              </Button>
-            </div>
-          </article>
-        </aside>
       </section>
 
       <section className="marketing-portfolio-section">
@@ -596,9 +587,7 @@ export default function MarketingDashboardPage() {
                 </div>
 
                 <div className="marketing-portfolio-footer">
-                  <span className="marketing-unit-chip">
-                    {item.units} وحدة
-                  </span>
+                  <span className="marketing-unit-chip">{item.units} وحدة</span>
 
                   <div className="marketing-row-actions">
                     <button type="button" className="marketing-icon-btn">
@@ -615,93 +604,50 @@ export default function MarketingDashboardPage() {
         </div>
       </section>
 
+      
       <Modal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        title={createType === "ad" ? "إعلان جديد" : "عرض جديد"}
-        description="أدخل البيانات الأساسية ثم احفظ التغييرات."
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        title={previewAdvertisement?.title || "معاينة الإعلان"}
+        description="عرض الصورة والوصف الكامل"
         size="lg"
       >
-        <form className="marketing-modal-form" onSubmit={handleSubmit}>
-          <div className="marketing-modal-grid">
-            <Field
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              label="العنوان"
-              iconClass="fa-solid fa-heading"
-              error=""
-            />
+        <div className="marketing-preview-modal">
+          {getFirstImage(previewAdvertisement) ? (
+            <div className="marketing-image-preview">
+              <img
+                src={getFirstImage(previewAdvertisement)}
+                alt={previewAdvertisement?.title || "preview"}
+              />
+            </div>
+          ) : (
+            <div className="marketing-summary-preview-empty">
+              <Megaphone size={28} />
+            </div>
+          )}
 
-            <Field
-              type="text"
-              name="type"
-              value={formData.type}
-              onChange={handleChange}
-              label="النوع"
-              iconClass="fa-solid fa-tag"
-              error=""
-            />
+          <div className="marketing-preview-details">
+            <h3>{previewAdvertisement?.title || "-"}</h3>
+            <p>{previewAdvertisement?.description || "لا يوجد وصف."}</p>
 
-            <Field
-              type="date"
-              name="date"
-              value={formData.date}
-              onChange={handleChange}
-              label="تاريخ النشر"
-              iconClass="fa-solid fa-calendar"
-              error=""
-            />
+            <div className="marketing-hero-metrics">
+              <div>
+                <strong>البداية</strong>
+                <span>{formatDate(previewAdvertisement?.starts_at)}</span>
+              </div>
 
-            <Field
-              type="number"
-              name="budget"
-              value={formData.budget}
-              onChange={handleChange}
-              label="الميزانية"
-              iconClass="fa-solid fa-coins"
-              error=""
-            />
+              <div>
+                <strong>النهاية</strong>
+                <span>{formatDate(previewAdvertisement?.ends_at)}</span>
+              </div>
+
+              <div>
+                <strong>المدة</strong>
+                <span>{previewAdvertisement?.duration_days || "—"} يوم</span>
+              </div>
+            </div>
           </div>
-
-          <div className="marketing-modal-grid marketing-modal-grid--single">
-            <Field
-              type="text"
-              name="views"
-              value={formData.views}
-              onChange={handleChange}
-              label="المشاهدات"
-              iconClass="fa-solid fa-eye"
-              error=""
-            />
-
-            <Field
-              type="text"
-              name="clicks"
-              value={formData.clicks}
-              onChange={handleChange}
-              label="النقرات"
-              iconClass="fa-solid fa-hand-pointer"
-              error=""
-            />
-          </div>
-
-          <div className="modal-actions">
-            <Button
-              type="button"
-              className="marketing-secondary-btn"
-              onClick={() => setCreateOpen(false)}
-            >
-              إلغاء
-            </Button>
-
-            <Button type="submit" className="marketing-primary-btn">
-              <Plus size={16} />
-              <span>حفظ</span>
-            </Button>
-          </div>
-        </form>
+        </div>
       </Modal>
     </div>
   );
