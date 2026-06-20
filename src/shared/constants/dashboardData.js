@@ -7,45 +7,46 @@ import {
   LogOut,
   UsersRound,
 } from "lucide-react";
+import { t } from "@/shared/i18n";
 
 export const adminDashboardConfig = {
   brand: {
-    title: "Platinum",
-    subtitle: "Admin Suite",
+    title: t("admin_brand_title"),
+    subtitle: t("admin_brand_subtitle"),
   },
 
   sidebarSections: [
     {
-      title: "Main",
+      title: t("main"),
       items: [
         {
           key: "dashboard",
           to: "/admin",
-          label: "Dashboard",
+          label: t("dashboard"),
           icon: LayoutGrid,
           end: true,
         },
       ],
     },
     {
-      title: "Resources",
+      title: t("resources"),
       items: [
         {
           key: "departments",
           to: "/admin/departments",
-          label: "Departments",
+          label: t("departments"),
           icon: BriefcaseBusiness,
         },
         {
           key: "employees",
           to: "/admin/employees",
-          label: "Employees",
+          label: t("employees"),
           icon: UsersRound,
         },
         {
           key: "warehouses",
           to: "/admin/warehouses",
-          label: "Warehouses",
+          label: t("warehouses"),
           icon: Building2,
         },
       ],
@@ -53,18 +54,20 @@ export const adminDashboardConfig = {
   ],
 
   topbar: {
-    title: "Platinum",
+    title: t("admin_brand_title"),
     subtitle: "",
-    searchPlaceholder: "Search...",
+    searchPlaceholder: t("search_placeholder"),
     actions: [
-      { key: "notifications", label: "Notifications", icon: Bell },
-      { key: "lang", label: "Language", icon: Globe },
+      { key: "notifications", label: t("notifications"), icon: Bell },
+      { key: "lang", label: t("language"), icon: Globe },
     ],
   },
 
   footer: {
-    label: "Sign out",
+    label: t("sign_out"),
     icon: LogOut,
-    onClick: () => {},
+    onClick: () => {
+      window.location.href = `${window.location.origin}/logout`;
+    },
   },
 };

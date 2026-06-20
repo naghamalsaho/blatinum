@@ -1,0 +1,860 @@
+@import "@/shared/constants/colors.css";
+
+.customer-service-page {
+  display: grid;
+  gap: 18px;
+  padding: 6px 0 24px;
+}
+
+.customer-service-page > * {
+  animation: customer-service-fade-up 0.34s ease both;
+}
+
+.customer-service-page > *:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.customer-service-page > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+.customer-service-page > *:nth-child(4) {
+  animation-delay: 0.12s;
+}
+
+.customer-service-page .legal-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.customer-service-page .page-title {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 30px;
+  font-weight: 850;
+  line-height: 1.25;
+}
+
+.customer-service-page .page-kicker {
+  margin: 0 0 8px;
+  color: var(--dash-accent);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.customer-service-page .page-subtitle {
+  margin: 8px 0 0;
+  color: var(--dash-muted);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.customer-service-page .legal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-service-page .legal-stat-card,
+.customer-service-page .legal-table-card,
+.customer-service-page .legal-toolbar,
+.customer-service-overview-card {
+  background: var(--dash-card-bg);
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  box-shadow: 0 10px 26px rgba(15, 23, 42, 0.08);
+  backdrop-filter: blur(14px);
+}
+
+.customer-service-page .legal-stat-card {
+  min-height: 112px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.customer-service-page .legal-stat-card:hover,
+.customer-service-overview-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--dash-line-2);
+}
+
+.customer-service-page .legal-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+  flex: 0 0 auto;
+}
+
+.customer-service-page .legal-stat-title {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.customer-service-page .legal-stat-value {
+  margin: 4px 0;
+  color: var(--dash-text);
+  font-size: 24px;
+  font-weight: 850;
+}
+
+.customer-service-page .legal-stat-note,
+.customer-service-page .table-card-header span {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.customer-service-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-service-overview-card {
+  min-height: 98px;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  color: var(--dash-text);
+  text-decoration: none;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.customer-service-overview-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+}
+
+.customer-service-overview-card strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-text);
+}
+
+.customer-service-overview-card small {
+  display: block;
+  color: var(--dash-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.customer-service-page .legal-toolbar {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  overflow: visible;
+}
+
+.customer-service-page .toolbar-search {
+  flex: 1;
+  min-width: 0;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-input-bg);
+  color: var(--dash-accent);
+}
+
+.customer-service-page .toolbar-search input {
+  flex: 1;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.customer-service-page .toolbar-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+.customer-service-page .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.customer-service-page .toolbar-filter-label {
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-pill-bg);
+  color: var(--dash-muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.customer-service-page .status-dropdown {
+  position: relative;
+  display: inline-flex;
+}
+
+.customer-service-page .status-dropdown-trigger {
+  height: 40px;
+  min-width: 152px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.customer-service-page .status-dropdown-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  min-width: 190px;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  box-shadow: var(--dash-shadow);
+  z-index: 100;
+  display: grid;
+  gap: 6px;
+}
+
+.customer-service-page .status-dropdown-item {
+  width: 100%;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--dash-text);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.customer-service-page .status-dropdown-item:hover,
+.customer-service-page .status-dropdown-item.active {
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line);
+}
+
+.customer-service-page .status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+  background: var(--dash-muted);
+}
+
+.customer-service-page .status-dot.ok {
+  background: var(--dash-accent);
+}
+
+.customer-service-page .status-dot.busy {
+  background: var(--dash-accent-strong);
+}
+
+.customer-service-page .status-dot.off {
+  background: #ef4444;
+}
+
+.customer-service-page .legal-table-card {
+  overflow: hidden;
+}
+
+.customer-service-page .table-card-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--dash-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.customer-service-page .table-card-header h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 17px;
+}
+
+.customer-service-page .table-scroll {
+  overflow: auto;
+}
+
+.customer-service-page .legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 960px;
+}
+
+.customer-service-page .legal-table th,
+.customer-service-page .legal-table td {
+  padding: 15px 16px;
+  text-align: left;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.customer-service-page .legal-table th {
+  font-size: 12px;
+  color: var(--dash-muted);
+  font-weight: 700;
+}
+
+.customer-service-page .legal-table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.customer-service-page .legal-table tbody tr:hover {
+  background: rgba(148, 163, 184, 0.08);
+}
+
+.customer-service-name-cell {
+  display: grid;
+  gap: 3px;
+}
+
+.customer-service-name-cell strong,
+.customer-service-page .legal-table td strong {
+  color: var(--dash-text);
+}
+
+.customer-service-name-cell span,
+.customer-service-muted {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.customer-service-muted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.customer-service-pill,
+.customer-service-priority {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.customer-service-pill.active,
+.customer-service-pill.confirmed,
+.customer-service-pill.completed,
+.customer-service-pill.closed {
+  color: var(--dash-accent);
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line-2);
+}
+
+.customer-service-pill.new,
+.customer-service-pill.scheduled,
+.customer-service-pill.pending,
+.customer-service-pill.in_review,
+.customer-service-pill.open {
+  color: var(--dash-accent-strong);
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line-2);
+}
+
+.customer-service-pill.follow_up,
+.customer-service-pill.waiting_client,
+.customer-service-pill.inactive {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.customer-service-priority.high {
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.1);
+  border-color: rgba(239, 68, 68, 0.22);
+}
+
+.customer-service-priority.medium {
+  color: var(--dash-accent-strong);
+  background: var(--dash-accent-soft);
+  border-color: var(--dash-line-2);
+}
+
+.customer-service-priority.low {
+  color: var(--dash-muted);
+}
+
+.customer-service-page .empty-cell {
+  padding: 18px;
+  text-align: center;
+  color: var(--dash-muted);
+}
+
+.customer-service-page .table-state {
+  padding: 18px;
+  text-align: center;
+  color: var(--dash-muted);
+}
+
+.customer-service-page .table-state.is-error {
+  color: #ef4444;
+}
+
+.customer-service-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.customer-service-page .icon-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.customer-service-page .icon-action-btn:hover:not(:disabled) {
+  background: var(--dash-icon-hover-bg);
+  border-color: var(--dash-line-2);
+  transform: translateY(-1px);
+}
+
+.customer-service-page .icon-action-btn.danger {
+  color: #ef4444;
+}
+
+.customer-service-page .icon-action-btn:disabled,
+.customer-service-page .primary-action-btn:disabled,
+.customer-service-page .ghost-filter-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.customer-service-page .primary-action-btn {
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-accent);
+  color: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  font-weight: 700;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.18);
+}
+
+.customer-service-page .ghost-filter-btn {
+  height: 42px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.customer-service-confirm-copy {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.appointment-picker {
+  display: grid;
+  gap: 14px;
+}
+
+.appointment-picker-step {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-input-bg);
+}
+
+.appointment-picker-index {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.appointment-picker-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.appointment-picker-copy strong {
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.appointment-picker-copy span {
+  color: var(--dash-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.appointment-picker-step select,
+.appointment-picker-step input {
+  grid-column: 2;
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  padding: 0 12px;
+  outline: none;
+  font-size: 14px;
+}
+
+.appointment-picker-step select:focus,
+.appointment-picker-step input:focus {
+  border-color: var(--dash-accent);
+}
+
+.appointment-picker-step input::placeholder {
+  color: var(--dash-muted);
+}
+
+.appointment-picker-step .field-hint {
+  grid-column: 2;
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.appointment-picker-step .field-error {
+  grid-column: 2;
+  margin: 0;
+  color: #ef4444;
+  font-size: 12px;
+}
+
+.slot-preview-card {
+  grid-column: 2;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 10px 12px;
+  border: 1px solid rgba(6, 182, 212, 0.25);
+  border-radius: 8px;
+  background: rgba(6, 182, 212, 0.08);
+}
+
+.slot-preview-card span {
+  color: var(--dash-accent);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.slot-preview-card strong {
+  color: var(--dash-text);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.slot-preview-card small {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.slot-preview-card.is-booked {
+  border-color: rgba(239, 68, 68, 0.28);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.slot-preview-card.is-booked span,
+.slot-preview-card.is-booked small {
+  color: #ef4444;
+}
+
+.booked-slots-panel {
+  grid-column: 2;
+  display: grid;
+  gap: 8px;
+  padding: 10px;
+  border: 1px solid rgba(239, 68, 68, 0.24);
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.booked-slots-panel > span {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.booked-slots-panel > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.booked-slot-chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  border: 1px solid rgba(239, 68, 68, 0.28);
+  border-radius: 999px;
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.customer-service-detail-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.customer-service-detail-section {
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-input-bg);
+  overflow: hidden;
+}
+
+.customer-service-detail-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.customer-service-detail-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 15px;
+}
+
+.customer-service-detail-head span {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.customer-service-mini-list {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+}
+
+.customer-service-mini-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-surface);
+}
+
+.customer-service-mini-card div {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.customer-service-mini-card strong {
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.customer-service-mini-card span:not(.customer-service-pill) {
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.customer-service-empty-note {
+  margin: 0;
+  padding: 16px;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+@keyframes customer-service-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 1024px) {
+  .customer-service-page .legal-stats-grid,
+  .customer-service-overview-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .customer-service-page .legal-page-header,
+  .customer-service-page .legal-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .customer-service-page .toolbar-filters {
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 768px) {
+  .customer-service-page .page-title {
+    font-size: 24px;
+  }
+
+  .customer-service-page .toolbar-search,
+  .customer-service-page .toolbar-filter-label,
+  .customer-service-page .status-dropdown,
+  .customer-service-page .status-dropdown-trigger {
+    width: 100%;
+  }
+
+  .customer-service-page .toolbar-filters {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+@media (max-width: 700px) {
+  .customer-service-page .legal-stats-grid,
+  .customer-service-overview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-service-page .table-scroll {
+    overflow: visible;
+  }
+
+  .customer-service-page .legal-table {
+    min-width: 0;
+  }
+
+  .customer-service-page .legal-table thead {
+    display: none;
+  }
+
+  .customer-service-page .legal-table,
+  .customer-service-page .legal-table tbody,
+  .customer-service-page .legal-table tr,
+  .customer-service-page .legal-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .customer-service-page .legal-table tbody {
+    display: grid;
+    gap: 12px;
+    padding: 12px;
+  }
+
+  .customer-service-page .legal-table tbody tr {
+    border: 1px solid var(--dash-line);
+    border-radius: 8px;
+    background: var(--dash-input-bg);
+    overflow: hidden;
+  }
+
+  .customer-service-page .legal-table td {
+    display: grid;
+    grid-template-columns: minmax(92px, 34%) 1fr;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--dash-line);
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .customer-service-page .legal-table td::before {
+    content: attr(data-label);
+    color: var(--dash-muted);
+    font-size: 12px;
+    font-weight: 800;
+  }
+
+  .customer-service-page .legal-table td[colspan] {
+    display: block;
+  }
+
+  .customer-service-page .legal-table td[colspan]::before {
+    content: none;
+  }
+}

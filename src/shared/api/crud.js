@@ -193,7 +193,7 @@ export const api = {
     }
   },
 
-  put: async (url, data = {}) => {
+  put: async (url, data) => {
     try {
       const headers = buildHeaders(false);
       logRequest("PUT", url, headers, data);

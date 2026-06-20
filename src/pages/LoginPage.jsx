@@ -6,6 +6,7 @@ import AuthHero from "@/shared/components/AuthHero";
 import Button from "@/shared/components/Button";
 import { loginUser } from "@/Rools/admin/features/auth/model/auth.thunks";
 import { validateLogin, validatePassword } from "@/shared/utils/validation";
+import { t } from "@/shared/i18n";
 import "@/shared/ui/login.css";
 
 const normalizeText = (value) =>
@@ -50,16 +51,30 @@ const getLoginPath = (payload = {}) => {
   if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
     return "/engineering";
   }
-if (
-  hasAnyMatch(userText, [
-    "marketing_staff",
-    "marketing",
-    "marketer",
-    "تسويق",
-  ])
-) {
-  return "/marketing";
-}
+
+  if (
+    hasAnyMatch(userText, [
+      "customer_service_staff",
+      "customer_service",
+      "customer service",
+      "support",
+      "خدمة العملاء",
+    ])
+  ) {
+    return "/customer-service";
+  }
+
+  if (
+    hasAnyMatch(userText, [
+      "marketing_staff",
+      "marketing",
+      "marketer",
+      "تسويق",
+    ])
+  ) {
+    return "/marketing";
+  }
+
   if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
   }
@@ -79,6 +94,19 @@ if (
 
   if (hasAnyMatch(permissionsText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
     return "/engineering";
+  }
+
+  if (
+    hasAnyMatch(permissionsText, [
+      "read.client",
+      "create.client",
+      "read.appointment",
+      "create.appointment",
+      "read.order",
+      "update.order",
+    ])
+  ) {
+    return "/customer-service";
   }
 
   if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
@@ -168,7 +196,7 @@ export default function LoginPage() {
               name="login"
               value={formData.login}
               onChange={handleChange}
-              label="Login"
+              label={t("login")}
               iconClass="fa-solid fa-user"
               error={fieldErrors.login}
             />
@@ -178,13 +206,13 @@ export default function LoginPage() {
               name="password"
               value={formData.password}
               onChange={handleChange}
-              label="Password"
+              label={t("password")}
               iconClass="fa-solid fa-lock"
               error={fieldErrors.password}
             />
 
             <Button type="submit" className="submit-button" disabled={loading}>
-              {loading ? "Loading..." : "Login"}
+              {loading ? t("loading") : t("login")}
             </Button>
           </form>
 

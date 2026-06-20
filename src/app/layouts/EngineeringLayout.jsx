@@ -28,7 +28,9 @@ export default function EngineeringLayout() {
       footer={{
         label: "تسجيل الخروج",
         icon: LogOut,
-        onClick: () => {},
+        onClick: () => {
+          window.location.href = `${window.location.origin}/logout`;
+        },
       }}
     >
       <Outlet />

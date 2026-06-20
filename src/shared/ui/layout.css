@@ -56,6 +56,21 @@ body,
   z-index: 40;
 }
 
+.dashboard-shell[dir="ltr"] .dashboard-sidebar {
+  border-left: 0;
+  border-right: 1px solid var(--dash-line);
+  box-shadow: 10px 0 28px rgba(15, 23, 42, 0.04);
+}
+
+.dashboard-shell[dir="ltr"] .search-box input {
+  padding: 0 14px 0 38px;
+}
+
+.dashboard-shell[dir="ltr"] .search-icon {
+  left: 12px;
+  right: auto;
+}
+
 .sidebar-header {
   display: flex;
   align-items: center;

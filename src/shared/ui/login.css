@@ -65,6 +65,7 @@ body {
     display: flex;
     border-radius: 4px;
     margin: 0 !important;
+    direction: ltr;
 }
 
 .background-shape {
@@ -145,6 +146,7 @@ body {
     flex-direction: column;
     justify-content: center;
     z-index: 2;
+    direction: ltr;
 }
 
 .credentials-panel h2 {
@@ -172,6 +174,8 @@ body {
   -webkit-text-fill-color: var(--login-text) !important;
   caret-color: var(--login-text);
     padding-right: 30px;
+    direction: ltr;
+    text-align: left;
 }
 
 
@@ -188,6 +192,7 @@ input:-webkit-autofill:focus {
     position: absolute;
     top: 50%;
     left: 0;
+    right: auto;
     transform: translateY(-50%);
      color: var(--login-label);
     font-size: 16px;
@@ -205,6 +210,7 @@ input:-webkit-autofill:focus {
 .field-wrapper i {
     position: absolute;
     right: 0;
+    left: auto;
     top: 50%;
     transform: translateY(-50%);
     color: var(--login-icon);

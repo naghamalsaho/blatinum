@@ -8,6 +8,11 @@ import "./index.css";
 import "./shared/constants/colors.css";
 import App from "./App.jsx";
 import { ThemeProvider } from "./shared/theme/ThemeProvider";
+import { getLanguage } from "./shared/i18n";
+
+const language = getLanguage();
+document.documentElement.lang = language;
+document.documentElement.dir = language === "en" ? "ltr" : "rtl";
 
 const rootElement = document.getElementById("root");
 
