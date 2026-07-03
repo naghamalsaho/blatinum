@@ -8,7 +8,8 @@ import {
   Building2,
   CalendarDays,
   MapPinned,
-  Paperclip
+  Paperclip,
+ 
 } from "lucide-react";
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker, Circle, LayersControl, useMap } from "react-leaflet";
@@ -935,7 +936,35 @@ const handleSubmitAssign = async (e) => {
       setProjectEngineersLoading(false);
     }
   };
+const openBuildingSidePanel = async (building, projectContext) => {
+  const coords = getProjectCoordinates(building);
+  if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+  
+  setSelectedBuildingBlock({
+    building,
+    project: projectContext || selectedProjectBlock?.project || null,
+  });
+  
+  // 🎯 التحكم بالحالات: نغلق الديالوغات ونعرض الشريط الجانبي فقط
+  setBuildingModalOpen(false); 
+  setProjectModalOpen(false);
+  setEngineerModalOpen(false);
+  setSelectedProjectBlock(null);
+  setSelectedEngineerBlock(null);
+  setSelectedBuildingEngineers([]);
+  setBuildingEngineersLoading(true);
 
+  try {
+    const result = await dispatch(fetchEngineersAllocatedToBuilding(building.id));
+    if (fetchEngineersAllocatedToBuilding.fulfilled.match(result)) {
+      setSelectedBuildingEngineers(Array.isArray(result.payload) ? result.payload : []);
+    } else {
+      setSelectedBuildingEngineers([]);
+    }
+  } finally {
+    setBuildingEngineersLoading(false);
+  }
+};
   const openProjectDetails = async (projectBlock) => {
     const coords = getProjectCoordinates(projectBlock.project);
     if (coords) setMapCenterTarget([coords.lat, coords.lng]);
@@ -1164,15 +1193,16 @@ const handleSubmitAssign = async (e) => {
       // إزالة الـ theme لتجنب مشاكل المتغيرات غير المستخدمة
       icon={createMapPinIcon(point.type)} 
       eventHandlers={{
-        click: () => {
-          setMapCenterTarget([point.lat, point.lng]);
-          if (point.type === "project") {
-            openProjectSidePanel(point);
-          } else {
-            openBuildingDetails(point.building, point.project);
-          }
-        }
-      }}
+  click: () => {
+    setMapCenterTarget([point.lat, point.lng]);
+    if (point.type === "project") {
+      openProjectSidePanel(point);
+    } else {
+      // 🎯 استدعاء شريط الأبنية الجانبي هنا بدلاً من الديالوغ المباشر
+      openBuildingSidePanel(point.building, point.project); 
+    }
+  }
+}}
     />
     <Circle
       center={[point.lat, point.lng]}
@@ -1292,7 +1322,96 @@ const handleSubmitAssign = async (e) => {
                   </div>
                 </div>
               )}
+{/* 🏢 🎯 شريط الأبنية الجانبي الجديد (بنفس أسلوب كرت المشروع تماماً) */}
+{selectedBuildingBlock && !buildingModalOpen && (
+  <div className="google-maps-side-panel">
+    <div className="google-maps-side-panel-header">
+      <div className="google-maps-side-panel-header-content">
+        <h3 className="google-maps-side-panel-title">
+          بناء رقم: {selectedBuildingBlock.building?.building_number || "-"}
+        </h3>
+        <div className="google-maps-side-panel-subtitle">
+          المشروع: {selectedBuildingBlock.project?.name || "-"}
+        </div>
+      </div>
 
+      <button
+        type="button"
+        onClick={() => setSelectedBuildingBlock(null)}
+        aria-label="إغلاق لوحة تفاصيل البناء"
+        className="google-maps-side-panel-close"
+      >
+        ✕
+      </button>
+    </div>
+
+    <div className="google-maps-side-panel-body">
+      <div className="google-maps-side-panel-image-shell">
+        <img
+          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800"
+          alt={selectedBuildingBlock.building?.building_number}
+          className="google-maps-side-panel-image"
+        />
+      </div>
+
+      <div className="google-maps-side-panel-content">
+        <div className="google-maps-side-panel-meta-row">
+          <div className="google-maps-side-panel-meta-label">
+            {selectedBuildingBlock.building?.floors_count || "-"} طوابق
+          </div>
+          <div className="google-maps-side-panel-status google-maps-side-panel-status--active">
+            {getStatusMeta(selectedBuildingBlock.building?.status).label}
+          </div>
+        </div>
+
+        <div className="google-maps-side-panel-actions">
+          <button
+            type="button"
+            onClick={() => {
+              const coords = getProjectCoordinates(selectedBuildingBlock.building);
+              if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+            }}
+            className="btn-ghost google-maps-side-panel-action-btn"
+          >
+            📍 تحديد الموقع
+          </button>
+
+          {/* عند ضغط هذا الزر، يفتح الديالوغ الشامل فوراً مع بقاء البيانات المخزنة */}
+          <button
+            type="button"
+            onClick={() =>
+              openBuildingDetails(
+                selectedBuildingBlock.building,
+                selectedBuildingBlock.project
+              )
+            }
+            className="btn-ghost google-maps-side-panel-action-btn"
+          >
+            📊 التقرير الكامل
+          </button>
+        </div>
+
+        <hr className="google-maps-side-panel-divider" />
+
+        <div className="google-maps-side-panel-section">
+          <strong>الوصف والتفاصيل</strong>
+          <p className="google-maps-side-panel-section-text">
+            {selectedBuildingBlock.building?.description || "لا يوجد وصف مسجل لهذا البناء."}
+          </p>
+
+          <div className="google-maps-side-panel-section-block">
+            <strong>المهندسون المرتبطون</strong>
+            <div className="google-maps-side-panel-section-text">
+              {buildingEngineersLoading
+                ? "جاري تحميل قائمة المهندسين..."
+                : `${selectedBuildingEngineersGrouped.length} مهندس مسند بالبناء حلياً`}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+)}
             </div>
           </section>
 
