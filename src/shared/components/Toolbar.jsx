@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { Search, SlidersHorizontal } from "lucide-react";
 
 import StatusDropdown from "@/shared/components/StatusDropdown";
+import { t } from "@/shared/i18n";
 
 export default function Toolbar({
   placeholder,
@@ -27,7 +28,7 @@ export default function Toolbar({
       <div className="toolbar-filters">
         <div className="toolbar-filter-label">
           <SlidersHorizontal size={16} />
-          <span>Filter</span>
+          <span>{t("filter")}</span>
         </div>
 
         <StatusDropdown

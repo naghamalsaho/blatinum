@@ -12,6 +12,9 @@ import projectReducer from "@/Rools/marketing/features/projects/model/project.sl
 import buildingReducer from "@/Rools/marketing/features/buildings/model/building.slice";
 import unitReducer from "@/Rools/marketing/features/units/model/unit.slice";
 import locationReducer from "@/Rools/marketing/features/locations/model/location.slice";
+import customerServiceAppointmentReducer from "@/Rools/customerService/features/appointments/model/appointment.slice";
+import customerServiceClientReducer from "@/Rools/customerService/features/clients/model/client.slice";
+import customerServiceOrderReducer from "@/Rools/customerService/features/orders/model/order.slice";
 import errorReducer from "@/shared/store/error/error.slice";
 import serviceReducer from "@/Rools/marketing/features/services/model/service.slice";
 import soldUnitOwnershipReducer from "@/Rools/legal/features/soldUnits/model/soldUnitOwnership.slice";
@@ -31,7 +34,13 @@ export const store = configureStore({
     buildings: buildingReducer,
     units: unitReducer,
     locations: locationReducer,
+
     services: serviceReducer,
     soldUnitOwnership: soldUnitOwnershipReducer,
+
+    customerServiceAppointments: customerServiceAppointmentReducer,
+    customerServiceClients: customerServiceClientReducer,
+    customerServiceOrders: customerServiceOrderReducer,
+
   },
 });

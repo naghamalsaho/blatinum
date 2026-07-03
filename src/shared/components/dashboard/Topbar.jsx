@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
-import { Menu, Search, SunMedium, Moon } from "lucide-react";
+import { Menu, Search, SunMedium, Moon, Globe } from "lucide-react";
 import { useTheme } from "../../theme/useTheme";
+import { getLanguage, setLanguage, t } from "@/shared/i18n";
 
 export default function Topbar({
   onMenuClick = () => {},
@@ -11,6 +12,12 @@ export default function Topbar({
 }) {
   const { theme, toggleTheme } = useTheme();
   const ThemeIcon = theme === "dark" ? SunMedium : Moon;
+
+  const handleLangToggle = () => {
+    const next = getLanguage() === "en" ? "ar" : "en";
+    setLanguage(next);
+    window.location.reload();
+  };
 
   return (
     <header className="dashboard-topbar">
@@ -43,6 +50,22 @@ export default function Topbar({
 
         {actions.map((action) => {
           const Icon = action.icon;
+
+          if (action.key === "lang") {
+            return (
+              <button
+                key={action.key}
+                type="button"
+                className="icon-btn"
+                onClick={handleLangToggle}
+                aria-label={t("language")}
+                title={t("language")}
+              >
+                <Globe size={18} />
+              </button>
+            );
+          }
+
           return (
             <button
               key={action.key || action.label}

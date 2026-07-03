@@ -9,12 +9,13 @@ export default function DashboardLayout({
   topbar = {},
   brand = {},
   footer = {},
+  dir = "rtl",
   children,
 }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-  <div className="dashboard-shell" dir="rtl">
+  <div className="dashboard-shell" dir={dir}>
     <Sidebar
       open={sidebarOpen}
       onClose={() => setSidebarOpen(false)}
@@ -85,5 +86,6 @@ DashboardLayout.propTypes = {
     onClick: PropTypes.func,
     icon: PropTypes.elementType,
   }),
+  dir: PropTypes.oneOf(["ltr", "rtl"]),
   children: PropTypes.node,
 };

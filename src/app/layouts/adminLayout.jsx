@@ -3,13 +3,15 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../../shared/components/dashboard/Sidebar";
 import Topbar from "../../shared/components/dashboard/Topbar";
 import { adminDashboardConfig } from "../../shared/constants/dashboardData";
+import { getLanguage } from "@/shared/i18n";
 import "../../shared/ui/layout.css";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const dir = getLanguage() === "en" ? "ltr" : "rtl";
 
   return (
-    <div className="dashboard-shell" dir="ltr">
+    <div className="dashboard-shell" dir={dir}>
       <Sidebar
         open={sidebarOpen}
         onClose={() => setSidebarOpen(false)}

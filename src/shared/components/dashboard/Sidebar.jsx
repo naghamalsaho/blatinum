@@ -1,6 +1,9 @@
 import PropTypes from "prop-types";
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Gem, LogOut } from "lucide-react";
+import LogoutConfirm from "@/shared/components/LogoutConfirm";
+import { t } from "@/shared/i18n";
 
 export default function Sidebar({
   open = true,
@@ -10,13 +13,27 @@ export default function Sidebar({
     subtitle: "Admin",
   },
   sections = [],
-  footer = {
-    label: "Sign out",
-    onClick: () => {},
-    icon: LogOut,
-  },
+  footer,
 }) {
-  const FooterIcon = footer.icon || LogOut;
+  const defaultFooter = {
+    label: t("sign_out"),
+    onClick: () => {
+      window.location.href = `${window.location.origin}/logout`;
+    },
+    icon: LogOut,
+  };
+
+  const finalFooter = Object.assign({}, defaultFooter, footer || {});
+  const FooterIcon = finalFooter.icon || LogOut;
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
+  const handleConfirm = () => {
+    try {
+      finalFooter.onClick?.();
+    } finally {
+      setShowLogoutConfirm(false);
+    }
+  };
 
   return (
     <aside className={`dashboard-sidebar ${open ? "is-open" : ""}`}>
@@ -38,7 +55,7 @@ export default function Sidebar({
           onClick={onClose}
           aria-label="Close menu"
         >
-          ×
+          <span aria-hidden="true">&times;</span>
         </button>
       </div>
 
@@ -70,11 +87,21 @@ export default function Sidebar({
       </nav>
 
       <div className="sidebar-footer">
-        <button type="button" className="logout-btn" onClick={footer.onClick}>
+        <button
+          type="button"
+          className="logout-btn"
+          onClick={() => setShowLogoutConfirm(true)}
+        >
           <FooterIcon size={18} />
-          <span>{footer.label}</span>
+          <span>{finalFooter.label}</span>
         </button>
       </div>
+
+      <LogoutConfirm
+        open={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleConfirm}
+      />
     </aside>
   );
 }

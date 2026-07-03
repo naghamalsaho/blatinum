@@ -6,6 +6,7 @@ import AdminLayout from "./layouts/adminLayout";
 import LegalLayout from "@/app/layouts/LegalLayout";
 import EngineeringLayout from "@/app/layouts/EngineeringLayout";
 import MarketingLayout from "@/app/layouts/MarketingLayout";
+import CustomerServiceLayout from "@/app/layouts/CustomerServiceLayout";
 
 import RequireAuth from "./guards/RequireAuth";
 import RequireRole from "./guards/RequireRole";
@@ -25,8 +26,15 @@ import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngin
 import MarketingDashboardPage from "@/Rools/marketing/pages/MarketingDashboardPage";
 import MarketingAdsPage from "@/Rools/marketing/pages/MarketingAdsPage";
 import MarketingProjectsPage from "@/Rools/marketing/pages/MarketingProjectsPage";
+
 import MarketingServicesPage from "@/Rools/marketing/pages/MarketingServicesPage";
 import LegalSalesPage from "@/Rools/legal/pages/LegalSalesPage";
+
+import CustomerServiceDashboardPage from "@/Rools/customerService/pages/CustomerServiceDashboardPage";
+import CustomerServiceClientsPage from "@/Rools/customerService/pages/CustomerServiceClientsPage";
+import CustomerServiceAppointmentsPage from "@/Rools/customerService/pages/CustomerServiceAppointmentsPage";
+import CustomerServiceOrdersPage from "@/Rools/customerService/pages/CustomerServiceOrdersPage";
+
 export default function AppRouter() {
   return (
     <Routes>
@@ -82,6 +90,22 @@ export default function AppRouter() {
             <Route path="ads" element={<MarketingAdsPage />} />
             <Route path="projects" element={<MarketingProjectsPage />} />
             <Route path="/marketing/services" element={<MarketingServicesPage />} />
+          </Route>
+        </Route>
+
+        <Route
+          path="/customer-service"
+          element={
+            <RequireRole
+              allowedRoles={["customer_service", "customer_service_staff"]}
+            />
+          }
+        >
+          <Route element={<CustomerServiceLayout />}>
+            <Route index element={<CustomerServiceDashboardPage />} />
+            <Route path="clients" element={<CustomerServiceClientsPage />} />
+            <Route path="appointments" element={<CustomerServiceAppointmentsPage />} />
+            <Route path="orders" element={<CustomerServiceOrdersPage />} />
           </Route>
         </Route>
       </Route>
