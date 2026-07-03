@@ -332,6 +332,240 @@
   font-weight: 700;
 }
 
+.project-chip-row--spaced {
+  margin-top: 8px;
+}
+
+.project-card-action-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.dashboard-inline-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 10px;
+  border: 1px solid var(--dash-line);
+  border-radius: 999px;
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+}
+
+.dashboard-inline-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--dash-shadow);
+}
+
+.dashboard-inline-btn--primary {
+  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+}
+
+.dashboard-inline-btn--ghost {
+  background: var(--dash-blank-bg);
+}
+
+.project-title-btn {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  color: var(--dash-text);
+  font-size: 16px;
+  font-weight: 800;
+  text-align: right;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.project-title-btn:hover {
+  color: var(--dash-accent);
+}
+
+.project-title-btn--small {
+  font-size: 15px;
+}
+
+.project-location-line {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.project-empty-state--error {
+  color: red;
+}
+
+.engineering-map-real--overlay {
+  position: relative;
+}
+
+.engineering-map-container {
+  width: 100%;
+  height: 100%;
+}
+
+.engineering-map-popup {
+  min-width: 160px;
+}
+
+.engineering-map-popup-title {
+  margin: 0 0 4px 0;
+}
+
+.engineering-map-popup-subtitle {
+  margin: 0 0 6px 0;
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.engineering-map-popup-actions {
+  margin-top: 10px;
+}
+
+.google-maps-side-panel {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 1000;
+  width: 360px;
+  background-color: var(--dash-topbar-bg, #ffffff);
+  border-right: 1px solid var(--dash-line, #e0d6cc);
+  box-shadow: 2px 0 24px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+}
+
+.google-maps-side-panel-header {
+  padding: 16px;
+  border-bottom: 1px solid var(--dash-line);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.google-maps-side-panel-header-content {
+  flex: 1;
+}
+
+.google-maps-side-panel-title {
+  margin: 0;
+  font-size: 18px;
+}
+
+.google-maps-side-panel-subtitle {
+  margin-top: 6px;
+  font-size: 13px;
+  color: var(--dash-muted);
+}
+
+.google-maps-side-panel-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 18px;
+  border: none;
+  background: rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.google-maps-side-panel-body {
+  padding: 16px;
+}
+
+.google-maps-side-panel-image-shell {
+  width: 100%;
+  height: 180px;
+  background-color: var(--dash-line);
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.google-maps-side-panel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.google-maps-side-panel-content {
+  margin-top: 12px;
+}
+
+.google-maps-side-panel-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.google-maps-side-panel-meta-label {
+  font-size: 13px;
+  color: var(--dash-muted);
+}
+
+.google-maps-side-panel-status {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.google-maps-side-panel-status--active {
+  color: #137333;
+}
+
+.google-maps-side-panel-status--inactive {
+  color: #c5221f;
+}
+
+.google-maps-side-panel-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.google-maps-side-panel-action-btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: #fbf9f6;
+  cursor: pointer;
+}
+
+.google-maps-side-panel-divider {
+  border: none;
+  border-top: 1px solid var(--dash-line);
+  margin: 12px 0;
+}
+
+.google-maps-side-panel-section {
+  font-size: 13px;
+}
+
+.google-maps-side-panel-section strong {
+  display: block;
+}
+
+.google-maps-side-panel-section-text {
+  color: var(--dash-muted);
+  margin-top: 6px;
+}
+
+.google-maps-side-panel-section-block {
+  margin-top: 10px;
+}
+
 .project-modal-layout--map,
 .engineer-modal-layout {
   display: grid;
@@ -1308,4 +1542,173 @@
     flex-direction: column;
     align-items: stretch;
   }
+}
+
+/* ==========================================================================
+   تنسيقات مودال الإسناد المطور - بتصميم هندسي احترافي
+   ========================================================================== */
+.modern-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 8px 4px;
+  text-align: right;
+  direction: rtl;
+}
+
+.form-subtitle-desc {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--dash-muted);
+  line-height: 1.6;
+}
+
+.form-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+@media (min-width: 640px) {
+  .form-grid-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.form-group-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.form-group-field label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.form-group-field label svg {
+  color: var(--dash-muted);
+}
+
+.required-star {
+  color: #ef4444;
+  margin-right: 2px;
+}
+
+/* تخصيص وتجميل حقول الاختيار والتاريخ */
+.select-input-wrapper select,
+.modern-date-picker {
+  width: 100%;
+  height: 44px;
+  padding: 0 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--dash-text);
+  background-color: var(--dash-topbar-bg);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.select-input-wrapper select:focus,
+.modern-date-picker:focus {
+  border-color: var(--dash-project-pin, #00d4ff);
+  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
+}
+
+.field-hint-text {
+  font-size: 11.5px;
+  color: var(--dash-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+
+.disabled-opacity {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* ذيل الاستمارة والأزرار */
+.form-actions-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 12px;
+  margin-top: 14px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dash-line);
+}
+
+.form-actions-footer button {
+  min-width: 110px;
+  height: 42px;
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 14px;
+}
+/* ==========================================================================
+   تنسيقات دوائر الخريطة (SVG Circle Paths) - فصل كامل للألوان
+   ========================================================================== */
+
+/* دائرة المشروع */
+.map-project-circle {
+  stroke: var(--dash-project-pin, #00d4ff) !important;       /* لون الحدود */
+  fill: var(--dash-project-pin, #00d4ff) !important;         /* لون التعبئة الداخلي */
+  fill-opacity: 0.1 !important;                               /* درجة الشفافية */
+  stroke-width: 1.5 !important;                               /* سماكة الخط */
+}
+
+/* دائرة المبنى */
+.map-building-circle {
+  stroke: var(--dash-building-pin, #f59e0b) !important;      /* لون الحدود */
+  fill: var(--dash-building-pin, #f59e0b) !important;        /* لون التعبئة الداخلي */
+  fill-opacity: 0.1 !important;                               /* درجة الشفافية */
+  stroke-width: 1.5 !important;                               /* سماكة الخط */
+}
+/* ==========================================================================
+   دعم الدارك مود للخريطة بالكامل عبر الـ CSS (Clean Code)
+   ========================================================================== */
+
+/* ==========================================================================
+   الحل الجذري لتحويل أرضية الخريطة (Background/Tiles) إلى الدارك مود
+   ========================================================================== */
+
+/* 1. استهداف صور الأرضية مباشرة مع دعم كلاس الدارك أو الـ attribute لضمان الانعكاس */
+.dark .engineering-map-container .leaflet-tile-container img,
+[data-theme="dark"] .engineering-map-container .leaflet-tile-container img,
+.dark .engineering-map-container .leaflet-tile,
+[data-theme="dark"] .engineering-map-container .leaflet-tile {
+  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(88%) !important;
+}
+
+/* 2. تغيير خلفية حاوية الخريطة لمنع ظهور وميض أبيض أثناء تنقل أو تحميل الصور */
+.dark .engineering-map-container,
+[data-theme="dark"] .engineering-map-container {
+  background-color: #1b1b1f !important; /* لون داكن يتناسب مع التصميم */
+}
+
+/* 3. حماية عناصر التحكم (أزرار التكبير/التصغير وقائمة الطبقات) من الانعكاس */
+.dark .engineering-map-container .leaflet-control-zoom a,
+[data-theme="dark"] .engineering-map-container .leaflet-control-zoom a,
+.dark .engineering-map-container .leaflet-control-layers,
+[data-theme="dark"] .engineering-map-container .leaflet-control-layers {
+  background-color: var(--dash-topbar-bg, #27272a) !important;
+  color: var(--dash-text, #ffffff) !important;
+  border-color: var(--dash-line, #3f3f46) !important;
+}
+/* تأكيد ألوان الدوائر في الدارك مود اعتماداً على متغيراتكِ الملوثة سابقاً */
+.dark .map-project-circle {
+  stroke: var(--dash-project-pin, #00d4ff) !important;
+  fill: var(--dash-project-pin, #00d4ff) !important;
+}
+
+.dark .map-building-circle {
+  stroke: var(--dash-building-pin, #f59e0b) !important;
+  fill: var(--dash-building-pin, #f59e0b) !important;
 }

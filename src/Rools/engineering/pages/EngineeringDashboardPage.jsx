@@ -5,14 +5,13 @@ import {
   Users2,
   Plus,
   Search,
-  
   Building2,
-  Paperclip,
   CalendarDays,
   MapPinned,
+  Paperclip
 } from "lucide-react";
 import { divIcon } from "leaflet";
-import { MapContainer, TileLayer, Marker, Popup, Circle, LayersControl, useMap } from "react-leaflet";
+import { MapContainer, TileLayer, Marker, Circle, LayersControl, useMap } from "react-leaflet";
 import PropTypes from "prop-types";
 import "../styles/dashboard.css";
 
@@ -21,7 +20,7 @@ import StatCard from "@/shared/components/StatCard";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import StatusBadge from "@/shared/components/StatusBadge";
-import { useTheme } from "@/shared/theme/useTheme";
+
 
 import {
   fetchProjectEngineers,
@@ -29,6 +28,9 @@ import {
   fetchEngineersAllocatedToBuilding,
   fetchAllocatedLocationsForEngineer,
   assignEngineerProject,
+  fetchAllProjects,
+  fetchAllBuildings,
+  fetchAllEngineers
 } from "../features/engineerProjects/model/engineerProject.thunks";
 
 const STATUS_META = {
@@ -137,41 +139,14 @@ function getMapCenterFromPoints(points = []) {
   return [totalLat / valid.length, totalLng / valid.length];
 }
 
-function createMapPinIcon(kind = "project", theme = "light") {
+function createMapPinIcon(kind = "project") {
   const isBuilding = kind === "building";
 
-  const fill = isBuilding
-    ? theme === "dark"
-      ? "#f59e0b"
-      : "#d97706"
-    : theme === "dark"
-    ? "#00d4ff"
-    : "#008fb3";
-
-  const glow = isBuilding
-    ? "rgba(245, 158, 11, 0.18)"
-    : "rgba(0, 212, 255, 0.18)";
-
   return divIcon({
-    className: "",
-    html: `
-      <div style="
-        width: 30px;
-        height: 30px;
-        border-radius: 999px;
-        display: grid;
-        place-items: center;
-        background: ${fill};
-        box-shadow: 0 0 0 7px ${glow};
-        border: 2px solid rgba(255,255,255,0.85);
-        color: #fff;
-        font-size: 11px;
-        font-weight: 800;
-        line-height: 1;
-      ">
-        ${isBuilding ? "B" : "P"}
-      </div>
-    `,
+    // إسناد كلاس مخصص يلغي افتراضيات Leaflet وكلاس فرعي لتحديد النوع
+    className: isBuilding ? "building-pin-marker" : "project-pin-marker",
+    // تمرير البنية الهيكلية فقط وتطبيق التنسيق الداخلي عبر كلاس map-pin-inner
+    html: `<div class="map-pin-inner">${isBuilding ? "B" : "P"}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 30],
     popupAnchor: [0, -28],
@@ -465,97 +440,8 @@ function buildDashboardMapPoints(projectBlocks = []) {
   return points;
 }
 
-function buildProjectMapPoints(project = {}) {
-  if (!project?.id) return [];
 
-  const points = [];
-  const projectCoords = getProjectCoordinates(project);
 
-  if (projectCoords) {
-    points.push({
-      key: `project-${project.id}`,
-      type: "project",
-      lat: projectCoords.lat,
-      lng: projectCoords.lng,
-      radius: projectCoords.radius || 500,
-      label: project?.name || "-",
-      sublabel: project?.location?.name || "-",
-      status: project?.status,
-      project,
-      building: null,
-    });
-  }
-
-  (project?.buildings || []).forEach((building) => {
-    const coords = getProjectCoordinates(building);
-    if (!coords) return;
-
-    points.push({
-      key: `building-${building.id}`,
-      type: "building",
-      lat: coords.lat,
-      lng: coords.lng,
-      radius: coords.radius || 100,
-      label: building?.building_number || `Building #${building.id}`,
-      sublabel: building?.description || "-",
-      status: building?.status,
-      project,
-      building,
-    });
-  });
-
-  return points;
-}
-
-function buildAllocationMapPoints(allocations = []) {
-  const points = [];
-
-  allocations.forEach((allocation) => {
-    const project = allocation?.project || {};
-    const building = allocation?.building || null;
-
-    if (allocation?.allocation_type === "specific_building" && building) {
-      const coords = getProjectCoordinates(building);
-      if (!coords) return;
-
-      points.push({
-        key: `allocation-building-${allocation.id}`,
-        type: "building",
-        lat: coords.lat,
-        lng: coords.lng,
-        radius: Number(allocation?.allowed_radius || coords.radius || 100),
-        label: building?.building_number || allocation?.target_name || "-",
-        sublabel: building?.description || "بناء محدد",
-        status: building?.status,
-        allocationType: allocation?.allocation_type || "specific_building",
-        allocation,
-        project,
-        building,
-      });
-      return;
-    }
-
-    const coords = getProjectCoordinates(project);
-    if (!coords) return;
-
-    points.push({
-      key: `allocation-project-${allocation.id}`,
-      type: "project",
-      lat: coords.lat,
-      lng: coords.lng,
-      radius: Number(allocation?.allowed_radius || coords.radius || 500),
-      label: project?.name || "-",
-      sublabel: project?.location?.name || "مشروع كامل",
-      status: project?.status,
-      allocationType: allocation?.allocation_type || "project_wide",
-      allocation,
-      project,
-      building: null,
-    });
-  });
-
-  return points;
-}
 
 function getAllocationTypeLabel(type) {
   if (type === "specific_building") return "إسناد بناء محدد";
@@ -667,7 +553,7 @@ MapController.propTypes = {
 };
 export default function EngineeringDashboardPage() {
   const dispatch = useDispatch();
-  const { theme } = useTheme();
+ 
 
   const engineerState = useSelector(
     (state) => state.projectEngineer || state.engineerProjects || {}
@@ -679,6 +565,15 @@ export default function EngineeringDashboardPage() {
     engineerState.projectEngineers ||
     [];
 
+  const systemProjects = useMemo(
+    () => engineerState.projects || [],
+    [engineerState.projects]
+  );
+  const systemBuildings = useMemo(
+    () => engineerState.buildings || [],
+    [engineerState.buildings]
+  );
+
   const loading = engineerState.loading;
   const error = engineerState.error;
 
@@ -689,7 +584,9 @@ export default function EngineeringDashboardPage() {
     start_date: "",
     building_id: "",
   });
-
+useEffect(() => {
+  dispatch(fetchAllEngineers());
+}, [dispatch]);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 // الحالة الجديدة لتحديد بؤرة التركيز الجغرافي الفوري
@@ -703,6 +600,7 @@ export default function EngineeringDashboardPage() {
   const [selectedBuildingBlock, setSelectedBuildingBlock] = useState(null);
   const [selectedBuildingEngineers, setSelectedBuildingEngineers] = useState([]);
   const [buildingEngineersLoading, setBuildingEngineersLoading] = useState(false);
+// في أعلى المكون مع باقي الـ States
 
   const [engineerModalOpen, setEngineerModalOpen] = useState(false);
   const [selectedEngineerBlock, setSelectedEngineerBlock] = useState(null);
@@ -718,14 +616,20 @@ useEffect(() => {
     try {
       // 1. جلب السجلات الأساسية للمشاريع
       const baseResult = await dispatch(fetchProjectEngineers()).unwrap();
-      
+
+      // 2. جلب المشاريع والأبنية العموميين من الراوتين الجدد
+      await Promise.allSettled([
+        dispatch(fetchAllProjects()),
+        dispatch(fetchAllBuildings()),
+      ]);
+
       if (baseResult && baseResult.length > 0) {
-        // 2. استخراج معرفات المشاريع الفريدة
+        // 3. استخراج معرفات المشاريع الفريدة
         const uniqueProjectIds = Array.from(
           new Set(baseResult.map((item) => item.project_id || item.project?.id).filter(Boolean))
         );
 
-        // 3. جلب تفاصيل المهندسين لكل مشروع بالتوازي من الراوت الغني
+        // 4. جلب تفاصيل المهندسين لكل مشروع بالتوازي من الراوت الغني
         const deepResultsArray = await Promise.all(
           uniqueProjectIds.map(async (projectId) => {
             try {
@@ -769,22 +673,31 @@ useEffect(() => {
 
   loadDashboardData();
 }, [dispatch]);
-
   const groupedProjects = useMemo(() => groupProjects(enrichedItems), [enrichedItems]);
   const groupedEngineers = useMemo(() => groupEngineers(enrichedItems), [enrichedItems]);
 
   const availableProjects = useMemo(
-    () => groupedProjects.map((item) => item.project),
-    [groupedProjects]
+    () => (systemProjects.length ? systemProjects : groupedProjects.map((item) => item.project)),
+    [systemProjects, groupedProjects]
   );
 
-  const availableEngineers = useMemo(() => groupedEngineers, [groupedEngineers]);
+  const rawProjectBlocks = useMemo(
+    () => systemProjects.map((project) => ({ project, relations: [], engineers: [] })),
+    [systemProjects]
+  );
+
+  const {
+  engineers: allEngineers = [],
+} = useSelector((state) => state.projectEngineer);
 
   const selectedProject = useMemo(() => {
-    return availableProjects.find(
-      (project) => Number(project.id) === Number(assignData.project_id)
+    return (
+      systemProjects.find((project) => Number(project.id) === Number(assignData.project_id)) ||
+      availableProjects.find(
+        (project) => Number(project.id) === Number(assignData.project_id)
+      )
     );
-  }, [availableProjects, assignData.project_id]);
+  }, [availableProjects, assignData.project_id, systemProjects]);
 
   const availableBuildings = selectedProject?.buildings || [];
 
@@ -816,66 +729,98 @@ useEffect(() => {
     });
   }, [groupedProjects, searchTerm, statusFilter]);
 
-  // const filteredEngineers = useMemo(() => {
-  //   const q = normalizeText(searchTerm);
 
-  //   return groupedEngineers.filter(({ relation, projects, account, info }) => {
-  //     const engineerStatusMatch =
-  //       statusFilter === "all" ||
-  //       projects.some((p) => p?.project?.status === statusFilter);
+  const rawFilteredProjects = useMemo(() => {
+    if (!rawProjectBlocks.length) return [];
 
-  //     const searchable = [
-  //       account?.full_name,
-  //       account?.email,
-  //       account?.phone,
-  //       account?.address,
-  //       info?.specialization,
-  //       info?.experience_years,
-  //       ...projects.flatMap((p) => [
-  //         p?.project?.name,
-  //         p?.project?.description,
-  //         p?.project?.location?.name,
-  //         p?.project?.status,
-  //       ]),
-  //       relation?.project?.status,
-  //     ]
-  //       .map(normalizeText)
-  //       .join(" ");
+    const q = normalizeText(searchTerm);
 
-  //     return engineerStatusMatch && (!q || searchable.includes(q));
-  //   });
-  // }, [groupedEngineers, searchTerm, statusFilter]);
+    return rawProjectBlocks.filter(({ project }) => {
+      const matchesStatus =
+        statusFilter === "all" || project?.status === statusFilter;
+
+      const searchable = [
+        project?.name,
+        project?.description,
+        project?.location?.name,
+        project?.status,
+        project?.coordinates?.latitude,
+        project?.coordinates?.longitude,
+      ]
+        .map(normalizeText)
+        .join(" ");
+
+      return matchesStatus && (!q || searchable.includes(q));
+    });
+  }, [rawProjectBlocks, searchTerm, statusFilter]);
+
+  const effectiveFilteredProjects =
+    rawFilteredProjects.length > 0 ? rawFilteredProjects : filteredProjects;
+
+  const rawBuildingPoints = useMemo(
+    () =>
+      systemBuildings
+        .map((building) => {
+          const coords = getProjectCoordinates(building);
+          if (!coords) return null;
+
+          const project =
+            building.project ||
+            (building.project_id
+              ? {
+                  id: building.project_id,
+                  name: building.project_name || "مشروع مرتبطة",
+                }
+              : null);
+
+          return {
+            key: `raw-building-${building.id}`,
+            type: "building",
+            lat: coords.lat,
+            lng: coords.lng,
+            radius: coords.radius || 100,
+            label: building.building_number || building.name || `Building #${building.id}`,
+            sublabel: building.description || project?.name || "-",
+            status: building.status,
+            project,
+            building,
+          };
+        })
+        .filter(Boolean),
+    [systemBuildings]
+  );
 
   const totalRelations = items.length;
   const totalEngineers = groupedEngineers.length;
-  const totalProjects = groupedProjects.length;
-  const activeProjects = groupedProjects.filter(
-    (item) => item?.project?.status === "in_progress"
-  ).length;
+  const totalProjects = systemProjects.length || groupedProjects.length;
+  const activeProjects = systemProjects.length
+    ? systemProjects.filter((project) => project?.status === "in_progress").length
+    : groupedProjects.filter((item) => item?.project?.status === "in_progress").length;
 
-  const dashboardMapPoints = useMemo(
-    () => buildDashboardMapPoints(filteredProjects),
-    [filteredProjects]
-  );
+  const projectsToShow = effectiveFilteredProjects;
+
+  const dashboardMapPoints = useMemo(() => {
+    const projectPoints = buildDashboardMapPoints(effectiveFilteredProjects);
+    const uniqueBuildings = rawBuildingPoints.filter(
+      (point) =>
+        !projectPoints.some(
+          (existing) =>
+            existing.building?.id && point.building?.id &&
+            existing.building.id === point.building.id
+        )
+    );
+
+    return [...projectPoints, ...uniqueBuildings];
+  }, [effectiveFilteredProjects, rawBuildingPoints]);
 
   const projectsWithCoords = useMemo(
-    () => filteredProjects.filter((block) => getProjectCoordinates(block.project)),
-    [filteredProjects]
+    () => effectiveFilteredProjects.filter((block) => getProjectCoordinates(block.project)),
+    [effectiveFilteredProjects]
   );
 
   const dashboardMapCenter = useMemo(
     () => getMapCenterFromPoints(dashboardMapPoints),
     [dashboardMapPoints]
-  );
-
-  const selectedProjectMapPoints = useMemo(
-    () => buildProjectMapPoints(selectedProjectBlock?.project || {}),
-    [selectedProjectBlock]
-  );
-
-  const selectedProjectMapCenter = useMemo(
-    () => getMapCenterFromPoints(selectedProjectMapPoints),
-    [selectedProjectMapPoints]
   );
 
   const selectedProjectEngineersGrouped = useMemo(() => {
@@ -885,31 +830,17 @@ useEffect(() => {
     );
   }, [selectedProjectEngineers, selectedProjectBlock]);
 
-  const selectedBuildingMapPoints = useMemo(
-    () => buildProjectMapPoints(selectedBuildingBlock?.project || {}),
-    [selectedBuildingBlock]
-  );
+  
 
-  const selectedBuildingMapCenter = useMemo(
-    () => getMapCenterFromPoints(selectedBuildingMapPoints),
-    [selectedBuildingMapPoints]
-  );
+  
 
   const selectedBuildingEngineersGrouped = useMemo(
     () => groupEngineersForBuildingModal(selectedBuildingEngineers || []),
     [selectedBuildingEngineers]
   );
 
-  const selectedEngineerMapPoints = useMemo(
-    () => buildAllocationMapPoints(selectedEngineerAllocations || []),
-    [selectedEngineerAllocations]
-  );
 
-  const selectedEngineerMapCenter = useMemo(
-    () => getMapCenterFromPoints(selectedEngineerMapPoints),
-    [selectedEngineerMapPoints]
-  );
-
+  
   const selectedEngineerProjectsGrouped = useMemo(
     () => groupProjectsFromAllocations(selectedEngineerAllocations || []),
     [selectedEngineerAllocations]
@@ -918,48 +849,47 @@ useEffect(() => {
   const showInitialLoading = loading && items.length === 0;
   const displayError = safeErrorText(error);
 
-  const handleAssignChange = (e) => {
-    const { name, value, type, checked } = e.target;
-
+ const handleAssignChange = (e) => {
+    const { name, value } = e.target;
     setAssignData((prev) => {
       if (name === "project_id") {
         return {
           ...prev,
           project_id: value,
-          building_id: "",
+          building_id: "", // تصغير المشاكل: تصفير المبنى فور تغيير المشروع لتجنب تداخل البيانات
         };
       }
-
       return {
         ...prev,
-        [name]: type === "checkbox" ? checked : value,
+        [name]: value,
       };
     });
   };
-
-  const handleBuildingChange = (e) => {
-    setAssignData((prev) => ({
-      ...prev,
-      building_id: e.target.value,
-    }));
-  };
-
-  const handleAssign = async (e) => {
+const handleSubmitAssign = async (e) => {
     e.preventDefault();
+    
+    // التحقق من الحقول الأساسية المطلوبة
+    if (!assignData.engineer_id || !assignData.project_id || !assignData.start_date) {
+      alert("الرجاء ملء جميع الحقول الإلزامية (المهندس، المشروع، وتاريخ البدء)");
+      return;
+    }
 
+    // بناء الـ Payload المطهّر لمنع كراش الـ Backend
     const payload = {
       engineer_id: Number(assignData.engineer_id),
       project_id: Number(assignData.project_id),
       start_date: assignData.start_date,
+      // إذا كان الحقل فارغاً أو لم يتم اختيار مبنى، يتم إرساله كـ null بدلاً من نص فارغ ""
+      building_id: assignData.building_id && assignData.building_id !== "" 
+        ? Number(assignData.building_id) 
+        : null
     };
 
-    if (assignData.building_id) {
-      payload.building_id = Number(assignData.building_id);
-    }
-
-    const result = await dispatch(assignEngineerProject(payload));
-
-    if (assignEngineerProject.fulfilled.match(result)) {
+    try {
+      // إطلاق عملية الحفظ عبر الـ Thunk
+      await dispatch(assignEngineerProject(payload)).unwrap();
+      
+      // إغلاق الديالوغ وتصفير البيانات فور النجاح
       setAssignOpen(false);
       setAssignData({
         engineer_id: "",
@@ -967,7 +897,42 @@ useEffect(() => {
         start_date: "",
         building_id: "",
       });
+      
+      // إعادة تحميل البيانات لتحديث الخريطة والقوائم فوراً
       dispatch(fetchProjectEngineers());
+    } catch (err) {
+      console.error("فشل إسناد المهندس:", err);
+    }
+  };
+ 
+ 
+
+  const openProjectSidePanel = async (projectBlock) => {
+    const coords = getProjectCoordinates(projectBlock.project);
+    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+    setSelectedProjectBlock(projectBlock);
+    setProjectModalOpen(false);
+    setBuildingModalOpen(false);
+    setEngineerModalOpen(false);
+    setSelectedBuildingBlock(null);
+    setSelectedEngineerBlock(null);
+    setSelectedProjectEngineers([]);
+    setProjectEngineersLoading(true);
+
+    try {
+      const result = await dispatch(
+        fetchEngineersAllocatedToProject(projectBlock.project.id)
+      );
+
+      if (fetchEngineersAllocatedToProject.fulfilled.match(result)) {
+        setSelectedProjectEngineers(
+          Array.isArray(result.payload) ? result.payload : []
+        );
+      } else {
+        setSelectedProjectEngineers([]);
+      }
+    } finally {
+      setProjectEngineersLoading(false);
     }
   };
 
@@ -1091,7 +1056,10 @@ useEffect(() => {
           <Button
             type="button"
             className="primary-action-btn"
-            onClick={() => setAssignOpen(true)}
+             onClick={() => {
+    console.log("CLICK");
+    setAssignOpen(true);
+  }}
           >
             <Plus size={18} />
             <span>إسناد مشروع</span>
@@ -1155,7 +1123,7 @@ useEffect(() => {
       {showInitialLoading ? (
         <div className="project-empty-state">جاري التحميل...</div>
       ) : displayError ? (
-        <div className="project-empty-state" style={{ color: "red" }}>
+        <div className="project-empty-state project-empty-state--error">
           {displayError}
         </div>
       ) : (
@@ -1168,64 +1136,163 @@ useEffect(() => {
               <span>{projectsWithCoords.length} على الخريطة</span>
             </div>
 
-            <div className="engineering-map-real">
-             <MapContainer center={dashboardMapCenter} zoom={12} style={{ height: "100%", width: "100%" }}>
-  
-  {/* لوحة التحكم بتبديل المظهر وقمر صناعي Esri */}
-  <LayersControl position="topright">
-    <LayersControl.BaseLayer checked name="قمر صناعي (Satellite View)">
-      <TileLayer
-        attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
-        url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-      />
-    </LayersControl.BaseLayer>
-    <LayersControl.BaseLayer name="خريطة الشوارع العادية">
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-    </LayersControl.BaseLayer>
-  </LayersControl>
+            <div className="engineering-map-real engineering-map-real--overlay">
+              <MapContainer center={dashboardMapCenter} zoom={12} className="engineering-map-container">
+                {/* لوحة التحكم بتبديل المظهر وقمر صناعي Esri */}
+                <LayersControl position="topright">
+                  <LayersControl.BaseLayer checked name="قمر صناعي (Satellite View)">
+                    <TileLayer
+                      attribution='Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+                      url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                    />
+                  </LayersControl.BaseLayer>
+                  <LayersControl.BaseLayer name="خريطة الشوارع العادية">
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                  </LayersControl.BaseLayer>
+                </LayersControl>
 
-  {/* تفعيل متحكم حركة كاميرا الخريطة الفوري */}
-  <MapController target={mapCenterTarget} />
+                {/* تفعيل متحكم حركة كاميرا الخريطة الفوري */}
+               <MapController target={mapCenterTarget} />
 
-  {dashboardMapPoints.map((point) => (
-    <div key={point.key}>
-      <Marker
-        position={[point.lat, point.lng]}
-        icon={createMapPinIcon(point.type, theme)}
-        eventHandlers={{
-          click: () => setMapCenterTarget([point.lat, point.lng]) // تحديد الموقع عند النقر على الدبوس
-        }}
-      >
-        <Popup>
-          <div style={{ minWidth: "160px" }}>
-            <h4 style={{ margin: "0 0 4px 0" }}>{point.label}</h4>
-            <p style={{ margin: "0 0 6px 0", fontSize: "12px", opacity: 0.8 }}>{point.sublabel}</p>
-            <StatusBadge status={getStatusMeta(point.status).type} text={getStatusMeta(point.status).label} />
-            <div style={{ marginTop: "10px" }}>
-              {point.type === "project" ? (
-                <Button size="sm" onClick={() => openProjectDetails(point)}>لوحة التحكم</Button>
-              ) : (
-                <Button size="sm" onClick={() => openBuildingDetails(point.building, point.project)}>لوحة البناء</Button>
+{dashboardMapPoints.map((point) => (
+  <div key={point.key}>
+    <Marker
+      position={[point.lat, point.lng]}
+      // إزالة الـ theme لتجنب مشاكل المتغيرات غير المستخدمة
+      icon={createMapPinIcon(point.type)} 
+      eventHandlers={{
+        click: () => {
+          setMapCenterTarget([point.lat, point.lng]);
+          if (point.type === "project") {
+            openProjectSidePanel(point);
+          } else {
+            openBuildingDetails(point.building, point.project);
+          }
+        }
+      }}
+    />
+    <Circle
+      center={[point.lat, point.lng]}
+      radius={point.radius}
+      // 🎯 الاعتماد الكلي على كلاسات CSS للتحكم بالألوان والخصائص
+      pathOptions={{
+        className: point.type === "building" ? "map-building-circle" : "map-project-circle"
+      }}
+    />
+  </div>
+))}
+              </MapContainer>
+
+              {selectedProjectBlock && (
+                <div className="google-maps-side-panel">
+                  <div className="google-maps-side-panel-header">
+                    <div className="google-maps-side-panel-header-content">
+                      <h3 className="google-maps-side-panel-title">{selectedProjectBlock.project?.name}</h3>
+                      <div className="google-maps-side-panel-subtitle">
+                        {parseLocalized(selectedProjectBlock.project?.location?.name) || "-"}
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setSelectedProjectBlock(null)}
+                      aria-label="اغلاق لوحة التفاصيل"
+                      className="google-maps-side-panel-close"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="google-maps-side-panel-body">
+                    <div className="google-maps-side-panel-image-shell">
+                      <img
+                        src={selectedProjectBlock.project?.image_url || "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?q=80&w=800"}
+                        alt={selectedProjectBlock.project?.name}
+                        className="google-maps-side-panel-image"
+                      />
+                    </div>
+
+                    <div className="google-maps-side-panel-content">
+                      <div className="google-maps-side-panel-meta-row">
+                        <div className="google-maps-side-panel-meta-label">
+                          {selectedProjectBlock.project?.category || "مشروع هندسي"}
+                        </div>
+                        <div
+                          className={
+                            selectedProjectBlock.project?.status === "active"
+                              ? "google-maps-side-panel-status google-maps-side-panel-status--active"
+                              : "google-maps-side-panel-status google-maps-side-panel-status--inactive"
+                          }
+                        >
+                          {getStatusMeta(selectedProjectBlock.project?.status).label}
+                        </div>
+                      </div>
+
+                      <div className="google-maps-side-panel-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const coords = getProjectCoordinates(selectedProjectBlock.project);
+                            if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+                          }}
+                          className="btn-ghost google-maps-side-panel-action-btn"
+                        >
+                          📍 تحديد الموقع
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => openProjectDetails(selectedProjectBlock)}
+                          className="btn-ghost google-maps-side-panel-action-btn"
+                        >
+                          📊 التقرير الكامل
+                        </button>
+                      </div>
+
+                      <hr className="google-maps-side-panel-divider" />
+
+                      <div className="google-maps-side-panel-section">
+                        <strong>الموقع</strong>
+                        <div className="google-maps-side-panel-section-text">
+                          {parseLocalized(selectedProjectBlock.project?.location?.name) || "-"}
+                        </div>
+
+                        <div className="google-maps-side-panel-section-block">
+                          <strong>الفترة</strong>
+                          <div className="google-maps-side-panel-section-text">
+                            {formatDate(selectedProjectBlock.project?.start_date)} — {selectedProjectBlock.project?.end_date || "مفتوح"}
+                          </div>
+                        </div>
+
+                        <div className="google-maps-side-panel-section-block">
+                          <strong>الوصف</strong>
+                          <p className="google-maps-side-panel-section-text">
+                            {selectedProjectBlock.project?.description || "لا يوجد وصف للمشروع."}
+                          </p>
+                        </div>
+
+                        <div className="google-maps-side-panel-section-block">
+                          <strong>المهندسون</strong>
+                          <div className="google-maps-side-panel-section-text">
+                            {selectedProjectEngineersGrouped.length} مهندس
+                          </div>
+                        </div>
+
+                        <div className="google-maps-side-panel-section-block">
+                          <strong>الأبنية</strong>
+                          <div className="google-maps-side-panel-section-text">
+                            {selectedProjectBlock.project?.buildings?.length || 0} مبنى
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
-            </div>
-          </div>
-        </Popup>
-      </Marker>
-      <Circle
-        center={[point.lat, point.lng]}
-        radius={point.radius}
-        pathOptions={{
-          color: point.type === "building" ? "#f59e0b" : "#00d4ff",
-          fillOpacity: 0.1,
-          weight: 1.5
-        }}
-      />
-    </div>
-  ))}
-</MapContainer>
+
             </div>
           </section>
 
@@ -1234,33 +1301,41 @@ useEffect(() => {
               <div>
                 <h2>المشاريع المرتبطة</h2>
               </div>
-              <span>{filteredProjects.length} مشروع</span>
+              <span>{projectsToShow.length} مشروع</span>
             </div>
 
-            {filteredProjects.length === 0 ? (
+            {projectsToShow.length === 0 ? (
               <div className="project-empty-state">لا توجد مشاريع مطابقة.</div>
             ) : (
               <div className="project-modal-engineer-projects">
-                {filteredProjects.map((block) => {
+                {projectsToShow.map((block) => {
                   const meta = getStatusMeta(block.project?.status);
 
                   return (
                     <article className="engineer-project-card" key={block.project.id}>
                       <div className="mini-project-card-head">
                         <div>
-                          <div style={{ display: "flex", gap: "6px" }}>
-  {/* الزر الجديد للتنقل السلس الفوري */}
-  <Button size="sm" variant="outline" onClick={() => {
-    const coords = getProjectCoordinates(block.project);
-    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
-  }}>تحديد موقع</Button>
-  
-  <Button size="sm" onClick={() => openProjectDetails(block)}>تفاصيل</Button>
-</div>
+                          <div className="project-card-action-row">
+                            <Button
+                              className="dashboard-inline-btn dashboard-inline-btn--ghost"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => {
+                                const coords = getProjectCoordinates(block.project);
+                                if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+                              }}
+                            >
+                              تحديد موقع
+                            </Button>
+
+                            <Button className="dashboard-inline-btn dashboard-inline-btn--primary" size="sm" onClick={() => openProjectSidePanel(block)}>
+                              تفاصيل
+                            </Button>
+                          </div>
                           <button
                             type="button"
                             className="project-title-btn project-title-btn--small"
-                            onClick={() => openProjectDetails(block)}
+                            onClick={() => openProjectSidePanel(block)}
                           >
                             {block.project?.name || "-"}
                           </button>
@@ -1288,7 +1363,7 @@ useEffect(() => {
                         <span className="project-chip">الربطات: {block.relations.length}</span>
                       </div>
 
-                      <div className="project-chip-row" style={{ marginTop: 8 }}>
+                      <div className="project-chip-row project-chip-row--spaced">
                         {(block.engineers || []).slice(0, 4).map((eng) => (
                           <button
                             key={eng.engineerId}
@@ -1315,141 +1390,131 @@ useEffect(() => {
         </div>
       )}
 
-      <Modal
-        open={assignOpen}
-        onClose={() => setAssignOpen(false)}
-        title="إسناد مشروع لمهندس"
-        description="اختر المهندس والمشروع وحدد البناء فقط إذا رغبت."
-        size="xl"
+      {/* ديالوغ إسناد مهندس جديد - بتصميم مطور بالكامل */}
+      <Modal 
+        open={assignOpen} 
+        onClose={() => setAssignOpen(false)} 
+        title="إسناد مهندس لموقع عمل جديد"
       >
-        <form className="engineering-form engineering-form--modal" onSubmit={handleAssign}>
-          <div className="engineering-form-grid">
-            <div className="assign-select-wrapper">
-              <label className="assign-label">المهندس</label>
-              <select
-                name="engineer_id"
-                value={assignData.engineer_id}
-                onChange={handleAssignChange}
-                className="assign-select"
-                required
-              >
-                <option value="">اختر مهندس</option>
-                {availableEngineers.map((engineer) => (
-                  <option key={engineer.engineerId} value={engineer.engineerId}>
-                    {getEngineerDisplayName(engineer)} —{" "}
-                    {getEngineerDisplaySpecialization(engineer)}
-                  </option>
-                ))}
-              </select>
+        <form onSubmit={handleSubmitAssign} className="modern-form-container">
+          <p className="form-subtitle-desc">
+            قم بتعبئة البيانات أدناه لربط المهندس بالمشروع وتحديد نطاق الصلاحية الجغرافية بدقة.
+          </p>
+
+          <div className="form-grid-layout">
+            
+            {/* حقل اختيار المهندس */}
+            <div className="form-group-field">
+              <label htmlFor="engineer_id">
+                <Users2 size={16} /> المهندس المسؤول <span className="required-star">*</span>
+              </label>
+              <div className="select-input-wrapper">
+                <select
+                  id="engineer_id"
+                  name="engineer_id"
+                  value={assignData.engineer_id}
+                  onChange={handleAssignChange}
+                  required
+                >
+                  <option value="">-- اختر المهندس المطلوب --</option>
+                  {allEngineers.map((eng)  => (
+                    <option
+  key={eng.additional_info.engineer_id}
+  value={eng.additional_info.engineer_id}
+>
+  {eng.account.full_name}
+  {" - "}
+  {eng.additional_info.specialization}
+</option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="assign-select-wrapper">
-              <label className="assign-label">المشروع</label>
-              <select
-                name="project_id"
-                value={assignData.project_id}
-                onChange={handleAssignChange}
-                className="assign-select"
-                required
-              >
-                <option value="">اختر مشروع</option>
-                {availableProjects.map((project) => (
-                  <option key={project.id} value={project.id}>
-                    {project.name}
-                  </option>
-                ))}
-              </select>
+            {/* حقل اختيار المشروع */}
+            <div className="form-group-field">
+              <label htmlFor="project_id">
+                <FolderKanban size={16} /> المشروع المستهدف <span className="required-star">*</span>
+              </label>
+              <div className="select-input-wrapper">
+                <select
+                  id="project_id"
+                  name="project_id"
+                  value={assignData.project_id}
+                  onChange={handleAssignChange}
+                  required
+                >
+                  <option value="">-- اختر المشروع --</option>
+                  {availableProjects.map((proj) => (
+                    <option key={proj.id} value={proj.id}>
+                      {proj.name} {proj.location?.name ? `[${proj.location.name}]` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
 
-            <div className="assign-select-wrapper">
-              <label className="assign-label">تاريخ البدء</label>
+            {/* حقل اختيار البناء (يظهر أو يتفعل بشكل ديناميكي بناءً على المشروع المختار) */}
+            <div className={`form-group-field ${!assignData.project_id ? "disabled-opacity" : ""}`}>
+              <label htmlFor="building_id">
+                <Building2 size={16} /> نطاق العمل (بناء محدد أو شامل)
+              </label>
+              <div className="select-input-wrapper">
+                <select
+                  id="building_id"
+                  name="building_id"
+                  value={assignData.building_id}
+                  onChange={handleAssignChange}
+                  disabled={!assignData.project_id}
+                >
+                  <option value="">على مستوى المشروع بالكامل (عام)</option>
+                  {availableBuildings.map((bld) => (
+                    <option key={bld.id} value={bld.id}>
+                      {bld.building_number} {bld.description ? `- ${bld.description}` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span className="field-hint-text">
+                {!assignData.project_id 
+                  ? "يرجى اختيار المشروع أولاً لتظهر الأبنية التابعة له." 
+                  : "اتركه فارغاً إذا كنت تريد إسناد المهندس لكامل إحداثيات المشروع."}
+              </span>
+            </div>
+
+            {/* حقل تاريخ البدء */}
+            <div className="form-group-field">
+              <label htmlFor="start_date">
+                <CalendarDays size={16} /> تاريخ مباشرة العمل <span className="required-star">*</span>
+              </label>
               <input
                 type="date"
+                id="start_date"
                 name="start_date"
                 value={assignData.start_date}
                 onChange={handleAssignChange}
-                className="assign-select"
                 required
+                className="modern-date-picker"
               />
             </div>
+
           </div>
 
-         {selectedProject && Array.isArray(availableBuildings) && availableBuildings.length > 0 ? (
-  <div className="assign-buildings-section" style={{ animation: "fadeIn 0.2s ease" }}>
-    <div className="assign-buildings-head">
-      <h3>أبنية المشروع</h3>
-      <span style={{ fontSize: "12px", color: "var(--text-muted, #888)" }}>
-        {availableBuildings.length > 1 
-          ? "• يحتوي المشروع على عدة أبنية (اختياري: يمكنك تعيين المهندس لبناء محدد أو تركه للمشروع كاملاً)" 
-          : "• يحتوي المشروع على بناء واحد فقط (سيتم الإسناد تلقائياً)"}
-      </span>
-    </div>
-
-    {/* القائمة المنسدلة: يتم قفلها وتثبيتها إذا كان هناك بناء واحد فقط، وتفعيلها إذا تعددت الأبنية */}
-    <div className="assign-select-wrapper" style={{ marginTop: 12 }}>
-      <label className="assign-label">نطاق التعيين الهندسي</label>
-      <select
-        value={assignData.building_id}
-        onChange={handleBuildingChange}
-        className="assign-select"
-        disabled={availableBuildings.length <= 1} 
-      >
-        <option value="">إسناد على المشروع كاملًا (كل الأبنية)</option>
-        {availableBuildings.map((building) => (
-          <option key={building.id} value={building.id}>
-            البناء #{building.building_number || building.id} — {building.floors_count || "-"} طابق
-          </option>
-        ))}
-      </select>
-    </div>
-
-    {/* عرض الكروت: تظهر فقط عند وجود أكثر من بناء ليتنقل المهندس بينها بحرية واختيارية */}
-    {availableBuildings.length > 1 && (
-      <div className="assign-buildings-grid" style={{ marginTop: 16 }}>
-        {availableBuildings.map((building) => {
-          const selected = Number(assignData.building_id) === Number(building.id);
-
-          return (
-            <button
-              type="button"
-              key={building.id}
-              className={`assign-building-card ${selected ? "active" : ""}`}
-              onClick={() =>
-                setAssignData((prev) => ({
-                  ...prev,
-                  building_id: selected ? "" : String(building.id), // كبس الكرت مرة أخرى يلغي التحديد ليعود للمشروع كاملاً
-                }))
-              }
-            >
-              <div>
-                <h4>البناء #{building.building_number || building.id}</h4>
-                <p>{building.floors_count || "-"} طابق</p>
-              </div>
-
-              <StatusBadge
-                status={getStatusMeta(building?.status).label}
-                type={getStatusMeta(building?.status).type}
-              />
-            </button>
-          );
-        })}
-      </div>
-    )}
-  </div>
-) : null}
-
-          <div className="modal-actions">
-            <Button
-              type="button"
-              className="ghost-filter-btn"
+          {/* شريط أزرار التحكم السفلي */}
+          <div className="form-actions-footer">
+            <Button 
+              type="button" 
+              variant="secondary" 
               onClick={() => setAssignOpen(false)}
             >
-              إلغاء
+              إلغاء الأمر
             </Button>
-
-            <Button type="submit" className="primary-action-btn">
-              <Plus size={18} />
-              <span>تأكيد الإسناد</span>
+            <Button 
+              type="submit" 
+              variant="primary"
+              disabled={loading}
+            >
+              {loading ? "جاري الحفظ..." : "تأكيد الإسناد الموقعي"}
             </Button>
           </div>
         </form>
@@ -1468,83 +1533,7 @@ useEffect(() => {
       >
         {selectedProjectBlock ? (
           <div className="project-modal-layout project-modal-layout--map">
-            <div className="project-modal-hero">
-              <MapContainer
-                key={`project-modal-map-${selectedProjectBlock?.project?.id || "x"}-${theme}`}
-                center={
-                  selectedProjectMapPoints.length > 0
-                    ? selectedProjectMapCenter
-                    : [
-                        Number(selectedProjectBlock.project?.coordinates?.latitude || 33.5138),
-                        Number(selectedProjectBlock.project?.coordinates?.longitude || 36.2765),
-                      ]
-                }
-                zoom={17}
-                scrollWheelZoom
-                style={{ height: "100%", width: "100%" }}
-              >
-                <TileLayer
-                  attribution="&copy; OpenStreetMap contributors"
-                  url={
-                    theme === "dark"
-                      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                      : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  }
-                />
-
-                {selectedProjectMapPoints.map((point) => (
-                  <Marker
-                    key={point.key}
-                    position={[point.lat, point.lng]}
-                    icon={createMapPinIcon(point.type, theme)}
-                  >
-                    <Popup>
-                      <div className="map-popup">
-                        <h3>{point.label}</h3>
-                        <p>
-                          <MapPinned size={13} />
-                          {point.sublabel}
-                        </p>
-                        <p>
-                          {point.type === "building" ? "بناء" : "مشروع"} •{" "}
-                          {getStatusMeta(point.status).label}
-                        </p>
-
-                        {point.type === "building" ? (
-                          <button
-                            type="button"
-                            className="popup-details-btn"
-                            onClick={() =>
-                              openBuildingDetails(point.building, point.project)
-                            }
-                          >
-                            عرض تفاصيل البناء
-                          </button>
-                        ) : null}
-                      </div>
-                    </Popup>
-
-                    <Circle
-                      center={[point.lat, point.lng]}
-                      radius={Number(point.radius || 500)}
-                    />
-                  </Marker>
-                ))}
-              </MapContainer>
-
-              <div className="project-modal-hero-overlay">
-                <StatusBadge
-                  status={getStatusMeta(selectedProjectBlock.project?.status).label}
-                  type={getStatusMeta(selectedProjectBlock.project?.status).type}
-                />
-                <div className="project-modal-hero-chip">
-                  {selectedProjectEngineersGrouped.length ||
-                    selectedProjectBlock.engineers?.length ||
-                    0}{" "}
-                  مهندس
-                </div>
-              </div>
-            </div>
+           
 
             <div className="project-modal-grid">
               <section className="project-modal-panel">
@@ -1869,71 +1858,7 @@ useEffect(() => {
               )}
             </section>
 
-            <section className="project-modal-panel">
-              <div className="engineering-summary-head">
-                <h2>موقع البناء على الخريطة</h2>
-                <span>{selectedBuildingMapPoints.length} نقطة</span>
-              </div>
-
-              <div className="project-modal-hero" style={{ height: 260 }}>
-                <MapContainer
-                  key={`building-modal-map-${selectedBuildingBlock?.building?.id || "x"}-${theme}`}
-                  center={
-                    selectedBuildingMapPoints.length > 0
-                      ? selectedBuildingMapCenter
-                      : [
-                          Number(
-                            selectedBuildingBlock.building?.coordinates?.latitude ||
-                              33.5138
-                          ),
-                          Number(
-                            selectedBuildingBlock.building?.coordinates?.longitude ||
-                              36.2765
-                          ),
-                        ]
-                  }
-                  zoom={17}
-                  scrollWheelZoom
-                  style={{ height: "100%", width: "100%" }}
-                >
-                  <TileLayer
-                    attribution="&copy; OpenStreetMap contributors"
-                    url={
-                      theme === "dark"
-                        ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                        : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                    }
-                  />
-
-                  {selectedBuildingMapPoints.map((point) => (
-                    <Marker
-                      key={point.key}
-                      position={[point.lat, point.lng]}
-                      icon={createMapPinIcon(point.type, theme)}
-                    >
-                      <Popup>
-                        <div className="map-popup">
-                          <h3>{point.label}</h3>
-                          <p>
-                            <MapPinned size={13} />
-                            {point.sublabel}
-                          </p>
-                          <p>
-                            {point.type === "building" ? "بناء" : "مشروع"} •{" "}
-                            {getStatusMeta(point.status).label}
-                          </p>
-                        </div>
-                      </Popup>
-
-                      <Circle
-                        center={[point.lat, point.lng]}
-                        radius={Number(point.radius || 500)}
-                      />
-                    </Marker>
-                  ))}
-                </MapContainer>
-              </div>
-            </section>
+            
           </div>
         ) : null}
       </Modal>
@@ -2015,66 +1940,6 @@ useEffect(() => {
 
             <section className="project-modal-panel">
               <div className="engineering-summary-head">
-                <h2>مواقع الإسناد</h2>
-                <span>{selectedEngineerMapPoints.length} موقع</span>
-              </div>
-
-              <div className="project-modal-hero" style={{ marginBottom: 14 }}>
-                {selectedEngineerMapPoints.length > 0 ? (
-                  <MapContainer
-                    key={`engineer-map-${selectedEngineerBlock?.engineerId || "x"}-${theme}`}
-                    center={
-                      selectedEngineerMapPoints.length > 0
-                        ? selectedEngineerMapCenter
-                        : [33.5138, 36.2765]
-                    }
-                    zoom={17}
-                    scrollWheelZoom
-                    style={{ height: "100%", width: "100%" }}
-                  >
-                    <TileLayer
-                      attribution="&copy; OpenStreetMap contributors"
-                      url={
-                        theme === "dark"
-                          ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-                          : "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                      }
-                    />
-
-                    {selectedEngineerMapPoints.map((point) => (
-                      <Marker
-                        key={point.key}
-                        position={[point.lat, point.lng]}
-                        icon={createMapPinIcon(point.type, theme)}
-                      >
-                        <Popup>
-                          <div className="map-popup">
-                            <h3>{point.label}</h3>
-                            <p>
-                              <MapPinned size={13} />
-                              {point.sublabel}
-                            </p>
-                            <p>{getAllocationTypeLabel(point.allocationType)}</p>
-                            <p>🟢 {getStatusMeta(point.status).label}</p>
-                          </div>
-                        </Popup>
-
-                        <Circle
-                          center={[point.lat, point.lng]}
-                          radius={Number(point.radius || 500)}
-                        />
-                      </Marker>
-                    ))}
-                  </MapContainer>
-                ) : (
-                  <div className="project-modal-hero-map">
-                    <MapPinned size={30} />
-                    <span>لا توجد مواقع إسناد لهذا المهندس</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="engineering-summary-head">
                 <h2>المشاريع المرتبطة</h2>
                 <span>{selectedEngineerProjectsGrouped.length} مشروع</span>
               </div>
@@ -2096,7 +1961,7 @@ useEffect(() => {
                               type="button"
                               className="project-title-btn project-title-btn--small"
                               onClick={() =>
-                                openProjectDetails({
+                                openProjectSidePanel({
                                   project,
                                   relations,
                                   engineers: [],
