@@ -5,6 +5,8 @@ import {
   getAllocatedLocationsForEngineerRequest,
   getEngineersAllocatedToBuildingRequest,
   assignEngineerProjectRequest,
+  getAllProjectsRequest, // 🆕
+  getAllBuildingsRequest, // 🆕
 } from "../api/engineerProject.api";
 
 // دالة مساعدة موحدة لترتيب وتحويل البيانات بشكل آمن ومقاوم للبيانات الناقصة
@@ -42,8 +44,7 @@ const transformAllocations = (allocations) => {
         coordinates: coords
       } : null),
 
-      // 3. الحل الذكي للمهندس: إذا رجع كائن المهندس الحقيقي (مثل راوت الديالوغ) نأخذه فوراً
-      // وإذا لم يرجع (مثل الراوت العام) نؤمن كائن مرن يحمل المعرف الفرعي لمنع الكراش
+      // 3. الحل الذكي للمهندس
       engineer: allocation.engineer ? {
         ...allocation.engineer,
         engineer_id: allocation.engineer_id || allocation.engineer.engineer_id
@@ -112,6 +113,30 @@ export const assignEngineerProject = createAsyncThunk(
     const result = await assignEngineerProjectRequest(payload);
     if (result.ok) {
       return result.data?.data ?? true;
+    }
+    return thunkAPI.rejectWithValue(result.message);
+  }
+);
+
+// 🆕 ثونك جلب كل المشاريع بصيغتها النظيفة للداش بورد
+export const fetchAllProjects = createAsyncThunk(
+  "projectEngineer/fetchAllProjects",
+  async (_, thunkAPI) => {
+    const result = await getAllProjectsRequest();
+    if (result.ok) {
+      return result.data?.data ?? [];
+    }
+    return thunkAPI.rejectWithValue(result.message);
+  }
+);
+
+// 🆕 ثونك جلب كل الأبنية بصيغتها النظيفة للداش بورد
+export const fetchAllBuildings = createAsyncThunk(
+  "projectEngineer/fetchAllBuildings",
+  async (_, thunkAPI) => {
+    const result = await getAllBuildingsRequest();
+    if (result.ok) {
+      return result.data?.data ?? [];
     }
     return thunkAPI.rejectWithValue(result.message);
   }

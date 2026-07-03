@@ -11,3 +11,6 @@ export const createEngineerRequest = (payload) => {
 export const deleteEngineerRequest = (id) => {
   return api.delete(`/engineer/${id}`);
 };
+export const getAllocatedLocationsRequest = (engineerId) => {
+  return api.get(`/project-engineer/allocatedLocations/${engineerId}`);
+};

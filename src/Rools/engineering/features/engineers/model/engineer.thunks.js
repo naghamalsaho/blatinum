@@ -3,6 +3,7 @@ import {
   getEngineersRequest,
   createEngineerRequest,
   deleteEngineerRequest,
+  getAllocatedLocationsRequest,
 } from "../api/engineer.api";
 
 export const fetchEngineers = createAsyncThunk(
@@ -54,6 +55,20 @@ export const deleteEngineer = createAsyncThunk(
       return id;
     }
 
+    return thunkAPI.rejectWithValue(result.message);
+  }
+);
+
+export const fetchAllocatedLocations = createAsyncThunk(
+  "engineers/fetchAllocatedLocations",
+  async (engineerId, thunkAPI) => {
+    console.log(`[fetchAllocatedLocations] request -> GET /project-engineer/allocatedLocations/${engineerId}`);
+    const result = await getAllocatedLocationsRequest(engineerId);
+    console.log("[fetchAllocatedLocations] response:", result);
+
+    if (result.ok) {
+      return result.data?.data ?? [];
+    }
     return thunkAPI.rejectWithValue(result.message);
   }
 );

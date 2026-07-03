@@ -5,12 +5,16 @@ import {
   fetchEngineersAllocatedToProject,
   fetchAllocatedLocationsForEngineer,
   assignEngineerProject,
+  fetchAllProjects, // 🆕
+  fetchAllBuildings, // 🆕
 } from "./engineerProject.thunks";
 
 const initialState = {
   items: [],
   projectEngineers: [],
   allocatedLocations: [],
+  projects: [], // 🆕 لتخزين مشاريع النظام
+  buildings: [], // 🆕 لتخزين أبنية النظام
   loading: false,
   error: null,
 };
@@ -70,6 +74,34 @@ const projectEngineerSlice = createSlice({
       .addCase(assignEngineerProject.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "Assignment failed";
+      })
+
+      // 🆕 معالجة راوت المشاريع العام
+      .addCase(fetchAllProjects.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllProjects.fulfilled, (state, action) => {
+        state.loading = false;
+        state.projects = action.payload;
+      })
+      .addCase(fetchAllProjects.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch projects";
+      })
+
+      // 🆕 معالجة راوت الأبنية العام
+      .addCase(fetchAllBuildings.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAllBuildings.fulfilled, (state, action) => {
+        state.loading = false;
+        state.buildings = action.payload;
+      })
+      .addCase(fetchAllBuildings.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Failed to fetch buildings";
       });
   },
 });
