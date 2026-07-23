@@ -231,7 +231,7 @@ export const validateFile = (
     return required ? `${fieldName} مطلوب` : "";
   }
 
-  const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp"];
+  const allowedTypes = ["image/png", "image/jpeg", "image/jpg", "image/webp", "application/pdf"];
 
   if (!allowedTypes.includes(file.type)) {
     return `${fieldName} يجب أن يكون JPG أو PNG أو WEBP`;

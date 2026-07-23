@@ -4,24 +4,23 @@ import {
   Banknote,
   BadgeCheck,
   Building2,
- HeartHandshake,
+  HeartHandshake,
   ContactRound,
-
   FileText,
-
   PencilLine,
   Plus,
   Search,
- 
   Trash2,
   Upload,
   Users2,
+  X,
 } from "lucide-react";
+
+import { t } from "../../../shared/i18n";
 
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
 
 import {
@@ -154,26 +153,26 @@ function getFirstImage(item) {
 }
 
 function getOwnershipStatusMeta(item) {
-  if (item?.status === "active") return { label: "نشط", type: "ok" };
-  if (item?.status === "inactive") return { label: "غير نشط", type: "off" };
-  if (item?.status === "pending") return { label: "قيد المراجعة", type: "busy" };
+  if (item?.status === "active") return { label: t("legal_sales.status_active"), type: "ok" };
+  if (item?.status === "inactive") return { label: t("legal_sales.status_inactive"), type: "off" };
+  if (item?.status === "pending") return { label: t("legal_sales.status_pending"), type: "busy" };
 
   if (typeof item?.status === "boolean") {
     return item.status
-      ? { label: "نشط", type: "ok" }
-      : { label: "غير نشط", type: "off" };
+      ? { label: t("legal_sales.status_active"), type: "ok" }
+      : { label: t("legal_sales.status_inactive"), type: "off" };
   }
 
   if (typeof item?.status === "number") {
     return item.status === 1
-      ? { label: "نشط", type: "ok" }
-      : { label: "غير نشط", type: "off" };
+      ? { label: t("legal_sales.status_active"), type: "ok" }
+      : { label: t("legal_sales.status_inactive"), type: "off" };
   }
 
   const normalized = String(item?.status || "").toLowerCase();
 
   if (normalized === "1" || normalized === "true" || normalized === "active") {
-    return { label: "نشط", type: "ok" };
+    return { label: t("legal_sales.status_active"), type: "ok" };
   }
 
   if (
@@ -181,7 +180,7 @@ function getOwnershipStatusMeta(item) {
     normalized === "false" ||
     normalized === "inactive"
   ) {
-    return { label: "غير نشط", type: "off" };
+    return { label: t("legal_sales.status_inactive"), type: "off" };
   }
 
   return { label: "—", type: "busy" };
@@ -190,9 +189,9 @@ function getOwnershipStatusMeta(item) {
 function getUnitBadgeMeta(unitStatus) {
   const normalized = String(unitStatus || "").toLowerCase();
 
-  if (normalized === "sold") return { label: "مباع", type: "ok" };
-  if (normalized === "available") return { label: "متاح", type: "busy" };
-  if (normalized === "reserved") return { label: "محجوز", type: "off" };
+  if (normalized === "sold") return { label: t("legal_sales.unit_sold"), type: "ok" };
+  if (normalized === "available") return { label: t("legal_sales.unit_available"), type: "busy" };
+  if (normalized === "reserved") return { label: t("legal_sales.unit_reserved"), type: "off" };
 
   return { label: unitStatus || "—", type: "busy" };
 }
@@ -205,11 +204,8 @@ function buildEditForm(item) {
   return {
     client_id: String(getClientId(item) || ""),
     purchase_price: String(
-      Number(
-        String(getPurchasePrice(item) || "").replace(/[^\d.]/g, "")
-      )
+      Number(String(getPurchasePrice(item) || "").replace(/[^\d.]/g, "")) || ""
     ),
-    status: "active",
     owned_at: String(getOwnedAt(item) || ""),
     attachments: [],
   };
@@ -257,7 +253,6 @@ export default function LegalSalesPage() {
   const [editForm, setEditForm] = useState({
     client_id: "",
     purchase_price: "",
-    status: "active",
     owned_at: "",
     attachments: [],
   });
@@ -265,8 +260,6 @@ export default function LegalSalesPage() {
   useEffect(() => {
     dispatch(fetchSoldUnitOwnership(1));
   }, [dispatch]);
-
-
 
   const stats = useMemo(() => {
     const total = Number(meta?.total || items.length || 0);
@@ -280,27 +273,27 @@ export default function LegalSalesPage() {
 
     return [
       {
-        title: "سجلات البيع",
+        title: t("legal_sales.total_sales"),
         value: String(total),
-        note: "إجمالي النتائج",
+      
         icon: Banknote,
       },
       {
-        title: "نشطة",
+        title: t("legal_sales.active_sales"),
         value: String(activeCount),
-        note: "سجلات فعالة",
+     
         icon: HeartHandshake,
       },
       {
-        title: "وحدات مباعة",
+        title: t("legal_sales.sold_units"),
         value: String(soldUnits),
-        note: "حسب حالة الوحدة",
+       
         icon: BadgeCheck,
       },
       {
-        title: "جهات اتصال",
+        title: t("legal_sales.contacts"),
         value: String(withPhone),
-        note: "بيانات العملاء",
+        
         icon: ContactRound,
       },
     ];
@@ -335,12 +328,23 @@ export default function LegalSalesPage() {
     });
   }, [items, search]);
 
- 
   const selectedFirstImage = getFirstImage(selectedItem);
 
   const resetCreateForm = () => {
     setCreateForm(EMPTY_CREATE_FORM);
     if (createFileRef.current) createFileRef.current.value = "";
+    dispatch(clearSoldUnitOwnershipError());
+  };
+
+  const resetEditForm = () => {
+    setEditItem(null);
+    setEditForm({
+      client_id: "",
+      purchase_price: "",
+      owned_at: "",
+      attachments: [],
+    });
+    if (editFileRef.current) editFileRef.current.value = "";
     dispatch(clearSoldUnitOwnershipError());
   };
 
@@ -372,9 +376,10 @@ export default function LegalSalesPage() {
     const { name, value, files } = e.target;
 
     if (name === "attachments") {
+      const newFiles = Array.from(files || []);
       setCreateForm((prev) => ({
         ...prev,
-        attachments: Array.from(files || []),
+        attachments: [...prev.attachments, ...newFiles],
       }));
       return;
     }
@@ -389,9 +394,10 @@ export default function LegalSalesPage() {
     const { name, value, files } = e.target;
 
     if (name === "attachments") {
+      const newFiles = Array.from(files || []);
       setEditForm((prev) => ({
         ...prev,
-        attachments: Array.from(files || []),
+        attachments: [...prev.attachments, ...newFiles],
       }));
       return;
     }
@@ -402,12 +408,18 @@ export default function LegalSalesPage() {
     }));
   };
 
-  const handleCreateFilePick = () => {
-    createFileRef.current?.click();
+  const removeCreateAttachment = (index) => {
+    setCreateForm((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
   };
 
-  const handleEditFilePick = () => {
-    editFileRef.current?.click();
+  const removeEditAttachment = (index) => {
+    setEditForm((prev) => ({
+      ...prev,
+      attachments: prev.attachments.filter((_, i) => i !== index),
+    }));
   };
 
   const submitCreate = async (e) => {
@@ -424,7 +436,7 @@ export default function LegalSalesPage() {
     const formData = new FormData();
     formData.append("client_id", clientId);
     formData.append("purchase_price", String(price));
-    formData.append("status", "active");
+    formData.append("status", createForm.status || "active");
     formData.append("owned_at", String(createForm.owned_at || ""));
 
     if (createForm.attachments[0]) {
@@ -468,8 +480,7 @@ export default function LegalSalesPage() {
     const formData = new FormData();
     formData.append("client_id", String(editForm.client_id));
     formData.append("purchase_price", String(cleanPrice));
-    formData.append("status", "active");
-    formData.append("owned_at", String(editForm.owned_at));
+    formData.append("owned_at", String(editForm.owned_at || ""));
 
     editForm.attachments.forEach((file, index) => {
       formData.append(`attachments[${index}]`, file, file.name);
@@ -484,14 +495,7 @@ export default function LegalSalesPage() {
 
     if (updateSoldUnitOwnership.fulfilled.match(resultAction)) {
       setEditOpen(false);
-      setEditItem(null);
-      setEditForm({
-        client_id: "",
-        purchase_price: "",
-        status: "active",
-        owned_at: "",
-        attachments: [],
-      });
+      resetEditForm();
       dispatch(fetchSoldUnitOwnership(1));
     }
   };
@@ -500,7 +504,7 @@ export default function LegalSalesPage() {
     const id = getSoldOwnershipId(item);
     if (!id) return;
 
-    const ok = window.confirm("هل تريد حذف هذا السجل نهائياً؟");
+    const ok = window.confirm(t("legal_sales.confirm_delete"));
     if (!ok) return;
 
     const resultAction = await dispatch(deleteSoldUnitOwnership(id));
@@ -522,11 +526,8 @@ export default function LegalSalesPage() {
   };
 
   return (
-    <div className="legal-sales-page" dir="rtl">
-     
-
-      
-
+    <div className="legal-sales-page">
+      {/* Stat Cards Grid */}
       <section className="legal-sales-stats-grid">
         {stats.map((item) => (
           <StatCard
@@ -542,12 +543,12 @@ export default function LegalSalesPage() {
       <section className="legal-sales-panel">
         <div className="legal-sales-panel-head">
           <div>
-            <h2>سجلات البيع</h2>
-            <p>جدول متكامل بدون صفحات تنقّل</p>
-              <Button className="legal-sales-primary-btn" onClick={openCreate}>
-            <Plus size={18} />
-            <span>إضافة بيع</span>
-          </Button>
+            <h2>{t("legal_sales.title")}</h2>
+           
+            <Button className="legal-sales-primary-btn" onClick={openCreate}>
+              <Plus size={18} />
+              <span>{t("legal_sales.add_sale")}</span>
+            </Button>
           </div>
         </div>
 
@@ -556,7 +557,7 @@ export default function LegalSalesPage() {
             <Search size={18} />
             <input
               type="text"
-              placeholder="ابحث عن عميل أو وحدة أو هاتف..."
+              placeholder={t("legal_sales.search_placeholder")}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -564,25 +565,25 @@ export default function LegalSalesPage() {
         </div>
 
         {loading ? (
-          <div className="legal-sales-empty">جاري تحميل المبيعات...</div>
+          <div className="legal-sales-empty">{t("legal_sales.loading_sales")}</div>
         ) : error ? (
           <div className="legal-sales-error">
             {typeof error === "string" ? error : JSON.stringify(error)}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="legal-sales-empty">لا توجد نتائج حالياً</div>
+          <div className="legal-sales-empty">{t("legal_sales.no_results_found")}</div>
         ) : (
           <div className="legal-sales-table-wrap">
             <table className="legal-sales-table">
               <thead>
                 <tr>
-                  <th>العميل</th>
-                  <th>الوحدة</th>
-                  <th>سعر الشراء</th>
-                  <th>الحالة</th>
-                  <th>تاريخ التملك</th>
-                  <th>تاريخ الإنشاء</th>
-                  <th>إجراءات</th>
+                  <th>{t("legal_sales.client")}</th>
+                  <th>{t("legal_sales.unit")}</th>
+                  <th>{t("legal_sales.purchase_price")}</th>
+                  <th>{t("legal_sales.status")}</th>
+                  <th>{t("legal_sales.ownership_date")}</th>
+                  <th>{t("legal_sales.created_at")}</th>
+                  <th>{t("legal_sales.actions")}</th>
                 </tr>
               </thead>
 
@@ -611,7 +612,7 @@ export default function LegalSalesPage() {
                             type="button"
                             className="legal-sales-client-main"
                             onClick={() => openClientUnits(item)}
-                            title="عرض وحدات العميل"
+                            title={t("legal_sales.view_client_units")}
                           >
                             <strong>{getClientName(item)}</strong>
                             <span>
@@ -629,7 +630,7 @@ export default function LegalSalesPage() {
                               type="button"
                               className="legal-thumb-btn"
                               onClick={() => openDetails(item)}
-                              title="عرض التفاصيل"
+                              title={t("legal_sales.view_details")}
                             >
                               {imageUrl ? (
                                 <img
@@ -651,13 +652,13 @@ export default function LegalSalesPage() {
 
                           <div className="legal-sales-unit-sub">
                             <span>{getUnitType(item)}</span>
-                            <span>دور {getUnitFloor(item)}</span>
-                            <span>{getUnitArea(item)} م²</span>
+                            <span>{t("legal_sales.floor")} {getUnitFloor(item)}</span>
+                            <span>{getUnitArea(item)} m²</span>
                           </div>
 
                           <div className="legal-sales-unit-mini">
                             <span>{unitBadgeMeta.label}</span>
-                            <span>{getRoomsCount(item)} غرف</span>
+                            <span>{getRoomsCount(item)} {t("legal_sales.rooms")}</span>
                           </div>
                         </div>
                       </td>
@@ -681,13 +682,11 @@ export default function LegalSalesPage() {
 
                       <td>
                         <div className="legal-sales-row-actions">
-                          
-
                           <button
                             type="button"
                             className="legal-sales-icon-btn"
                             onClick={() => openEdit(item)}
-                            title="تعديل"
+                            title={t("legal_sales.edit")}
                           >
                             <PencilLine size={14} />
                           </button>
@@ -696,7 +695,7 @@ export default function LegalSalesPage() {
                             type="button"
                             className="legal-sales-icon-btn danger"
                             onClick={() => handleDelete(item)}
-                            title="حذف"
+                            title={t("legal_sales.delete")}
                             disabled={deleting}
                           >
                             <Trash2 size={14} />
@@ -712,262 +711,284 @@ export default function LegalSalesPage() {
         )}
       </section>
 
-      <Modal
-        open={createOpen}
-        onClose={() => setCreateOpen(false)}
-        title="إضافة بيع جديد"
-        description="أدخل بيانات البيع ثم احفظ العملية."
-        size="lg"
-      >
-        <form className="legal-sales-form" onSubmit={submitCreate}>
-          <div className="legal-sales-form-grid">
-            <Field
-              type="number"
-              name="unit_id"
-              value={createForm.unit_id}
-              onChange={handleCreateChange}
-              label="معرف الوحدة"
-              iconClass="fa-solid fa-building"
-              error=""
-              required
-            />
-
-            <Field
-              type="number"
-              name="client_id"
-              value={createForm.client_id}
-              onChange={handleCreateChange}
-              label="معرف العميل"
-              iconClass="fa-solid fa-user"
-              error=""
-              required
-            />
-
-            <Field
-              type="text"
-              name="purchase_price"
-              value={createForm.purchase_price}
-              onChange={handleCreateChange}
-              label="سعر الشراء"
-              iconClass="fa-solid fa-coins"
-              error=""
-              required
-            />
-
-            <Field
-              type="date"
-              name="owned_at"
-              value={createForm.owned_at}
-              onChange={handleCreateChange}
-              label="تاريخ التملك"
-              iconClass="fa-solid fa-calendar-days"
-              error=""
-              required
-            />
-          </div>
-
-          <div className="legal-sales-form-grid legal-sales-form-grid--single">
-            <div className="legal-sales-field-block">
-              <label className="legal-sales-field-label">الحالة</label>
-              <select
-                name="status"
-                className="legal-sales-select"
-                value={createForm.status}
-                onChange={handleCreateChange}
-              >
-                <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
-              </select>
-            </div>
-
-            <div className="legal-sales-file-box">
-              <input
-                type="file"
-                name="attachments"
-                ref={createFileRef}
-                onChange={handleCreateChange}
-                accept="image/*,application/pdf"
-                hidden
-              />
-
-              <div className="legal-sales-file-row">
-                <Button
-                  type="button"
-                  className="legal-sales-secondary-btn"
-                  onClick={handleCreateFilePick}
-                >
-                  <Upload size={16} />
-                  <span>اختيار مرفق</span>
-                </Button>
-
-                <span className="legal-sales-file-name">
-                  {createForm.attachments.length > 0
-                    ? `${createForm.attachments.length} ملف/ملفات محددة`
-                    : "لم يتم اختيار ملفات"}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="modal-actions">
-            <Button
-              type="button"
-              className="legal-sales-secondary-btn"
-              onClick={() => {
-                setCreateOpen(false);
-                resetCreateForm();
-              }}
-            >
-              إلغاء
-            </Button>
-
-            <Button
-              type="submit"
-              className="legal-sales-primary-btn"
-              disabled={creating}
-            >
-              <Plus size={16} />
-              <span>{creating ? "جاري الحفظ..." : "حفظ البيع"}</span>
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      <Modal
-        open={editOpen}
-        onClose={() => {
-          setEditOpen(false);
-          setEditItem(null);
-          setEditForm({
-            client_id: "",
-            purchase_price: "",
-            status: "active",
-            owned_at: "",
-            attachments: [],
-          });
-          if (editFileRef.current) editFileRef.current.value = "";
-          dispatch(clearSoldUnitOwnershipError());
-        }}
-        title="تعديل سجل البيع"
-        description="حدّث بيانات الملكية ثم احفظ التغييرات."
-        size="lg"
-      >
-        <form className="legal-sales-form" onSubmit={submitEdit}>
-          <div className="legal-sales-form-grid">
-            <Field
-              type="text"
-              name="client_id"
-              value={editForm.client_id}
-              onChange={handleEditChange}
-              label="Client ID"
-              iconClass="fa-solid fa-user"
-              error=""
-              required
-            />
-
-            <Field
-              type="text"
-              name="purchase_price"
-              value={editForm.purchase_price}
-              onChange={handleEditChange}
-              label="سعر الشراء"
-              iconClass="fa-solid fa-coins"
-              error=""
-              required
-            />
-
-            <Field
-              type="date"
-              name="owned_at"
-              value={editForm.owned_at}
-              onChange={handleEditChange}
-              label="تاريخ التملك"
-              iconClass="fa-solid fa-calendar-days"
-              error=""
-              required
-            />
-
-            <div className="legal-sales-field-block">
-              <label className="legal-sales-field-label">الحالة</label>
-              <select
-                name="status"
-                className="legal-sales-select"
-                value={editForm.status}
-                onChange={handleEditChange}
-              >
-                <option value="active">نشط</option>
-                <option value="inactive">غير نشط</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="legal-sales-file-box">
-            <input
-              type="file"
-              name="attachments"
-              ref={editFileRef}
-              onChange={handleEditChange}
-              accept="image/*,application/pdf"
-              multiple
-              hidden
-            />
-
-            <div className="legal-sales-file-row">
-              <Button
+      {/* ================= MODAL: Add New Sale ================= */}
+      {createOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setCreateOpen(false);
+            resetCreateForm();
+          }}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t("legal_sales.add_new_sale")}</h3>
+              <button
                 type="button"
-                className="legal-sales-secondary-btn"
-                onClick={handleEditFilePick}
+                className="close-btn"
+                onClick={() => {
+                  setCreateOpen(false);
+                  resetCreateForm();
+                }}
               >
-                <Upload size={16} />
-                <span>اختيار مرفقات</span>
-              </Button>
-
-              <span className="legal-sales-file-name">
-                {editForm.attachments.length > 0
-                  ? `${editForm.attachments.length} ملف/ملفات محددة`
-                  : "لم يتم اختيار ملفات"}
-              </span>
+                <X size={20} />
+              </button>
             </div>
+
+            <form onSubmit={submitCreate} className="modal-form" noValidate>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t("legal_sales.unit_id")}</label>
+                  <input
+                    type="number"
+                    name="unit_id"
+                    className="input-field"
+                    placeholder={t("legal_sales.enter_unit_id")}
+                    value={createForm.unit_id}
+                    onChange={handleCreateChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t("legal_sales.client_id")}</label>
+                  <input
+                    type="number"
+                    name="client_id"
+                    className="input-field"
+                    placeholder={t("legal_sales.enter_client_id")}
+                    value={createForm.client_id}
+                    onChange={handleCreateChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t("legal_sales.purchase_price")}</label>
+                  <input
+                    type="text"
+                    name="purchase_price"
+                    className="input-field"
+                    placeholder={t("legal_sales.enter_purchase_price")}
+                    value={createForm.purchase_price}
+                    onChange={handleCreateChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t("legal_sales.ownership_date")}</label>
+                  <input
+                    type="date"
+                    name="owned_at"
+                    className="input-field"
+                    value={createForm.owned_at}
+                    onChange={handleCreateChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>{t("legal_sales.status")}</label>
+                <select
+                  name="status"
+                  className="input-field"
+                  value={createForm.status}
+                  onChange={handleCreateChange}
+                >
+                  <option value="active">{t("legal_sales.status_active")}</option>
+                  <option value="inactive">{t("legal_sales.status_inactive")}</option>
+                </select>
+              </div>
+
+              <div className="form-group">
+                <label>{t("legal_sales.attachments_label")}</label>
+                <label className="file-upload-box">
+                  <Upload size={18} />
+                  <span>{t("legal_sales.choose_files")}</span>
+                  <input
+                    type="file"
+                    name="attachments"
+                    ref={createFileRef}
+                    onChange={handleCreateChange}
+                    accept="image/*,application/pdf"
+                    multiple
+                    style={{ display: "none" }}
+                  />
+                </label>
+
+                {createForm.attachments.length > 0 && (
+                  <div className="attachments-list">
+                    {createForm.attachments.map((file, idx) => (
+                      <div key={idx} className="attachment-chip">
+                        <span>{file.name}</span>
+                        <X
+                          size={14}
+                          onClick={() => removeCreateAttachment(idx)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setCreateOpen(false);
+                    resetCreateForm();
+                  }}
+                >
+                  {t("legal_sales.cancel")}
+                </button>
+
+                <button
+                  type="submit"
+                  className="legal-sales-primary-btn"
+                  disabled={creating}
+                >
+                  <Plus size={16} />
+                  <span>{creating ? t("legal_sales.saving") : t("legal_sales.save_sale")}</span>
+                </button>
+              </div>
+            </form>
           </div>
+        </div>
+      )}
 
-          <div className="modal-actions">
-            <Button
-              type="button"
-              className="legal-sales-secondary-btn"
-              onClick={() => {
-                setEditOpen(false);
-                setEditItem(null);
-                setEditForm({
-                  client_id: "",
-                  purchase_price: "",
-                  status: "active",
-                  owned_at: "",
-                  attachments: [],
-                });
-                if (editFileRef.current) editFileRef.current.value = "";
-                dispatch(clearSoldUnitOwnershipError());
-              }}
-            >
-              إلغاء
-            </Button>
+      {/* ================= MODAL: Edit Sale ================= */}
+      {editOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => {
+            setEditOpen(false);
+            resetEditForm();
+          }}
+        >
+          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-header">
+              <h3>{t("legal_sales.edit_sale")}</h3>
+              <button
+                type="button"
+                className="close-btn"
+                onClick={() => {
+                  setEditOpen(false);
+                  resetEditForm();
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
 
-            <Button
-              type="submit"
-              className="legal-sales-primary-btn"
-              disabled={updating}
-            >
-              <PencilLine size={16} />
-              <span>{updating ? "جاري الحفظ..." : "حفظ التعديل"}</span>
-            </Button>
+            <form onSubmit={submitEdit} className="modal-form" noValidate>
+              <div className="form-row">
+                <div className="form-group">
+                  <label>{t("legal_sales.client_id")}</label>
+                  <input
+                    type="number"
+                    name="client_id"
+                    className="input-field"
+                    placeholder={t("legal_sales.enter_client_id")}
+                    value={editForm.client_id}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+
+                <div className="form-group">
+                  <label>{t("legal_sales.purchase_price")}</label>
+                  <input
+                    type="text"
+                    name="purchase_price"
+                    className="input-field"
+                    placeholder={t("legal_sales.enter_purchase_price")}
+                    value={editForm.purchase_price}
+                    onChange={handleEditChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="form-group">
+                <label>{t("legal_sales.ownership_date")}</label>
+                <input
+                  type="date"
+                  name="owned_at"
+                  className="input-field"
+                  value={editForm.owned_at}
+                  onChange={handleEditChange}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label>{t("legal_sales.add_new_attachments")}</label>
+                <label className="file-upload-box">
+                  <Upload size={18} />
+                  <span>{t("legal_sales.choose_files")}</span>
+                  <input
+                    type="file"
+                    name="attachments"
+                    ref={editFileRef}
+                    onChange={handleEditChange}
+                    accept="image/*,application/pdf"
+                    multiple
+                    style={{ display: "none" }}
+                  />
+                </label>
+
+                {editForm.attachments.length > 0 && (
+                  <div className="attachments-list">
+                    {editForm.attachments.map((file, idx) => (
+                      <div key={idx} className="attachment-chip">
+                        <span>{file.name}</span>
+                        <X
+                          size={14}
+                          onClick={() => removeEditAttachment(idx)}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div className="modal-actions">
+                <button
+                  type="button"
+                  className="btn-secondary"
+                  onClick={() => {
+                    setEditOpen(false);
+                    resetEditForm();
+                  }}
+                >
+                  {t("legal_sales.cancel")}
+                </button>
+
+                <button
+                  type="submit"
+                  className="legal-sales-primary-btn"
+                  disabled={updating}
+                >
+                  <PencilLine size={16} />
+                  <span>{updating ? t("legal_sales.updating") : t("legal_sales.save_changes")}</span>
+                </button>
+              </div>
+            </form>
           </div>
-        </form>
-      </Modal>
+        </div>
+      )}
 
+      {/* ================= MODAL: Sale Details ================= */}
       <Modal
         open={Boolean(selectedItem)}
         onClose={() => setSelectedItem(null)}
-        title={firstValue(getUnitNumber(selectedItem), "تفاصيل البيع")}
-        description="عرض شامل لملكية الوحدة وبيانات العميل"
+        title={firstValue(getUnitNumber(selectedItem), t("legal_sales.sale_details"))}
+        description={t("legal_sales.sale_details_desc")}
         size="lg"
       >
         {selectedItem ? (
@@ -982,26 +1003,26 @@ export default function LegalSalesPage() {
             ) : null}
 
             <div className="legal-sales-details-grid">
-              <div><strong>اسم العميل</strong><span>{getClientName(selectedItem)}</span></div>
-              <div><strong>البريد</strong><span>{getClientEmail(selectedItem)}</span></div>
-              <div><strong>الهاتف</strong><span>{getClientPhone(selectedItem)}</span></div>
-              <div><strong>العنوان</strong><span>{getClientAddress(selectedItem)}</span></div>
-              <div><strong>الوظيفة</strong><span>{getClientJobTitle(selectedItem)}</span></div>
-              <div><strong>الحالة الاجتماعية</strong><span>{getClientSocialStatus(selectedItem)}</span></div>
-              <div><strong>الرقم الوطني</strong><span>{getClientNationalId(selectedItem)}</span></div>
-              <div><strong>الدور</strong><span>{getClientRole(selectedItem)}</span></div>
-              <div><strong>رقم الوحدة</strong><span>{getUnitNumber(selectedItem)}</span></div>
-              <div><strong>نوع الوحدة</strong><span>{getUnitType(selectedItem)}</span></div>
-              <div><strong>المساحة</strong><span>{getUnitArea(selectedItem)} م²</span></div>
-              <div><strong>عدد الغرف</strong><span>{getRoomsCount(selectedItem)}</span></div>
-              <div><strong>سعر الوحدة</strong><span>{formatNumber(getUnitPrice(selectedItem))}</span></div>
-              <div><strong>سعر الشراء</strong><span>{getPurchasePrice(selectedItem)}</span></div>
-              <div><strong>تاريخ التملك</strong><span>{getOwnedAt(selectedItem)}</span></div>
-              <div><strong>تاريخ الإنشاء</strong><span>{getCreatedAt(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.client_name")}</strong><span>{getClientName(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.email")}</strong><span>{getClientEmail(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.phone")}</strong><span>{getClientPhone(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.address")}</strong><span>{getClientAddress(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.job_title")}</strong><span>{getClientJobTitle(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.social_status")}</strong><span>{getClientSocialStatus(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.national_id")}</strong><span>{getClientNationalId(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.role")}</strong><span>{getClientRole(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.unit_number")}</strong><span>{getUnitNumber(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.unit_type")}</strong><span>{getUnitType(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.area")}</strong><span>{getUnitArea(selectedItem)} m²</span></div>
+              <div><strong>{t("legal_sales.rooms_count")}</strong><span>{getRoomsCount(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.unit_price")}</strong><span>{formatNumber(getUnitPrice(selectedItem))}</span></div>
+              <div><strong>{t("legal_sales.purchase_price")}</strong><span>{getPurchasePrice(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.ownership_date")}</strong><span>{getOwnedAt(selectedItem)}</span></div>
+              <div><strong>{t("legal_sales.created_at")}</strong><span>{getCreatedAt(selectedItem)}</span></div>
             </div>
 
             <div className="legal-sales-preview-description">
-              <h4>وصف الوحدة</h4>
+              <h4>{t("legal_sales.unit_description")}</h4>
               <p>{getUnitDescription(selectedItem)}</p>
             </div>
 
@@ -1025,36 +1046,37 @@ export default function LegalSalesPage() {
         ) : null}
       </Modal>
 
+      {/* ================= MODAL: Client Units ================= */}
       <Modal
         open={clientUnitsOpen}
         onClose={() => {
           setClientUnitsOpen(false);
           dispatch(clearClientUnitsError());
         }}
-        title="وحدات العميل"
+        title={t("legal_sales.client_units_title")}
         description={
           clientUnitsOwner
-            ? `وحدات مرتبطة بـ ${clientUnitsOwner}`
-            : "عرض وحدات العميل"
+            ? `${t("legal_sales.client_units_desc")} ${clientUnitsOwner}`
+            : t("legal_sales.view_client_units_desc")
         }
         size="lg"
       >
         <div className="legal-sales-client-units">
           {clientUnitsLoading ? (
-            <div className="legal-sales-empty">جاري تحميل الوحدات...</div>
+            <div className="legal-sales-empty">{t("legal_sales.loading_units")}</div>
           ) : clientUnitsError ? (
             <div className="legal-sales-error">{clientUnitsError}</div>
           ) : clientUnits.length === 0 ? (
-            <div className="legal-sales-empty">لا توجد وحدات لهذا العميل</div>
+            <div className="legal-sales-empty">{t("legal_sales.no_units_found")}</div>
           ) : (
             <div className="legal-sales-client-units-table-wrap">
               <table className="legal-sales-client-units-table">
                 <thead>
                   <tr>
-                    <th>الوحدة</th>
-                    <th>سعر الشراء</th>
-                    <th>الحالة</th>
-                    <th>تاريخ التملك</th>
+                    <th>{t("legal_sales.unit")}</th>
+                    <th>{t("legal_sales.purchase_price")}</th>
+                    <th>{t("legal_sales.status")}</th>
+                    <th>{t("legal_sales.ownership_date")}</th>
                   </tr>
                 </thead>
                 <tbody>

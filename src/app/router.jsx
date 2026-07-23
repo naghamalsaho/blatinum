@@ -18,7 +18,7 @@ import AdminItemsPage from "@/Rools/admin/pages/AdminItemsPage";
 
 import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
-
+import LegalContractsPage from "@/Rools/legal/pages/LegalContractsPage";
 
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
@@ -59,6 +59,7 @@ export default function AppRouter() {
             <Route index element={<LegalDashboardPage />} />
             <Route path="slots" element={<LegalAvailableSlotsPage />} />
             <Route path="sales" element={<LegalSalesPage />} />
+            <Route path="contracts" element={<LegalContractsPage />} />
             
           </Route>
         </Route>

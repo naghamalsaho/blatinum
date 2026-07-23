@@ -18,7 +18,7 @@ export default function Sidebar({
   const defaultFooter = {
     label: t("sign_out"),
     onClick: () => {
-      window.location.href = `${window.location.origin}/logout`;
+    //  window.location.href = `${window.location.origin}/logout`;
     },
     icon: LogOut,
   };
