@@ -871,3 +871,110 @@
     gap: 10px;
   }
 }
+/* ==========================================
+   كاردات الإحصائيات/الحالات - الداش بورد
+   ========================================== */
+.marketing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 24px;
+  width: 100%;
+}
+
+.marketing-stats-grid > * {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  padding: 14px 20px;
+  box-shadow: var(--dash-shadow);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 80px;
+  transition: all 0.2s ease;
+}
+
+.marketing-stats-grid > *:hover {
+  border-color: var(--dash-accent);
+  transform: translateY(-2px);
+}
+
+/* تجاوب الشاشات */
+@media (max-width: 1180px) {
+  .marketing-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .marketing-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* ==========================================
+   إصلاح ألوان الأرقام والقيم (حل مشكلة اللون الأبيض في المود النهاري)
+   ========================================== */
+
+/* 1. تجبير جميع النصوص والقيم داخل كاردات الإحصائيات لتأخذ لون النص الخاص بالثيم */
+.marketing-stats-grid * {
+  color: var(--dash-text);
+}
+
+/* 2. استهداف الأرقام والقيم بخصوصية عالية جداً لكسر اللون الأبيض الثابت */
+.marketing-stats-grid h1,
+.marketing-stats-grid h2,
+.marketing-stats-grid h3,
+.marketing-stats-grid h4,
+.marketing-stats-grid .stat-card-value,
+.marketing-stats-grid .stat-value,
+.marketing-stats-grid .value,
+.marketing-stats-grid strong,
+.marketing-stats-grid span {
+  color: var(--dash-text) !important;
+}
+
+/* 3. العناوين والملاحظات الفرعية داخل الكارد لتظهر بلون هادئ ومقروء */
+.marketing-stats-grid p,
+.marketing-stats-grid .stat-card-title,
+.marketing-stats-grid .stat-title,
+.marketing-stats-grid .stat-card-note {
+  color: var(--dash-muted) !important;
+}
+
+/* 4. إعطاء الأيقونات داخل الكاردات لون التمييز */
+.marketing-stats-grid svg {
+  color: var(--dash-accent) !important;
+}
+
+/* 5. أرقام الحالات والنسب في الـ Donut Legend */
+.marketing-legend-item strong {
+  color: var(--dash-accent) !important;
+}
+
+.marketing-legend-item span {
+  color: var(--dash-text) !important;
+}
+
+/* 6. الأرقام داخل الهيرو/المعاينة */
+.marketing-hero-metrics span,
+.marketing-offers-summary-metrics span,
+.marketing-offers-summary-metrics div {
+  color: var(--dash-text) !important;
+}
+
+/* 7. ألوان الحالات (Pills) */
+.marketing-status-pill.active {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent) !important;
+}
+
+.marketing-status-pill.draft {
+  background: var(--dash-blank-bg);
+  color: var(--dash-muted) !important;
+}
+
+.marketing-status-pill.scheduled {
+  background: var(--dash-hover-bg);
+  color: var(--dash-accent-strong) !important;
+}

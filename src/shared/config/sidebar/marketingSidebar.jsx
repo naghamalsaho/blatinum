@@ -1,6 +1,6 @@
 import {
   LayoutDashboard,
- 
+  Tag,
   BadgeDollarSign,
  
     Building2,
@@ -50,7 +50,13 @@ export const marketingSidebar = [
         icon: Sparkles,
         to: "/marketing/services",
         end: true,
-}
+},
+{
+    label: "العروض والخصومات", 
+    to: "/marketing/offers",
+    icon: Tag,
+    end: true,
+  },
   ],
 },
 ];

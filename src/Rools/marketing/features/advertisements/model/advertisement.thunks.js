@@ -28,7 +28,7 @@ export const fetchActiveAdvertisements = createAsyncThunk(
   "advertisements/fetchActiveAdvertisements",
   async (_, { rejectWithValue, dispatch }) => {
     try {
-      const response = await http.get("/advertisment/getActiveAdvertisements", {
+      const response = await http.get("/advertisment/activeAdvertisements", {
         headers: buildThunkHeaders(false),
       });
 

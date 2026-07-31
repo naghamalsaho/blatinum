@@ -9,6 +9,7 @@ import { validateLogin, validatePassword } from "@/shared/utils/validation";
 import { t } from "@/shared/i18n";
 import "@/shared/ui/login.css";
 
+
 const normalizeText = (value) =>
   String(value || "")
     .trim()
@@ -48,10 +49,25 @@ const getLoginPath = (payload = {}) => {
 
   const userText = collectUserText(user);
 
+  // 1. التحقق بناءً على بيانات ووظائف المستخدم (Roles / Account info)
   if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
     return "/engineering";
   }
 
+ if (
+    hasAnyMatch(userText, [
+      "finance_staff",
+      "finance",
+      "financial",
+      "accounting",
+      "مالية",
+      "مالي",
+      "محاسب",
+      "محاسبة",
+    ])
+  ) {
+    return "/financial"; // <-- تم تعديلها من /finance إلى /financial
+  }
   if (
     hasAnyMatch(userText, [
       "customer_service_staff",
@@ -82,15 +98,8 @@ const getLoginPath = (payload = {}) => {
   if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
     return "/admin";
   }
-if (
-  hasAnyMatch(userText, [
-    "customer_service_staff",
-    "customer service",
-    "خدمة العملاء",
-  ])
-) {
-  return "/customer-service";
-}
+
+  // 2. التحقق بناءً على الصلاحيات (Permissions)
   const permissionsText = permissions
     .map((permission) =>
       typeof permission === "string"
@@ -104,6 +113,19 @@ if (
     return "/engineering";
   }
 
+  // التحقق من صلاحيات القسم المالي (مثل payment أو contract-exception)
+  if (
+    hasAnyMatch(permissionsText, [
+      "payment",
+      "finance",
+      "contract-exception",
+      "مالية",
+      "مالي",
+    ])
+  ) {
+    return "/financial"; // <-- تم تعديلها من /finance إلى /financial
+  }
+
   if (
     hasAnyMatch(permissionsText, [
       "read.client",
@@ -112,6 +134,9 @@ if (
       "create.appointment",
       "read.order",
       "update.order",
+      "customer_service_staff",
+      "client",
+      "appointment",
     ])
   ) {
     return "/customer-service";
@@ -120,17 +145,8 @@ if (
   if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
   }
-if (
-  hasAnyMatch(permissionsText, [
-    "customer_service_staff",
-    "client",
-    "appointment",
-  ])
-) {
-  return "/customer-service";
-}
+
   return "/admin";
-  
 };
 
 export default function LoginPage() {

@@ -7,7 +7,7 @@ import LegalLayout from "@/app/layouts/LegalLayout";
 import EngineeringLayout from "@/app/layouts/EngineeringLayout";
 import MarketingLayout from "@/app/layouts/MarketingLayout";
 import CustomerServiceLayout from "@/app/layouts/CustomerServiceLayout";
-
+import FinancialLayout from "@/app/layouts/FinancialLayout";
 import RequireAuth from "./guards/RequireAuth";
 import RequireRole from "./guards/RequireRole";
 
@@ -19,6 +19,7 @@ import AdminItemsPage from "@/Rools/admin/pages/AdminItemsPage";
 import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
 import LegalContractsPage from "@/Rools/legal/pages/LegalContractsPage";
+import LegalSalesPage from "@/Rools/legal/pages/LegalSalesPage";
 
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
@@ -26,21 +27,26 @@ import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngin
 import MarketingDashboardPage from "@/Rools/marketing/pages/MarketingDashboardPage";
 import MarketingAdsPage from "@/Rools/marketing/pages/MarketingAdsPage";
 import MarketingProjectsPage from "@/Rools/marketing/pages/MarketingProjectsPage";
-
+import MarketingOffersPage from "@/Rools/marketing/pages/MarketingOffersPage";
 import MarketingServicesPage from "@/Rools/marketing/pages/MarketingServicesPage";
-import LegalSalesPage from "@/Rools/legal/pages/LegalSalesPage";
 
 import CustomerServiceDashboardPage from "@/Rools/customerService/pages/CustomerServiceDashboardPage";
 import CustomerServiceClientsPage from "@/Rools/customerService/pages/CustomerServiceClientsPage";
 import CustomerServiceAppointmentsPage from "@/Rools/customerService/pages/CustomerServiceAppointmentsPage";
 import CustomerServiceOrdersPage from "@/Rools/customerService/pages/CustomerServiceOrdersPage";
 
+import FinancialDashboardPage from "/src/Rools/financial/pages/FinancialDashboardPage.jsx";
+import FinancialPaymentsPage from "@/Rools/financial/pages/FinancialPaymentsPage";
+
 export default function AppRouter() {
   return (
     <Routes>
       <Route path="/" element={<LoginPage />} />
 
+      {/* 🔐 المسارات المحمية */}
       <Route element={<RequireAuth />}>
+        
+        {/* الأدمن */}
         <Route path="/admin" element={<RequireRole allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route index element={<DashboardPage />} />
@@ -51,24 +57,25 @@ export default function AppRouter() {
           </Route>
         </Route>
 
+        {/* القسم القانوني */}
         <Route
           path="/legal"
-          element={<RequireRole allowedRoles={["legal", "law", "legal_staff"]} />}
+          element={<RequireRole allowedRoles={["admin", "legal", "law", "legal_staff"]} />}
         >
           <Route element={<LegalLayout />}>
             <Route index element={<LegalDashboardPage />} />
             <Route path="slots" element={<LegalAvailableSlotsPage />} />
             <Route path="sales" element={<LegalSalesPage />} />
             <Route path="contracts" element={<LegalContractsPage />} />
-            
           </Route>
         </Route>
 
+        {/* القسم الهندسي */}
         <Route
           path="/engineering"
           element={
             <RequireRole
-              allowedRoles={["engineering", "engineer", "engineering_staff"]}
+              allowedRoles={["admin", "engineering", "engineer", "engineering_staff"]}
             />
           }
         >
@@ -78,27 +85,32 @@ export default function AppRouter() {
           </Route>
         </Route>
 
+        {/* التسويق */}
         <Route
           path="/marketing"
           element={
-            <RequireRole
-              allowedRoles={["marketing", "marketing_staff"]}
-            />
+            <RequireRole allowedRoles={["admin", "marketing", "marketing_staff"]} />
           }
         >
           <Route element={<MarketingLayout />}>
             <Route index element={<MarketingDashboardPage />} />
             <Route path="ads" element={<MarketingAdsPage />} />
+            <Route path="offers" element={<MarketingOffersPage />} />
             <Route path="projects" element={<MarketingProjectsPage />} />
-            <Route path="/marketing/services" element={<MarketingServicesPage />} />
+            <Route path="services" element={<MarketingServicesPage />} />
           </Route>
         </Route>
 
+        {/* خدمة العملاء */}
         <Route
           path="/customer-service"
           element={
             <RequireRole
-              allowedRoles={["customer_service", "customer_service_staff"]}
+              allowedRoles={[
+                "admin",
+                "customer_service",
+                "customer_service_staff",
+              ]}
             />
           }
         >
@@ -109,6 +121,37 @@ export default function AppRouter() {
             <Route path="orders" element={<CustomerServiceOrdersPage />} />
           </Route>
         </Route>
+
+        {/* 💳 القسم المالي */}
+        <Route
+          path="/financial"
+          element={
+            <RequireRole
+              allowedRoles={[
+                "admin",
+                "financial",
+                "finance",
+                "financial_staff",
+                "finance_staff",
+                "accounting",
+                "accountant",
+                "finance_manager",
+                "financial_manager",
+              ]}
+            />
+          }
+        >
+          <Route element={<FinancialLayout />}>
+            <Route index element={<FinancialDashboardPage />} />
+            <Route path="payments" element={<FinancialPaymentsPage />} />
+
+            {/* مسارات مؤقتة لروابط السايدبار لمنع توجيه المستخدم لصفحة Login عند الضغط عليها */}
+            <Route path="transactions" element={<FinancialDashboardPage />} />
+            <Route path="exceptions" element={<FinancialDashboardPage />} />
+            <Route path="department-orders" element={<FinancialDashboardPage />} />
+          </Route>
+        </Route>
+
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />

@@ -2,13 +2,14 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Megaphone,
   Eye,
- 
   TrendingUp,
-  CalendarDays,
   Activity,
-  Sparkles,
-  ArrowUpRight,
-  MousePointerClick,
+ 
+  Percent,
+  Home,
+  Briefcase,
+ 
+  CalendarDays,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -26,14 +27,14 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 
 import StatCard from "@/shared/components/StatCard";
-
 import Modal from "@/shared/components/Modal";
-
 
 import {
   fetchAdvertisements,
   fetchActiveAdvertisements,
 } from "../features/advertisements/model/advertisement.thunks";
+
+import { fetchOffers } from "../features/offer/model/offer.thunks";
 
 import "../styles/marketing.css";
 
@@ -65,61 +66,6 @@ const adsFallback = [
     duration_days: 30,
     description: "خصم خاص لفترة محدودة.",
     attachments: [],
-  },
-  {
-    id: "AD-003",
-    title: "مشروع واجهة البحر - الإطلاق",
-    type: "إعلان",
-    status: "draft",
-    views: "0",
-    clicks: "0",
-    date: "2024-01-14",
-    starts_at: "2024-01-14",
-    ends_at: "2024-02-14",
-    duration_days: 30,
-    description: "إعلان إطلاق المشروع الجديد.",
-    attachments: [],
-  },
-  {
-    id: "AD-004",
-    title: "عرض دفعة الحجز المريحة",
-    type: "عرض ترويجي",
-    status: "scheduled",
-    views: "430",
-    clicks: "25",
-    date: "2024-01-18",
-    starts_at: "2024-01-18",
-    ends_at: "2024-02-18",
-    duration_days: 30,
-    description: "عرض دفعة حجز مرنة.",
-    attachments: [],
-  },
-];
-
-const portfolio = [
-  {
-    id: "PRT-001",
-    name: "برج النخيل",
-    type: "مشروع سكني",
-    units: 48,
-    year: "2023",
-    image: "🏗️",
-  },
-  {
-    id: "PRT-002",
-    name: "واجهة البحر",
-    type: "مشروع فاخر",
-    units: 32,
-    year: "2022",
-    image: "🌊",
-  },
-  {
-    id: "PRT-003",
-    name: "الروضة ريزيدنس",
-    type: "مشروع متوسط",
-    units: 64,
-    year: "2021",
-    image: "🌿",
   },
 ];
 
@@ -181,20 +127,26 @@ function getAdMonthKey(ad) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
 
-function getFirstImage(advertisement) {
-  return (
-    advertisement?.attachments?.find((item) => item.type === "image")?.url ||
-    null
-  );
-}
+// function getFirstImage(advertisement) {
+//   return (
+//     advertisement?.attachments?.find((item) => item.type === "image")?.url ||
+//     null
+//   );
+// }
 
 function formatDate(value) {
-  return value || "—";
+  return value ? String(value).split(" ")[0] : "—";
+}
+
+function formatPrice(amount) {
+  if (!amount && amount !== 0) return "—";
+  return Number(amount).toLocaleString("ar-EG") + " ل.س";
 }
 
 export default function MarketingDashboardPage() {
   const dispatch = useDispatch();
 
+  // جلب الإعلانات
   const adsState = useSelector((state) => state.advertisements || {});
   const liveAdvertisements =
     adsState.advertisements ||
@@ -215,21 +167,24 @@ export default function MarketingDashboardPage() {
       ? activeAdvertisementsFromStore
       : advertisements.filter(isAdvertisementActive);
 
-  
-  
+  // جلب العروض
+  const offersState = useSelector((state) => state.offers || state.offer || {});
+  const offersList = offersState?.items || offersState?.offers || [];
+  const offersLoading = offersState?.loading || false;
+
+  // أحدث 3 عروض فقط
+  const latestOffers = useMemo(() => {
+    return [...offersList].reverse().slice(0, 3);
+  }, [offersList]);
 
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [previewAdvertisement, setPreviewAdvertisement] = useState(null);
+  const [previewOffer, setPreviewOffer] = useState(null);
 
- 
   useEffect(() => {
     dispatch(fetchAdvertisements());
     dispatch(fetchActiveAdvertisements());
+    dispatch(fetchOffers());
   }, [dispatch]);
-
-  const latestActiveAd = useMemo(() => {
-    return activeAdvertisements[0] || null;
-  }, [activeAdvertisements]);
 
   const performanceData = useMemo(() => {
     const result = [];
@@ -260,15 +215,11 @@ export default function MarketingDashboardPage() {
 
   const distributionData = useMemo(() => {
     const active = advertisements.filter((ad) => getAdStatus(ad) === "active").length;
-    
     const draft = advertisements.filter((ad) => getAdStatus(ad) === "draft").length;
-   
 
     return [
       { name: "نشط", value: active, count: active },
-      
       { name: "مسودة", value: draft, count: draft },
-     
     ];
   }, [advertisements]);
 
@@ -290,111 +241,33 @@ export default function MarketingDashboardPage() {
       {
         title: "إجمالي الإعلانات",
         value: String(advertisements.length),
-        note: "كل الإعلانات المسجلة",
         icon: Megaphone,
       },
       {
         title: "الإعلانات النشطة",
         value: String(activeAdvertisements.length),
-        note: "تعمل حاليًا",
         icon: Activity,
       },
       {
         title: "مشاهدات هذا الشهر",
         value: totalViews ? totalViews.toLocaleString() : "0",
-        note: "حسب البيانات المتوفرة",
         icon: Eye,
       },
       {
         title: "معدل التحويل",
         value: `${conversionRate}%`,
-        note: "النقرات ÷ المشاهدات",
         icon: TrendingUp,
       },
     ];
   }, [advertisements, activeAdvertisements.length]);
 
- 
-
-  const openImagePreview = (advertisement) => {
-    setPreviewAdvertisement(advertisement);
+  const openOfferPreview = (offer) => {
+    setPreviewOffer(offer);
     setPreviewOpen(true);
   };
 
-
-
   return (
-    <div className="marketing-dashboard-page">
-      
-
-      <section className="marketing-hero">
-        <div className="marketing-hero-copy">
-          <p className="marketing-hero-kicker">Marketing Performance Center</p>
-          <h1>تحكم كامل بالإعلانات والعروض مع قراءة فورية للأداء</h1>
-          <p className="marketing-hero-text">
-            لوحة تسويق واضحة وسريعة تعرض لك أهم الحملات، توزيع الحالة، ونسب
-            التفاعل بطريقة حديثة ومناسبة لنظامك الداكن.
-          </p>
-
-          <div className="marketing-hero-chips">
-            <span className="marketing-chip">
-              <CalendarDays size={14} />
-              آخر تحديث: اليوم
-            </span>
-            <span className="marketing-chip">
-              <ArrowUpRight size={14} />
-              {activeAdvertisements.length} إعلان نشط
-            </span>
-          </div>
-        </div>
-
-        <div className="marketing-hero-card">
-          <div className="marketing-hero-card-head">
-            <div>
-              <p>أحدث إعلان نشط</p>
-              <h3>{latestActiveAd?.title || "لا يوجد إعلان نشط"}</h3>
-            </div>
-
-            <div className="marketing-hero-icon">
-              <MousePointerClick size={20} />
-            </div>
-          </div>
-
-          <div className="marketing-summary-action-area">
-            {latestActiveAd ? (
-              <button
-                type="button"
-                className="marketing-view-dialog-btn"
-                onClick={() => openImagePreview(latestActiveAd)}
-                title="عرض التفاصيل"
-              >
-                <Eye size={18} />
-                <span>عرض تفاصيل الإعلان</span>
-              </button>
-            ) : (
-              <div className="marketing-summary-preview-empty">
-                <Megaphone size={24} />
-              </div>
-            )}
-          </div>
-
-          <div className="marketing-hero-metrics">
-            <div>
-              <strong>البداية</strong>
-              <span>{formatDate(latestActiveAd?.starts_at)}</span>
-            </div>
-            <div>
-              <strong>النهاية</strong>
-              <span>{formatDate(latestActiveAd?.ends_at)}</span>
-            </div>
-            <div>
-              <strong>المدة</strong>
-              <span>{latestActiveAd?.duration_days || "—"} يوم</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <div className="marketing-dashboard-page" dir="rtl">
       <section className="marketing-stats-grid">
         {stats.map((item) => (
           <StatCard
@@ -418,41 +291,19 @@ export default function MarketingDashboardPage() {
 
           <div className="marketing-chart-wrap">
             <ResponsiveContainer width="100%" height={320}>
-             <AreaChart
-  data={performanceData}
-  margin={{ top: 10, right: 18, left: 0, bottom: 24 }}
->
+              <AreaChart
+                data={performanceData}
+                margin={{ top: 10, right: 18, left: 0, bottom: 24 }}
+              >
                 <defs>
-                  <linearGradient
-                    id="campaignFill"
-                    x1="0"
-                    y1="0"
-                    x2="0"
-                    y2="1"
-                  >
-                    <stop
-                      offset="5%"
-                      stopColor="var(--dash-accent)"
-                      stopOpacity={0.35}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--dash-accent)"
-                      stopOpacity={0}
-                    />
+                  <linearGradient id="campaignFill" x1="0" y1="0" x2="0" y2="1">
+                    <stop stopColor="var(--dash-accent)" stopOpacity={0.35} offset="5%" />
+                    <stop stopColor="var(--dash-accent)" stopOpacity={0} offset="95%" />
                   </linearGradient>
 
                   <linearGradient id="adsFill" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--dash-accent-strong)"
-                      stopOpacity={0.28}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--dash-accent-strong)"
-                      stopOpacity={0}
-                    />
+                    <stop stopColor="var(--dash-accent-strong)" stopOpacity={0.28} offset="5%" />
+                    <stop stopColor="var(--dash-accent-strong)" stopOpacity={0} offset="95%" />
                   </linearGradient>
                 </defs>
 
@@ -565,86 +416,169 @@ export default function MarketingDashboardPage() {
         </article>
       </section>
 
+      {/* قسم أحدث العروض والخصومات بدلاً من المعرض القديم */}
       <section className="marketing-portfolio-section">
         <div className="marketing-panel-head marketing-section-head">
           <div>
-            <h2>معرض الأعمال</h2>
-            <p>المشاريع التي يمكن الترويج لها في الحملات التسويقية</p>
+            <h2>أحدث العروض والخصومات</h2>
+            
           </div>
         </div>
 
-        <div className="marketing-portfolio-grid">
-          {portfolio.map((item) => (
-            <article key={item.id} className="marketing-portfolio-card">
-              <div className="marketing-portfolio-hero">{item.image}</div>
+        {offersLoading ? (
+          <div className="project-empty-state">جاري تحميل العروض...</div>
+        ) : latestOffers.length === 0 ? (
+          <div className="project-empty-state">لا توجد عروض متاحة حالياً</div>
+        ) : (
+          <div className="marketing-portfolio-grid">
+            {latestOffers.map((item) => {
+              const isService = !!item.item?.name;
+              const title = isService
+                ? item.item?.name
+                : item.item?.unit_number
+                ? `شقة رقم ${item.item.unit_number}`
+                : "عرض خاص";
 
-              <div className="marketing-portfolio-body">
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>
-                    {item.type} · {item.year}
-                  </p>
-                </div>
-
-                <div className="marketing-portfolio-footer">
-                  <span className="marketing-unit-chip">{item.units} وحدة</span>
-
-                  <div className="marketing-row-actions">
-                    <button type="button" className="marketing-icon-btn">
-                      <Eye size={13} />
-                    </button>
-                    <button type="button" className="marketing-icon-btn">
-                      <Sparkles size={13} />
-                    </button>
+              return (
+                <article key={item.id} className="marketing-portfolio-card">
+                  <div
+                    className="marketing-portfolio-hero"
+                    style={{
+                      background: "var(--dash-shell-glow-1)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "2rem",
+                    }}
+                  >
+                    {isService ? <Briefcase size={32} /> : <Home size={32} />}
                   </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
+
+                  <div className="marketing-portfolio-body">
+                    <div>
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "center",
+                        }}
+                      >
+                        <h3>{title}</h3>
+                        <span
+                          style={{
+                            background: "var(--dash-accent-soft, rgba(230, 81, 0, 0.1))",
+                            color: "var(--dash-accent)",
+                            padding: "2px 8px",
+                            borderRadius: "12px",
+                            fontSize: "12px",
+                            fontWeight: "bold",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "3px",
+                          }}
+                        >
+                          <Percent size={11} /> {item.discount_percentage}%خصم
+                        </span>
+                      </div>
+
+                      <p style={{ marginTop: "6px", fontSize: "13px" }}>
+                        {isService
+                          ? "خدمة تخصصية"
+                          : item.item?.building_id
+                          ? `مبنى رقم ${item.item.building_id}`
+                          : "وحدة سكنية"}
+                      </p>
+                    </div>
+
+                    <div style={{ marginTop: "10px", display: "flex", gap: "10px", alignItems: "baseline" }}>
+                      <span style={{ textDecoration: "line-through", color: "var(--dash-muted)", fontSize: "12px" }}>
+                        {formatPrice(item.old_price)}
+                      </span>
+                      <strong style={{ color: "var(--dash-accent)", fontSize: "15px" }}>
+                        {formatPrice(item.new_price)}
+                      </strong>
+                    </div>
+
+                    <div className="marketing-portfolio-footer" style={{ marginTop: "12px" }}>
+                      <span className="marketing-unit-chip" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
+                        <CalendarDays size={12} /> ينتهي: {formatDate(item.end_date)}
+                      </span>
+
+                      <div className="marketing-row-actions">
+                        <button
+                          type="button"
+                          className="marketing-icon-btn"
+                          onClick={() => openOfferPreview(item)}
+                          title="معاينة العرض"
+                        >
+                          <Eye size={14} />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+        )}
       </section>
 
-      
+      {/* نافذة معاينة العرض */}
       <Modal
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        title={previewAdvertisement?.title || "معاينة الإعلان"}
-        description="عرض الصورة والوصف الكامل"
+        title={
+          previewOffer?.item?.name
+            ? `تفاصيل عرض الخدمة (${previewOffer.item.name})`
+            : previewOffer?.item?.unit_number
+            ? `تفاصيل عرض الوحدة (${previewOffer.item.unit_number})`
+            : "معاينة العرض"
+        }
         size="lg"
       >
-        <div className="marketing-preview-modal">
-          {getFirstImage(previewAdvertisement) ? (
-            <div className="marketing-image-preview">
-              <img
-                src={getFirstImage(previewAdvertisement)}
-                alt={previewAdvertisement?.title || "preview"}
-              />
+        <div className="marketing-offers-summary-card" style={{ maxWidth: "100%" }}>
+          <div className="marketing-offers-summary-head">
+            <div>
+              <p>{previewOffer?.item?.name ? "نوع العرض: خدمة" : "نوع العرض: عقار"}</p>
+              <h3>
+                {previewOffer?.item?.name
+                  ? previewOffer.item.name
+                  : `الوحدة السكنية: ${previewOffer?.item?.unit_number || "-"}`}
+              </h3>
             </div>
-          ) : (
-            <div className="marketing-summary-preview-empty">
-              <Megaphone size={28} />
+            <div className="marketing-summary-icon">
+              {previewOffer?.item?.name ? <Briefcase size={22} /> : <Home size={22} />}
             </div>
-          )}
+          </div>
 
-          <div className="marketing-preview-details">
-            <h3>{previewAdvertisement?.title || "-"}</h3>
-            <p>{previewAdvertisement?.description || "لا يوجد وصف."}</p>
+          <p style={{ color: "var(--dash-muted)", fontSize: "13px", lineHeight: "1.6", margin: "12px 0" }}>
+            {previewOffer?.item?.description || "لا يوجد وصف تفصيلي متوفر لهذا العرض."}
+          </p>
 
-            <div className="marketing-hero-metrics">
-              <div>
-                <strong>البداية</strong>
-                <span>{formatDate(previewAdvertisement?.starts_at)}</span>
-              </div>
+          <div className="marketing-offers-summary-metrics" style={{ marginTop: "15px" }}>
+            <div>
+              <strong>السعر الأصلي</strong>
+              {formatPrice(previewOffer?.old_price)}
+            </div>
 
-              <div>
-                <strong>النهاية</strong>
-                <span>{formatDate(previewAdvertisement?.ends_at)}</span>
-              </div>
+            <div>
+              <strong>السعر بعد الخصم</strong>
+              {formatPrice(previewOffer?.new_price)}
+            </div>
 
-              <div>
-                <strong>المدة</strong>
-                <span>{previewAdvertisement?.duration_days || "—"} يوم</span>
-              </div>
+            <div>
+              <strong>نسبة الخصم</strong>
+              <span>{previewOffer?.discount_percentage || 0}%</span>
+            </div>
+
+            <div>
+              <strong>تاريخ البداية</strong>
+              <span>{formatDate(previewOffer?.start_date)}</span>
+            </div>
+
+            <div>
+              <strong>تاريخ النهاية</strong>
+              <span>{formatDate(previewOffer?.end_date)}</span>
             </div>
           </div>
         </div>

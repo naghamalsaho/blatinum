@@ -13,7 +13,6 @@ import {
   Trash2,
 } from "lucide-react";
 
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
@@ -805,35 +804,31 @@ export default function MarketingProjectsPage() {
 
   return (
     <div className="projects-page">
-      <PageHeader
-        kicker="قسم التسويق"
-        title="إدارة المشاريع"
-        subtitle="عرض المشاريع والأبنية والوحدات والمواقع داخل نفس الصفحة بشكل منظم وسريع"
-      />
+     
 
       <section className="projects-stats">
         <StatCard
           title="المشاريع"
           value={stats.projectsCount}
-          note="إجمالي المشاريع"
+         
           icon={Layers3}
         />
         <StatCard
           title="الأبنية"
           value={stats.buildingsCount}
-          note="عدد الأبنية المسجلة"
+         
           icon={Building2}
         />
         <StatCard
           title="الوحدات"
           value={stats.unitsCount}
-          note="الوحدات المرتبطة"
+         
           icon={Home}
         />
         <StatCard
           title="النشطة"
           value={stats.activeProjects}
-          note="قيد التنفيذ حالياً"
+         
           icon={MapPin}
         />
       </section>

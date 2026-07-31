@@ -19,7 +19,9 @@ import errorReducer from "@/shared/store/error/error.slice";
 import serviceReducer from "@/Rools/marketing/features/services/model/service.slice";
 import soldUnitOwnershipReducer from "@/Rools/legal/features/soldUnits/model/soldUnitOwnership.slice";
 import contractReducer from "@/Rools/legal/features/contracts/model/contract.slice"; // 👈 استيراد الـ Reducer المضاف
+import offerReducer from "@/Rools/marketing/features/offer/model/offer.slice";
 
+import paymentReducer from "@/Rools/financial/features/payments/model/payment.slice"; // حسب المسار لديك
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -44,5 +46,9 @@ export const store = configureStore({
     customerServiceAppointments: customerServiceAppointmentReducer,
     customerServiceClients: customerServiceClientReducer,
     customerServiceOrders: customerServiceOrderReducer,
+    offer: offerReducer,
+
+
+    payments: paymentReducer,
   },
 });
