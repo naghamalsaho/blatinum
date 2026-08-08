@@ -1,8 +1,14 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
+  addCustomerServiceOrderNoteRequest,
+  changeCustomerServiceOrderStatusRequest,
+  deleteCustomerServiceOrderNoteRequest,
   getClientSolutionOrdersRequest,
   getClientUnitOrdersRequest,
+  getCustomerServiceOrderRequest,
   getCustomerServiceOrdersRequest,
+  transferCustomerServiceOrderRequest,
+  updateCustomerServiceOrderNoteRequest,
 } from "../api/order.api";
 
 const normalizeErrorMessage = (message) => {
@@ -88,5 +94,101 @@ export const fetchCustomerServiceClientOrders = createAsyncThunk(
       unitOrders: extractPagedPayload(unitResult.data),
       solutionOrders: extractPagedPayload(solutionResult.data),
     };
+  }
+);
+
+export const fetchCustomerServiceOrder = createAsyncThunk(
+  "customerServiceOrders/fetchOne",
+  async (orderId, thunkAPI) => {
+    const result = await getCustomerServiceOrderRequest(orderId);
+
+    if (result.ok) {
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to load order");
+  }
+);
+
+export const transferCustomerServiceOrder = createAsyncThunk(
+  "customerServiceOrders/transfer",
+  async ({ orderId, departmentId, status, note }, thunkAPI) => {
+    const result = await transferCustomerServiceOrderRequest(orderId, {
+      departmentId,
+      status,
+      note,
+    });
+
+    if (result.ok) {
+      await thunkAPI.dispatch(fetchCustomerServiceOrders());
+      await thunkAPI.dispatch(fetchCustomerServiceOrder(orderId));
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to transfer order");
+  }
+);
+
+export const changeCustomerServiceOrderStatus = createAsyncThunk(
+  "customerServiceOrders/changeStatus",
+  async ({ orderId, status }, thunkAPI) => {
+    const result = await changeCustomerServiceOrderStatusRequest(orderId, status);
+
+    if (result.ok) {
+      await thunkAPI.dispatch(fetchCustomerServiceOrders());
+      await thunkAPI.dispatch(fetchCustomerServiceOrder(orderId));
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to change order status");
+  }
+);
+
+export const addCustomerServiceOrderNote = createAsyncThunk(
+  "customerServiceOrders/addNote",
+  async ({ orderId, note }, thunkAPI) => {
+    const result = await addCustomerServiceOrderNoteRequest(orderId, note);
+
+    if (result.ok) {
+      await thunkAPI.dispatch(fetchCustomerServiceOrders());
+      await thunkAPI.dispatch(fetchCustomerServiceOrder(orderId));
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to add note");
+  }
+);
+
+export const updateCustomerServiceOrderNote = createAsyncThunk(
+  "customerServiceOrders/updateNote",
+  async ({ noteId, note, orderId }, thunkAPI) => {
+    const result = await updateCustomerServiceOrderNoteRequest(noteId, note);
+
+    if (result.ok) {
+      await thunkAPI.dispatch(fetchCustomerServiceOrders());
+      if (orderId) {
+        await thunkAPI.dispatch(fetchCustomerServiceOrder(orderId));
+      }
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to update note");
+  }
+);
+
+export const deleteCustomerServiceOrderNote = createAsyncThunk(
+  "customerServiceOrders/deleteNote",
+  async ({ noteId, orderId }, thunkAPI) => {
+    const result = await deleteCustomerServiceOrderNoteRequest(noteId);
+
+    if (result.ok) {
+      await thunkAPI.dispatch(fetchCustomerServiceOrders());
+      if (orderId) {
+        await thunkAPI.dispatch(fetchCustomerServiceOrder(orderId));
+      }
+      return result.data?.data || result.data;
+    }
+
+    return rejectApiError(result, thunkAPI, "Failed to delete note");
   }
 );

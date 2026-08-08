@@ -22,12 +22,12 @@
   animation-delay: 0.12s;
 }
 
-.department-page .legal-page-header {
+/* .department-page .legal-page-header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-}
+} */
 
 .department-page .page-title {
   margin: 0;
@@ -707,11 +707,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .department-page .legal-page-header,
+  /* .department-page .legal-page-header,
   .department-page .legal-toolbar {
     flex-direction: column;
     align-items: stretch;
-  }
+  } */
 
   .department-page .toolbar-filters {
     justify-content: space-between;

@@ -33,7 +33,13 @@ export default function PageHeader({
 
 PageHeader.propTypes = {
   kicker: PropTypes.string,
-  title: PropTypes.string,
+  title: PropTypes.string.isRequired,
   subtitle: PropTypes.string,
   action: PropTypes.node,
+};
+
+PageHeader.defaultProps = {
+  kicker: "",
+  subtitle: "",
+  action: null,
 };

@@ -12,7 +12,6 @@ import {
 
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
@@ -232,6 +231,15 @@ const getOrderOptionId = (order) =>
 const getSlotOptionId = (slot) =>
   readNested(slot, ["id", "slot_id", "av_slot_id"]);
 
+const getSlotOptionStatus = (slot) =>
+  String(readNested(slot, ["status", "slot_status", "state"]) || "")
+    .trim()
+    .toLowerCase();
+
+const isAvailableSlotStatus = (status) =>
+  !status ||
+  ["available", "free", "open", "active", "متاح"].includes(String(status).toLowerCase());
+
 const getClientOptionLabel = (client) => {
   const accountName = readNested(client, [
     "account.full_name",
@@ -279,7 +287,7 @@ const getOrderOptionLabel = (order) => {
 
 const getSlotOptionLabelWithRange = (slot, durationMinutes) => {
   const id = getSlotOptionId(slot);
-  const time = readNested(slot, ["start_time", "time"]) || "";
+  const time = readNested(slot, ["start_time", "time", "from_time", "starts_at"]) || "";
   const status = readNested(slot, ["status"]) || "unknown";
   const batch = readNested(slot, ["batch_id"]);
 
@@ -287,7 +295,7 @@ const getSlotOptionLabelWithRange = (slot, durationMinutes) => {
     `Slot #${id}`,
     getTimeRange(time, durationMinutes),
     formatStatus(status),
-    batch ? `Batch ${batch.slice(0, 8)}` : "",
+    batch ? `Batch ${String(batch).slice(0, 8)}` : "",
   ]
     .filter(Boolean)
     .join(" - ");
@@ -307,8 +315,6 @@ export default function CustomerServiceAppointmentsPage() {
     error,
   } = useSelector((state) => state.customerServiceAppointments || {});
   const authToken = useSelector((state) => state.auth?.token);
-  const permissions = useSelector((state) => state.auth?.permissions || []);
-  const canReadAvailableSlots = permissions.includes("read.availableSlot");
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -357,12 +363,7 @@ export default function CustomerServiceAppointmentsPage() {
         getAppointmentClientsRequest(),
         getAppointmentOrdersRequest(),
       ]);
-      const slotsResult = canReadAvailableSlots
-        ? await getAppointmentAvailableSlotsRequest()
-        : {
-            ok: false,
-            data: null,
-          };
+      const slotsResult = await getAppointmentAvailableSlotsRequest();
 
       if (ignore) return;
 
@@ -379,9 +380,9 @@ export default function CustomerServiceAppointmentsPage() {
 
       if (!slotsResult.ok) {
         setSlotOptionsError(
-          canReadAvailableSlots
-            ? "Available slots could not be loaded for this account. Enter the slot ID manually."
-            : "Enter the available slot ID from the schedule."
+          slotsResult.status === 401
+            ? "This account cannot read available slots. Add the Read Available Slot permission to Customer Service, then reopen this form."
+            : "Available slots could not be loaded. Please try again."
         );
       }
 
@@ -405,7 +406,7 @@ export default function CustomerServiceAppointmentsPage() {
     return () => {
       ignore = true;
     };
-  }, [authToken, canReadAvailableSlots, createOpen]);
+  }, [authToken, createOpen]);
 
   const filteredAppointments = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -600,9 +601,9 @@ export default function CustomerServiceAppointmentsPage() {
   const availableSlotOptions = useMemo(
     () =>
       createOptions.slots.filter((slot) => {
-        const status = String(readNested(slot, ["status"]) || "").toLowerCase();
+        const status = getSlotOptionStatus(slot);
         const id = getSlotOptionId(slot);
-        return (!status || status === "available") && !bookedSlotById.has(String(id));
+        return isAvailableSlotStatus(status) && !bookedSlotById.has(String(id));
       }),
     [bookedSlotById, createOptions.slots]
   );
@@ -626,6 +627,8 @@ export default function CustomerServiceAppointmentsPage() {
     const selectedAvailableTime = readNested(selectedAvailableSlot, [
       "start_time",
       "time",
+      "from_time",
+      "starts_at",
     ]);
 
     if (selectedAvailableTime) {
@@ -679,23 +682,7 @@ export default function CustomerServiceAppointmentsPage() {
   };
 
   return (
-    <div className="customer-service-page" dir="ltr">
-      <PageHeader
-        kicker="Customer Service"
-        title="Appointments"
-        subtitle="Read, track, cancel, and complete customer appointments from the customer service workspace."
-        action={
-          <button
-            type="button"
-            className="primary-action-btn"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus size={18} />
-            <span>New Appointment</span>
-          </button>
-        }
-      />
-
+    <div className="customer-service-page">
       <section className="legal-stats-grid">
         <StatCard title="Total" value={total} note="Appointments from API" icon={CalendarDays} />
         <StatCard title="Active" value={active} note="Need follow-up" icon={CalendarClock} />
@@ -710,6 +697,12 @@ export default function CustomerServiceAppointmentsPage() {
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
         selectOptions={APPOINTMENT_FILTERS}
+        action={
+          <Button type="button" className="primary-action-btn" onClick={() => setCreateOpen(true)}>
+            <Plus size={18} />
+            <span>New Appointment</span>
+          </Button>
+        }
       />
 
       <TableCard title="Appointment List" count={meta?.total ?? filteredAppointments.length}>
@@ -993,7 +986,12 @@ export default function CustomerServiceAppointmentsPage() {
                 <p className="field-hint">
                   Selected time:{" "}
                   {getTimeRange(
-                    readNested(selectedAvailableSlot, ["start_time", "time"]),
+                    readNested(selectedAvailableSlot, [
+                      "start_time",
+                      "time",
+                      "from_time",
+                      "starts_at",
+                    ]),
                     slotDurationMinutes
                   )}
                 </p>

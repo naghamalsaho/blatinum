@@ -26,16 +26,8 @@ export const createItemRequest = (payload) => {
   return api.upload(ITEM_ENDPOINT, buildItemFormData(payload));
 };
 
-const buildItemStatusFormData = (payload) => {
-  const formData = new FormData();
-
-  formData.append("status", payload.status);
-
-  return formData;
-};
-
 export const updateItemRequest = (id, payload) => {
-  return api.putForm(`${ITEM_ENDPOINT}/${id}`, buildItemStatusFormData(payload));
+  return api.putForm(`${ITEM_ENDPOINT}/${id}`, buildItemFormData(payload));
 };
 
 export const deleteItemRequest = (id) => {

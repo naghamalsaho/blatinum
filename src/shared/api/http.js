@@ -55,14 +55,17 @@ http.interceptors.response.use(
 
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry
+      !originalRequest._retry &&
+      !originalRequest.skipAuthRefresh
     ) {
       originalRequest._retry = true;
+      const refreshToken = normalizeStoredToken(localStorage.getItem("refreshToken"));
+
+      if (!refreshToken) {
+        return Promise.reject(error);
+      }
 
       try {
-        const refreshToken =
-          localStorage.getItem("refreshToken");
-
         const response = await axios.post(
           "https://platinum-back-end.onrender.com/api/v1/refreshToken",
           {
@@ -91,13 +94,8 @@ http.interceptors.response.use(
 
         return http(originalRequest);
       } catch (refreshError) {
-        localStorage.removeItem("token");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("user");
-
-       
-
-        return Promise.reject(refreshError);
+        console.warn("[AUTH] Token refresh failed. Keeping current session data.", refreshError);
+        return Promise.reject(error);
       }
     }
 

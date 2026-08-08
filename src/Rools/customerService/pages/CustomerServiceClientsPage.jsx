@@ -4,10 +4,11 @@ import { Mail, Phone, ShieldOff, UserCheck, UsersRound } from "lucide-react";
 
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
+import { t } from "@/shared/i18n";
+import { formatStatus } from "../constants/customerServiceData";
 import {
   deactivateCustomerServiceClient,
   fetchCustomerServiceClients,
@@ -16,11 +17,11 @@ import {
 import "../styles/customer-service.css";
 
 const CLIENT_FILTERS = [
-  { value: "all", label: "All", dotClass: "" },
-  { value: "verified", label: "Verified", dotClass: "ok" },
-  { value: "unverified", label: "Unverified", dotClass: "busy" },
-  { value: "married", label: "Married", dotClass: "" },
-  { value: "single", label: "Single", dotClass: "" },
+  { value: "all", label: t("all"), dotClass: "" },
+  { value: "verified", label: t("verified"), dotClass: "ok" },
+  { value: "unverified", label: t("unverified"), dotClass: "busy" },
+  { value: "married", label: t("married"), dotClass: "" },
+  { value: "single", label: t("single"), dotClass: "" },
 ];
 
 const readNested = (item, paths) => {
@@ -122,18 +123,16 @@ export default function CustomerServiceClientsPage() {
   };
 
   return (
-    <div className="customer-service-page" dir="ltr">
-      <PageHeader kicker="Customer Service" title="Clients" />
-
+    <div className="customer-service-page">
       <section className="legal-stats-grid">
-        <StatCard title="Total" value={clients.length} note="Clients from API" icon={UsersRound} />
-        <StatCard title="Verified" value={verified} note="Confirmed accounts" icon={UserCheck} />
-        <StatCard title="Married" value={married} note="Client profile info" icon={UsersRound} />
-        <StatCard title="With Jobs" value={withJobs} note="Known occupations" icon={Mail} />
+        <StatCard title={t("total")} value={clients.length} note={t("clients_from_api")} icon={UsersRound} />
+        <StatCard title={t("verified")} value={verified} note={t("confirmed_accounts")} icon={UserCheck} />
+        <StatCard title={t("married")} value={married} note={t("client_profile_info")} icon={UsersRound} />
+        <StatCard title={t("with_jobs")} value={withJobs} note={t("known_occupations")} icon={Mail} />
       </section>
 
       <Toolbar
-        placeholder="Search clients..."
+        placeholder={t("search_clients")}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         filterValue={statusFilter}
@@ -141,24 +140,24 @@ export default function CustomerServiceClientsPage() {
         selectOptions={CLIENT_FILTERS}
       />
 
-      <TableCard title="Client List" count={filteredClients.length}>
+      <TableCard title={t("client_list")} count={filteredClients.length}>
         {loading ? (
-          <div className="table-state">Loading clients...</div>
+          <div className="table-state">{t("loading")}</div>
         ) : error ? (
           <div className="table-state is-error">{error}</div>
         ) : (
           <table className="legal-table">
             <thead>
               <tr>
-                <th>Client</th>
-                <th>Contact</th>
-                <th>Address</th>
-                <th>Job</th>
-                <th>Social</th>
-                <th>National ID</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                <th>{t("client")}</th>
+                <th>{t("contact")}</th>
+                <th>{t("address")}</th>
+                <th>{t("job")}</th>
+                <th>{t("social_status")}</th>
+                <th>{t("national_id")}</th>
+                <th>{t("status")}</th>
+                <th>{t("created")}</th>
+                <th>{t("actions")}</th>
               </tr>
             </thead>
 
@@ -171,15 +170,15 @@ export default function CustomerServiceClientsPage() {
 
                   return (
                     <tr key={getClientId(client) || getAccountId(client)}>
-                      <td data-label="Client">
+                      <td data-label={t("client")}>
                         <div className="customer-service-name-cell">
                           <strong>{getClientName(client)}</strong>
                           <span>
-                            Client #{getClientId(client) || "-"} / Account #{getAccountId(client) || "-"}
+                            {t("client")} #{getClientId(client) || "-"} / {t("account")} #{getAccountId(client) || "-"}
                           </span>
                         </div>
                       </td>
-                      <td data-label="Contact">
+                      <td data-label={t("contact")}>
                         <div className="customer-service-name-cell">
                           <span>
                             <Mail size={13} /> {getClientEmail(client)}
@@ -189,23 +188,23 @@ export default function CustomerServiceClientsPage() {
                           </span>
                         </div>
                       </td>
-                      <td data-label="Address">{getClientAddress(client)}</td>
-                      <td data-label="Job">{info.job_title || "-"}</td>
-                      <td data-label="Social">{info.social_status || "-"}</td>
-                      <td data-label="National ID">{info.national_id || "-"}</td>
-                      <td data-label="Status">
+                      <td data-label={t("address")}>{getClientAddress(client)}</td>
+                      <td data-label={t("job")}>{info.job_title || "-"}</td>
+                      <td data-label={t("social_status")}>{formatStatus(info.social_status || "-")}</td>
+                      <td data-label={t("national_id")}>{info.national_id || "-"}</td>
+                      <td data-label={t("status")}>
                         <span className={`customer-service-pill ${status}`}>
-                          {status}
+                          {formatStatus(status)}
                         </span>
                       </td>
-                      <td data-label="Created">{account.created_at || "-"}</td>
-                      <td data-label="Actions">
+                      <td data-label={t("created")}>{account.created_at || "-"}</td>
+                      <td data-label={t("actions")}>
                         <button
                           type="button"
                           className="icon-action-btn danger"
                           onClick={() => openDeactivateModal(client)}
                           disabled={actionLoading}
-                          title="Deactivate client"
+                          title={t("deactivate_client")}
                         >
                           <ShieldOff size={16} />
                         </button>
@@ -216,7 +215,7 @@ export default function CustomerServiceClientsPage() {
               ) : (
                 <tr>
                   <td colSpan="9" className="empty-cell">
-                    {message || "No clients found"}
+                    {message || t("no_clients_found")}
                   </td>
                 </tr>
               )}
@@ -228,12 +227,15 @@ export default function CustomerServiceClientsPage() {
       <Modal
         open={deactivateOpen}
         onClose={closeDeactivateModal}
-        title="Deactivate client"
+        title={t("deactivate_client")}
         size="sm"
       >
         <div className="modal-form">
           <p className="customer-service-confirm-copy">
-            Deactivate {selectedClient ? getClientName(selectedClient) : "this client"}?
+            {t("deactivate_client_confirm").replace(
+              "{name}",
+              selectedClient ? getClientName(selectedClient) : t("client")
+            )}
           </p>
 
           <div className="modal-actions">
@@ -243,7 +245,7 @@ export default function CustomerServiceClientsPage() {
               onClick={closeDeactivateModal}
               disabled={actionLoading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
 
             <Button
@@ -252,7 +254,7 @@ export default function CustomerServiceClientsPage() {
               onClick={handleDeactivate}
               disabled={actionLoading}
             >
-              {actionLoading ? "Saving..." : "Deactivate"}
+              {actionLoading ? t("saving") : t("deactivate")}
             </Button>
           </div>
         </div>

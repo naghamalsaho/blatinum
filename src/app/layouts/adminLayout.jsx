@@ -1,14 +1,36 @@
 import { useState } from "react";
-import { Outlet } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../../shared/components/dashboard/Sidebar";
 import Topbar from "../../shared/components/dashboard/Topbar";
 import { adminDashboardConfig } from "../../shared/constants/dashboardData";
-import { getLanguage } from "@/shared/i18n";
+import { getDirection, t } from "@/shared/i18n";
 import "../../shared/ui/layout.css";
+import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
+import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const dir = getLanguage() === "en" ? "ltr" : "rtl";
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const dir = getDirection();
+  const { pathname } = useLocation();
+  const pageMeta = {
+    "/admin": [t("dashboard"), t("admin_dashboard_desc")],
+    "/admin/departments": [t("departments"), t("departments_page_desc")],
+    "/admin/employees": [t("employees"), t("employees_page_desc")],
+    "/admin/warehouses": [t("warehouses"), t("warehouses_page_desc")],
+    "/admin/items": [t("items"), t("items_page_desc")],
+    "/admin/roles-permissions": [t("roles_permissions"), t("roles_page_desc")],
+  }[pathname] || [adminDashboardConfig.topbar.title, adminDashboardConfig.topbar.subtitle];
+
+  const handleLogout = async () => {
+    try { await logoutRequest(); } finally {
+      dispatch(logout());
+      navigate("/", { replace: true });
+    }
+  };
 
   return (
     <div className="dashboard-shell" dir={dir}>
@@ -17,14 +39,14 @@ export default function AdminLayout() {
         onClose={() => setSidebarOpen(false)}
         brand={adminDashboardConfig.brand}
         sections={adminDashboardConfig.sidebarSections}
-        footer={adminDashboardConfig.footer}
+        footer={{ ...adminDashboardConfig.footer, onClick: handleLogout }}
       />
 
       <main className="dashboard-main">
         <Topbar
           onMenuClick={() => setSidebarOpen(true)}
-          title={adminDashboardConfig.topbar.title}
-          subtitle={adminDashboardConfig.topbar.subtitle}
+          title={pageMeta[0]}
+          subtitle={pageMeta[1]}
           searchPlaceholder={adminDashboardConfig.topbar.searchPlaceholder}
           actions={adminDashboardConfig.topbar.actions}
         />

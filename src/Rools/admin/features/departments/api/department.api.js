@@ -16,8 +16,8 @@ const buildDepartmentFormData = (payload) => {
 
   formData.append("name", String(payload.name || "").trim());
 
-  if (payload.description) {
-    formData.append("description", String(payload.description).trim());
+  if (Object.hasOwn(payload, "description")) {
+    formData.append("description", String(payload.description || "").trim());
   }
 
   return formData;
@@ -37,7 +37,6 @@ const buildEmployeeDepartmentFormData = (payload) => {
   appendIfPresent(formData, "from_date", payload.from_date);
   appendIfPresent(formData, "to_date", payload.to_date);
   appendIfPresent(formData, "position", payload.position);
-  appendIfPresent(formData, "role_id", payload.role_id);
 
   return formData;
 };
@@ -56,6 +55,10 @@ export const deleteDepartmentRequest = (id) => {
 
 export const getEmployeesByDepartmentRequest = (departmentId) => {
   return api.get(`${EMPLOYEE_DEPARTMENT_ENDPOINT}/empByDepartment/${departmentId}`);
+};
+
+export const getDepartmentsByEmployeeRequest = (employeeId) => {
+  return api.get(`${EMPLOYEE_DEPARTMENT_ENDPOINT}/depByEmployee/${employeeId}`);
 };
 
 export const createEmployeeDepartmentRequest = (payload) => {

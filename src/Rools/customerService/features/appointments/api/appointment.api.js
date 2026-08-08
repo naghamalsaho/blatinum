@@ -30,7 +30,7 @@ export const getAppointmentOrdersRequest = () => {
 };
 
 export const getAppointmentAvailableSlotsRequest = () => {
-  return api.get(AVAILABLE_SLOT_ENDPOINT);
+  return api.get(AVAILABLE_SLOT_ENDPOINT, {}, { skipAuthRefresh: true });
 };
 
 export const createAppointmentRequest = (payload = {}) => {

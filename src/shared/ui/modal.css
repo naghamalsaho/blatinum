@@ -292,3 +292,156 @@
   top: 6px;
   font-size: 12px;
 }
+
+/* Unified practical form system */
+.app-modal__panel {
+  border-radius: 18px;
+  background: var(--dash-surface);
+  box-shadow: 0 28px 80px rgba(2, 8, 23, .28);
+}
+
+.app-modal__panel::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 24px;
+  left: 24px;
+  z-index: 1;
+  height: 3px;
+  border-radius: 0 0 999px 999px;
+  background: linear-gradient(90deg, transparent, var(--dash-accent), var(--dash-accent-strong), transparent);
+  opacity: .8;
+}
+
+.app-modal__header {
+  padding: 22px 24px 17px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--dash-accent) 4%, transparent), transparent);
+}
+
+.app-modal__header h2 {
+  font-size: 20px;
+  line-height: 1.35;
+  font-weight: 800;
+}
+
+.app-modal__header p {
+  max-width: 560px;
+  margin-top: 5px;
+  font-size: 12px;
+}
+
+.app-modal__close {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease;
+}
+
+.app-modal__close:hover {
+  transform: rotate(4deg);
+  border-color: var(--dash-line-2);
+  background: var(--dash-icon-hover-bg);
+}
+
+.app-modal__body {
+  padding: 22px 24px 24px;
+}
+
+.app-modal__footer {
+  padding: 15px 24px 20px;
+  background: color-mix(in srgb, var(--dash-surface-2) 72%, transparent);
+}
+
+.app-modal form {
+  display: grid;
+  gap: 18px;
+}
+
+.app-modal form label,
+.app-modal .field-group > label {
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.app-modal form :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), select, textarea) {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 13px;
+  border: 1px solid var(--dash-line);
+  border-radius: 10px;
+  outline: 0;
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  font-size: 13px;
+  line-height: 1.45;
+  transition: border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+
+.app-modal form textarea {
+  min-height: 96px;
+  resize: vertical;
+}
+
+.app-modal form :is(input, select, textarea):focus {
+  border-color: var(--dash-accent);
+  background: var(--dash-surface);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.app-modal form :is(input, textarea)::placeholder {
+  color: var(--dash-muted);
+  opacity: .72;
+}
+
+.app-modal form :is(input, select, textarea):disabled {
+  cursor: not-allowed;
+  opacity: .6;
+}
+
+.app-modal .modal-grid,
+.app-modal .employee-form-grid,
+.app-modal .lottery-form-grid {
+  gap: 15px;
+}
+
+.app-modal .modal-actions {
+  width: 100%;
+  margin-top: 2px;
+  padding-top: 2px;
+}
+
+.app-modal :is(.primary-action-btn, .ghost-filter-btn, .employee-danger-btn, .role-btn) {
+  min-height: 42px;
+  padding-inline: 17px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 750;
+}
+
+.app-modal .ghost-filter-btn {
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface-2);
+  color: var(--dash-text);
+}
+
+.app-modal .primary-action-btn {
+  border: 1px solid transparent;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: #fff;
+  box-shadow: 0 10px 24px var(--dash-brand-glow);
+}
+
+[dir="rtl"] .app-modal,
+[dir="rtl"] .app-modal input,
+[dir="rtl"] .app-modal select,
+[dir="rtl"] .app-modal textarea {
+  text-align: right;
+}
+
+[dir="ltr"] .app-modal,
+[dir="ltr"] .app-modal input,
+[dir="ltr"] .app-modal select,
+[dir="ltr"] .app-modal textarea {
+  text-align: left;
+}

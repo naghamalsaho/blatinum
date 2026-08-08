@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import Sidebar from "@/shared/components/dashboard/Sidebar";
 import Topbar from "@/shared/components/dashboard/Topbar";
 import GlobalErrorDialog from "@/shared/components/GlobalErrorDialog";
+import { t } from "@/shared/i18n";
 export default function DashboardLayout({
   sidebarConfig = [],
   topbar = {},
@@ -44,7 +45,7 @@ export default function DashboardLayout({
         type="button"
         className="dashboard-backdrop"
         onClick={() => setSidebarOpen(false)}
-        aria-label="إغلاق الخلفية"
+        aria-label={t("close")}
       />
     )}
 

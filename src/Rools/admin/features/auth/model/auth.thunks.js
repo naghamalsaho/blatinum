@@ -1,5 +1,5 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { loginRequest } from "../api/auth.api";
+import { loginRequest, selectRoleRequest } from "../api/auth.api";
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -11,5 +11,14 @@ export const loginUser = createAsyncThunk(
     }
 
     return thunkAPI.rejectWithValue(result.message);
+  }
+);
+
+export const selectRole = createAsyncThunk(
+  "auth/selectRole",
+  async (roleId, thunkAPI) => {
+    const result = await selectRoleRequest(roleId);
+    if (result.ok) return result.data?.data ?? result.data;
+    return thunkAPI.rejectWithValue(result.message || "Failed to select workspace");
   }
 );

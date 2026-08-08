@@ -4,13 +4,13 @@
   --login-shell-bg-2: #e8eef7;
   --login-panel-bg: #f4f7fb;
   --login-panel-border: rgba(0, 0, 0, 0.2);
-  --login-title: #008fb3;
+  --login-title: #087fa8;
   --login-text: #111827;
-  --login-icon: #00d4ff;
-  --login-label: #008fb3;
-  --login-accent: #00d4ff;
-  --login-accent-dark: #008fb3;
-  --login-shadow: rgba(37, 99, 235, 0.25);
+  --login-icon: #0b9fca;
+  --login-label: #087fa8;
+  --login-accent: #14b9dc;
+  --login-accent-dark: #087fa8;
+  --login-shadow: rgba(8, 142, 184, 0.24);
   --login-autofill-bg: #f4f7fb;
   --login-autofill-text: #111827;
 
@@ -28,23 +28,23 @@
   --dash-blank-bg: rgba(255, 255, 255, 0.45);
 
   --dash-line: rgba(15, 23, 42, 0.09);
-  --dash-line-2: rgba(0, 143, 179, 0.28);
+  --dash-line-2: rgba(8, 143, 184, 0.27);
 
   --dash-text: #111827;
   --dash-muted: #667085;
 
-  --dash-accent: #008fb3;
-  --dash-accent-strong: #00d4ff;
-  --dash-accent-soft: rgba(0, 212, 255, 0.12);
-  --dash-hover-bg: rgba(0, 143, 179, 0.07);
-  --dash-active-bg: linear-gradient(135deg, rgba(0, 143, 179, 0.13), rgba(0, 212, 255, 0.12));
+  --dash-accent: #078db8;
+  --dash-accent-strong: #16b9da;
+  --dash-accent-soft: rgba(7, 141, 184, 0.11);
+  --dash-hover-bg: rgba(7, 141, 184, 0.07);
+  --dash-active-bg: linear-gradient(135deg, rgba(7, 141, 184, 0.14), rgba(22, 185, 218, 0.10));
   --dash-icon-bg: rgba(255, 255, 255, 0.72);
-  --dash-icon-hover-bg: rgba(0, 212, 255, 0.12);
+  --dash-icon-hover-bg: rgba(7, 141, 184, 0.11);
 
-  --dash-shadow: 0 16px 40px rgba(37, 99, 235, 0.08);
-  --dash-brand-glow: rgba(37, 99, 235, 0.25);
-  --dash-shell-glow-1: rgba(0, 212, 255, 0.11);
-  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
+  --dash-shadow: 0 16px 40px rgba(19, 91, 132, 0.09);
+  --dash-brand-glow: rgba(8, 143, 184, 0.23);
+  --dash-shell-glow-1: rgba(20, 185, 220, 0.10);
+  --dash-shell-glow-2: rgba(8, 127, 168, 0.08);
 }
 
 :root[data-theme="dark"] {
@@ -57,9 +57,9 @@
   --login-text: #ffffff;
   --login-icon: #ffffff;
   --login-label: #ffffff;
-  --login-accent: #00d4ff;
-  --login-accent-dark: #008fb3;
-  --login-shadow: rgba(0, 212, 255, 0.4);
+  --login-accent: #24c5e5;
+  --login-accent-dark: #0a8fb9;
+  --login-shadow: rgba(36, 197, 229, 0.27);
   --login-autofill-bg: #1a1a2e;
   --login-autofill-text: #ffffff;
 
@@ -77,21 +77,21 @@
   --dash-blank-bg: rgba(255, 255, 255, 0.02);
 
   --dash-line: rgba(226, 232, 240, 0.10);
-  --dash-line-2: rgba(0, 212, 255, 0.26);
+  --dash-line-2: rgba(36, 197, 229, 0.25);
 
   --dash-text: #f8fafc;
   --dash-muted: #94a3b8;
 
-  --dash-accent: #00d4ff;
-  --dash-accent-strong: #008fb3;
-  --dash-accent-soft: rgba(0, 212, 255, 0.12);
+  --dash-accent: #26c2e2;
+  --dash-accent-strong: #0a91bc;
+  --dash-accent-soft: rgba(38, 194, 226, 0.12);
   --dash-hover-bg: rgba(255, 255, 255, 0.045);
-  --dash-active-bg: linear-gradient(135deg, rgba(0, 212, 255, 0.15), rgba(0, 143, 179, 0.12));
+  --dash-active-bg: linear-gradient(135deg, rgba(38, 194, 226, 0.14), rgba(10, 145, 188, 0.12));
   --dash-icon-bg: rgba(255, 255, 255, 0.04);
-  --dash-icon-hover-bg: rgba(0, 212, 255, 0.10);
+  --dash-icon-hover-bg: rgba(38, 194, 226, 0.10);
 
   --dash-shadow: 0 22px 56px rgba(0, 0, 0, 0.28);
-  --dash-brand-glow: rgba(0, 212, 255, 0.32);
-  --dash-shell-glow-1: rgba(0, 212, 255, 0.07);
-  --dash-shell-glow-2: rgba(0, 143, 179, 0.08);
+  --dash-brand-glow: rgba(38, 194, 226, 0.27);
+  --dash-shell-glow-1: rgba(38, 194, 226, 0.07);
+  --dash-shell-glow-2: rgba(10, 145, 188, 0.08);
 }

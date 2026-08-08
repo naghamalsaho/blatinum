@@ -93,7 +93,7 @@ export default function Modal({
           </button>
         </div>
 
-        <div className="app-modal__body">{children}</div>
+        {children ? <div className="app-modal__body">{children}</div> : null}
 
         {footer ? <div className="app-modal__footer">{footer}</div> : null}
       </div>
@@ -107,7 +107,7 @@ Modal.propTypes = {
   title: PropTypes.string.isRequired,
   description: PropTypes.string,
   onClose: PropTypes.func.isRequired,
-  children: PropTypes.node.isRequired,
+  children: PropTypes.node,
   footer: PropTypes.node,
   size: PropTypes.oneOf(["sm", "md", "lg", "xl"]),
 };

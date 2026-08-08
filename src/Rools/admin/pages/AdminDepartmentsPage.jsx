@@ -15,7 +15,6 @@ import {
 import Button from "@/shared/components/Button";
 import Field from "@/shared/components/Field";
 import Modal from "@/shared/components/Modal";
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
@@ -52,15 +51,8 @@ const FILTER_OPTIONS = [
 ];
 
 const POSITION_OPTIONS = ["staff", "supervisor", "manager"];
-const ROLE_ID_BY_POSITION = {
-  manager: "1",
-  supervisor: "2",
-  staff: "3",
-};
 
 const getEmployeeCount = (department) => department.employees?.length || 0;
-
-const getRoleIdForPosition = (position) => ROLE_ID_BY_POSITION[position] || "";
 
 const getAssignmentEmployeeId = (assignment) => {
   const account = assignment?.employee?.account || {};
@@ -128,7 +120,7 @@ const formatRoleName = (role) => {
     .join(" ");
 };
 
-const validateAssignmentForm = (values, { requireRoleId = false } = {}) => {
+const validateAssignmentForm = (values) => {
   const errors = {};
 
   if (!values.employee_id) {
@@ -145,16 +137,6 @@ const validateAssignmentForm = (values, { requireRoleId = false } = {}) => {
 
   if (values.from_date && values.to_date && values.to_date < values.from_date) {
     errors.to_date = "To date must be after from date.";
-  }
-
-  if (requireRoleId) {
-    const roleId = String(values.role_id || "").trim();
-
-    if (!roleId) {
-      errors.role_id = "Role ID is required.";
-    } else if (!/^\d+$/.test(roleId) || Number(roleId) <= 0) {
-      errors.role_id = "Role ID must be a positive number.";
-    }
   }
 
   return errors;
@@ -231,7 +213,6 @@ export default function AdminDepartmentsPage() {
     position: "staff",
     from_date: "",
     to_date: "",
-    role_id: getRoleIdForPosition("staff"),
   });
 
   useEffect(() => {
@@ -323,18 +304,15 @@ export default function AdminDepartmentsPage() {
 
   const handleAssignmentChange = (event) => {
     const { name, value } = event.target;
-    const nextRoleId = name === "position" ? getRoleIdForPosition(value) : undefined;
 
     setFormError("");
     setAssignmentFormErrors((prev) => ({
       ...prev,
       [name]: "",
-      ...(name === "position" ? { role_id: "" } : {}),
     }));
     setAssignmentFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "position" ? { role_id: nextRoleId } : {}),
     }));
   };
 
@@ -422,7 +400,6 @@ export default function AdminDepartmentsPage() {
       position: "staff",
       from_date: "",
       to_date: "",
-      role_id: getRoleIdForPosition("staff"),
     });
     setAssignOpen(true);
   };
@@ -437,7 +414,6 @@ export default function AdminDepartmentsPage() {
       position: "staff",
       from_date: "",
       to_date: "",
-      role_id: getRoleIdForPosition("staff"),
     });
   };
 
@@ -454,7 +430,6 @@ export default function AdminDepartmentsPage() {
       position: assignment.position || "staff",
       from_date: assignment.from_date || "",
       to_date: assignment.to_date || "",
-      role_id: getRoleIdForPosition(assignment.position || "staff"),
     });
     setAssignmentEditOpen(true);
   };
@@ -470,7 +445,6 @@ export default function AdminDepartmentsPage() {
       position: "staff",
       from_date: "",
       to_date: "",
-      role_id: getRoleIdForPosition("staff"),
     });
   };
 
@@ -555,7 +529,7 @@ export default function AdminDepartmentsPage() {
 
     if (!activeDepartment) return;
 
-    const errors = validateAssignmentForm(assignmentFormData, { requireRoleId: true });
+    const errors = validateAssignmentForm(assignmentFormData);
 
     if (Object.keys(errors).length) {
       setAssignmentFormErrors(errors);
@@ -570,7 +544,6 @@ export default function AdminDepartmentsPage() {
         position: assignmentFormData.position,
         from_date: assignmentFormData.from_date,
         to_date: assignmentFormData.to_date,
-        role_id: assignmentFormData.role_id,
       })
     );
 
@@ -582,7 +555,6 @@ export default function AdminDepartmentsPage() {
         position: "staff",
         from_date: "",
         to_date: "",
-        role_id: getRoleIdForPosition("staff"),
       });
       setEmployeesOpen(true);
     } else {
@@ -646,7 +618,6 @@ export default function AdminDepartmentsPage() {
         position: "staff",
         from_date: "",
         to_date: "",
-        role_id: getRoleIdForPosition("staff"),
       });
       setEmployeesOpen(true);
     } else {
@@ -695,21 +666,7 @@ export default function AdminDepartmentsPage() {
   };
 
   return (
-    <div className="department-page" dir="ltr">
-      <PageHeader
-        title="Departments"
-        action={
-          <button
-            type="button"
-            className="primary-action-btn"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus size={18} />
-            <span>New department</span>
-          </button>
-        }
-      />
-
+    <div className="department-page">
       <div className="legal-stats-grid">
         <StatCard title="Total" value={total} note="Departments" icon={BriefcaseBusiness} />
         <StatCard title="Staffed" value={staffed} note="Active teams" icon={UserRoundCheck} />
@@ -724,6 +681,16 @@ export default function AdminDepartmentsPage() {
         filterValue={staffFilter}
         onFilterChange={setStaffFilter}
         selectOptions={FILTER_OPTIONS}
+        action={
+          <button
+            type="button"
+            className="primary-action-btn"
+            onClick={() => setCreateOpen(true)}
+          >
+            <Plus size={18} />
+            <span>New department</span>
+          </button>
+        }
       />
 
       <TableCard title="Department List" count={filteredDepartments.length}>
@@ -1190,16 +1157,6 @@ export default function AdminDepartmentsPage() {
               iconClass="fa-solid fa-calendar-check"
               required={false}
               error={assignmentFormErrors.to_date}
-            />
-
-            <Field
-              name="role_id"
-              value={assignmentFormData.role_id}
-              onChange={handleAssignmentChange}
-              label="Role ID"
-              iconClass="fa-solid fa-user-shield"
-              error={assignmentFormErrors.role_id}
-              readOnly
             />
           </div>
 

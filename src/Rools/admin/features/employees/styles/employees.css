@@ -17,6 +17,41 @@
   gap: 16px;
 }
 
+.employees-page .page-subtitle {
+  max-width: 620px;
+  margin: 7px 0 0;
+  color: var(--dash-muted);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.employees-page .primary-action-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  cursor: pointer;
+  font-weight: 750;
+  box-shadow: 0 12px 28px var(--dash-brand-glow);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.employees-page .primary-action-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  filter: saturate(1.08);
+}
+
+.employees-page button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .employees-page .page-title {
   margin: 0;
   color: var(--dash-text);
@@ -47,6 +82,12 @@
   display: flex;
   align-items: center;
   gap: 13px;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+
+.employees-page .legal-stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-line-2);
 }
 
 .employees-page .legal-stat-icon {
@@ -81,11 +122,22 @@
 }
 
 .employees-page .legal-toolbar {
+  position: relative;
+  z-index: 20;
   display: flex;
   justify-content: space-between;
   gap: 12px;
   align-items: center;
   padding: 12px;
+}
+
+.employees-page .toolbar-search:focus-within {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.employees-page .toolbar-search input::placeholder {
+  color: var(--dash-muted);
 }
 
 .employees-page .toolbar-search {
@@ -132,6 +184,11 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
+}
+
+.employees-page .ghost-filter-btn:hover:not(:disabled) {
+  background: var(--dash-hover-bg);
+  border-color: var(--dash-line-2);
 }
 
 .employees-page .status-dropdown {
@@ -248,9 +305,44 @@
   font-weight: 700;
 }
 
+.employees-page .legal-table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.employees-page .legal-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
 .employee-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 175px;
+}
+
+.employee-table-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  background: linear-gradient(135deg, var(--dash-accent-soft), var(--dash-shell-glow-1));
+  color: var(--dash-accent-strong);
+  font-size: 14px;
+  font-weight: 850;
+  text-transform: uppercase;
+  border: 1px solid var(--dash-line-2);
+}
+
+.employee-name-copy {
   display: grid;
   gap: 3px;
+}
+
+.employee-name-copy small {
+  color: var(--dash-muted);
+  font-size: 12px;
 }
 
 .employee-name-cell strong {
@@ -321,6 +413,141 @@
   border-color: var(--dash-line-2);
 }
 
+.employee-muted {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.employee-action-buttons {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.employee-icon-action {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.employee-icon-action:hover {
+  transform: translateY(-1px);
+  background: var(--dash-icon-hover-bg);
+  border-color: var(--dash-line-2);
+}
+
+.employee-icon-action.danger {
+  color: #ef4444;
+}
+
+.employee-form {
+  display: grid;
+  gap: 16px;
+}
+
+.employee-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.employee-form-grid label {
+  display: grid;
+  gap: 7px;
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.employee-form-grid input,
+.employee-form-grid select {
+  width: 100%;
+  height: 42px;
+  padding: 0 12px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  outline: none;
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  font: inherit;
+}
+
+.employee-form-grid input:focus,
+.employee-form-grid select:focus {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.employee-form-wide {
+  grid-column: 1 / -1;
+}
+
+.employee-form-error,
+.employee-form-success {
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.employee-delete-form {
+  display: grid;
+  gap: 18px;
+}
+
+.employee-delete-form > p {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.employee-danger-btn {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 1px solid #dc2626;
+  border-radius: 8px;
+  background: #dc2626;
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-weight: 750;
+  box-shadow: 0 10px 22px rgba(220, 38, 38, 0.2);
+  transition: transform 0.18s ease, background 0.18s ease;
+}
+
+.employee-danger-btn:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: #b91c1c;
+}
+
+.employee-form-error {
+  color: #b91c1c;
+  background: rgba(239, 68, 68, 0.1);
+}
+
+.employee-form-success {
+  color: var(--dash-accent-strong);
+  background: var(--dash-accent-soft);
+}
+
+.employees-page .modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .employees-page .table-state,
 .employees-page .empty-cell {
   padding: 18px;
@@ -373,6 +600,18 @@
   .employees-page .toolbar-filters {
     flex-direction: column;
     width: 100%;
+  }
+
+  .employees-page .employee-create-btn {
+    width: 100%;
+  }
+
+  .employee-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .employee-form-wide {
+    grid-column: auto;
   }
 }
 

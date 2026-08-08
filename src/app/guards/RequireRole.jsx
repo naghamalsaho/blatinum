@@ -1,38 +1,14 @@
 import PropTypes from "prop-types";
 import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
-
-const normalize = (value) => String(value || "").trim().toLowerCase();
-
-function extractRoles(user) {
-  const accountRoles = user?.account?.roles || [];
-  const directRoles = user?.roles || [];
-  const nestedRoles = user?.data?.user?.account?.roles || [];
-
-  return [
-    ...accountRoles,
-    ...directRoles,
-    ...nestedRoles,
-    user?.role,
-    user?.type,
-  ]
-    .map(normalize)
-    .filter(Boolean);
-}
+import { hasAssignedRole } from "@/shared/auth/workspaces";
 
 export default function RequireRole({ allowedRoles = [] }) {
-  const storedUser = useSelector((state) => state.auth.user);
-  const localUser = JSON.parse(localStorage.getItem("user") || "null");
-
-  const user = storedUser || localUser;
-
-  const roles = extractRoles(user);
-  const allowed = allowedRoles.map(normalize);
-
-  const hasAccess = allowed.some((role) => roles.includes(role));
+  const { user, verifiedByBackend } = useSelector((state) => state.auth);
+  const hasAccess = verifiedByBackend && hasAssignedRole(user, allowedRoles);
 
   if (!hasAccess) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/choose-workspace" replace />;
   }
 
   return <Outlet />;

@@ -1,226 +1,111 @@
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import Field from "@/shared/components/Field";
-import AuthHero from "@/shared/components/AuthHero";
-import Button from "@/shared/components/Button";
+import { Navigate } from "react-router-dom";
+import { ArrowLeft, Eye, EyeOff, Globe2, LockKeyhole, Mail, Moon, ShieldCheck, SunMedium } from "lucide-react";
 import { loginUser } from "@/Rools/admin/features/auth/model/auth.thunks";
 import { validateLogin, validatePassword } from "@/shared/utils/validation";
-import { t } from "@/shared/i18n";
+import { getAssignedWorkspaces } from "@/shared/auth/workspaces";
+import platinumLogo from "@/assets/platinum-logo-clean.png";
+import { getLanguage, setLanguage, t } from "@/shared/i18n";
+import { useTheme } from "@/shared/theme/useTheme";
 import "@/shared/ui/login.css";
-
-const normalizeText = (value) =>
-  String(value || "")
-    .trim()
-    .toLowerCase();
-
-const collectUserText = (user = {}) =>
-  [
-    user.role,
-    user.type,
-    user.position,
-    user.job_title,
-    user.department,
-    user.department?.name,
-    user.department?.slug,
-    user.employee?.department,
-    user.employee?.department?.name,
-    user.employee?.department?.slug,
-    user.account?.type,
-    user.account?.full_name,
-    user.account?.email,
-    user.account?.roles?.join(" "),
-    user.additional_info?.position,
-  ]
-    .map(normalizeText)
-    .filter(Boolean)
-    .join(" ");
-
-const hasAnyMatch = (value, words) => words.some((word) => value.includes(word));
-
-const getLoginPath = (payload = {}) => {
-  const user = payload.user || payload.data?.user || {};
-  const permissions =
-    payload.permissions ||
-    payload.user?.permissions ||
-    payload.data?.permissions ||
-    [];
-
-  const userText = collectUserText(user);
-
-  if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
-    return "/engineering";
-  }
-
-  if (
-    hasAnyMatch(userText, [
-      "customer_service_staff",
-      "customer_service",
-      "customer service",
-      "support",
-      "خدمة العملاء",
-    ])
-  ) {
-    return "/customer-service";
-  }
-
-  if (
-    hasAnyMatch(userText, [
-      "marketing_staff",
-      "marketing",
-      "marketer",
-      "تسويق",
-    ])
-  ) {
-    return "/marketing";
-  }
-
-  if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
-    return "/legal/slots";
-  }
-
-  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
-    return "/admin";
-  }
-
-  const permissionsText = permissions
-    .map((permission) =>
-      typeof permission === "string"
-        ? permission
-        : permission?.name || permission?.key || permission?.slug || ""
-    )
-    .map(normalizeText)
-    .join(" ");
-
-  if (hasAnyMatch(permissionsText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
-    return "/engineering";
-  }
-
-  if (
-    hasAnyMatch(permissionsText, [
-      "read.client",
-      "create.client",
-      "read.appointment",
-      "create.appointment",
-      "read.order",
-      "update.order",
-    ])
-  ) {
-    return "/customer-service";
-  }
-
-  if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
-    return "/legal/slots";
-  }
-
-  return "/admin";
-};
 
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error } = useSelector((state) => state.auth);
+  const { loading, error, token, user, verifiedByBackend } = useSelector((state) => state.auth);
+  const { theme, toggleTheme } = useTheme();
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ login: "", password: "" });
+  const [fieldErrors, setFieldErrors] = useState({ login: "", password: "" });
 
-  const [isToggled, setIsToggled] = useState(false);
-  const [formData, setFormData] = useState({
-    login: "",
-    password: "",
-  });
+  if (token && verifiedByBackend) {
+    const assigned = getAssignedWorkspaces(user);
+    return <Navigate to={assigned.length === 1 ? assigned[0].path : "/choose-workspace"} replace />;
+  }
 
-  const [fieldErrors, setFieldErrors] = useState({
-    login: "",
-    password: "",
-  });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    if (name === "login") {
-      setFieldErrors((prev) => ({
-        ...prev,
-        login: validateLogin(value),
-      }));
-    }
-
-    if (name === "password") {
-      setFieldErrors((prev) => ({
-        ...prev,
-        password: validatePassword(value),
-      }));
-    }
+  const handleChange = ({ target: { name, value } }) => {
+    setFormData((current) => ({ ...current, [name]: value }));
+    if (fieldErrors[name]) setFieldErrors((current) => ({ ...current, [name]: "" }));
   };
 
-  const handleLogin = async (e) => {
-    e.preventDefault();
+  const handleLogin = async (event) => {
+    event.preventDefault();
+    const nextErrors = {
+      login: validateLogin(formData.login),
+      password: validatePassword(formData.password),
+    };
+    setFieldErrors(nextErrors);
+    if (nextErrors.login || nextErrors.password) return;
 
-    const loginError = validateLogin(formData.login);
-    const passwordError = validatePassword(formData.password);
+    const result = await dispatch(loginUser(formData));
+    if (!loginUser.fulfilled.match(result)) return;
 
-    setFieldErrors({
-      login: loginError,
-      password: passwordError,
-    });
-
-    if (loginError || passwordError) return;
-
-    const result = await dispatch(
-      loginUser({
-        login: formData.login,
-        password: formData.password,
-      })
-    );
-
-    if (loginUser.fulfilled.match(result)) {
-      setIsToggled(true);
-
-      setTimeout(() => {
-        navigate(getLoginPath(result.payload));
-      }, 2200);
-    }
+    const workspaces = getAssignedWorkspaces(result.payload?.user || result.payload?.data?.user);
+    if (workspaces.length === 1) navigate(workspaces[0].path, { replace: true });
+    else navigate("/choose-workspace", { replace: true });
   };
 
   return (
-    <div className="login-page-wrapper">
-      <div className={`auth-wrapper ${isToggled ? "toggled" : ""}`}>
-        <div className="background-shape"></div>
-
-        <div className="credentials-panel">
-          <form onSubmit={handleLogin}>
-            <Field
-              type="text"
-              name="login"
-              value={formData.login}
-              onChange={handleChange}
-              label={t("login")}
-              iconClass="fa-solid fa-user"
-              error={fieldErrors.login}
-            />
-
-            <Field
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              label={t("password")}
-              iconClass="fa-solid fa-lock"
-              error={fieldErrors.password}
-            />
-
-            <Button type="submit" className="submit-button" disabled={loading}>
-              {loading ? t("loading") : t("login")}
-            </Button>
-          </form>
-
-          {error && <p style={{ color: "red", marginTop: "12px" }}>{error}</p>}
+    <main className="platinum-login-page">
+      <section className="platinum-login-shell">
+        <div className="auth-page-controls">
+          <button type="button" onClick={() => { setLanguage(getLanguage() === "ar" ? "en" : "ar"); window.location.reload(); }}>
+            <Globe2 size={16} /><span>{getLanguage() === "ar" ? "العربية" : "English"}</span>
+          </button>
+          <button type="button" onClick={toggleTheme}>
+            {theme === "dark" ? <SunMedium size={16} /> : <Moon size={16} />}<span>{theme === "dark" ? t("light_mode") : t("dark_mode")}</span>
+          </button>
+        </div>
+        <div className="login-brand-panel">
+          <span className="login-orb login-orb-one" />
+          <span className="login-orb login-orb-two" />
+          <img src={platinumLogo} alt="Platinum Contracting and Construction" />
+          <div className="login-brand-copy">
+            <span className="login-eyebrow">PLATINUM PORTAL</span>
+            <h1>{t("login_brand_title")}</h1>
+            <p>{t("login_brand_desc")}</p>
+          </div>
+          <div className="login-trust"><ShieldCheck size={20} /><span>{t("secure_access")}</span></div>
         </div>
 
-        <AuthHero />
-      </div>
-    </div>
+        <div className="login-form-panel">
+          <div className="login-mobile-logo"><img src={platinumLogo} alt="Platinum" /></div>
+          <span className="login-eyebrow">{t("welcome_back")}</span>
+          <h2>{t("login_title")}</h2>
+          <p className="login-intro">{t("login_subtitle")}</p>
+
+          <form onSubmit={handleLogin} noValidate>
+            <label className="modern-field">
+              <span>{t("email")}</span>
+              <div className={fieldErrors.login ? "has-error" : ""}>
+                <Mail size={19} />
+                <input type="email" name="login" value={formData.login} onChange={handleChange} placeholder="name@company.com" autoComplete="email" />
+              </div>
+              {fieldErrors.login && <small>{fieldErrors.login}</small>}
+            </label>
+
+            <label className="modern-field">
+              <span>{t("password")}</span>
+              <div className={fieldErrors.password ? "has-error" : ""}>
+                <LockKeyhole size={19} />
+                <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} placeholder={t("password_placeholder")} autoComplete="current-password" />
+                <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={t("toggle_password")}>
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
+              {fieldErrors.password && <small>{fieldErrors.password}</small>}
+            </label>
+
+            {error && <div className="login-error" role="alert">{error}</div>}
+            <button className="platinum-login-button" type="submit" disabled={loading}>
+              <span>{loading ? t("loading") : t("login")}</span><ArrowLeft size={19} />
+            </button>
+          </form>
+          <p className="login-help">{t("login_help")}</p>
+        </div>
+      </section>
+    </main>
   );
 }

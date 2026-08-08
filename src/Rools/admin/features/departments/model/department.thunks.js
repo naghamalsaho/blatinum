@@ -85,19 +85,50 @@ const mergeEmployeeDepartmentIds = (departments, employeeDepartments) => {
   }));
 };
 
+const extractList = (payload) => {
+  const data = payload?.data;
+
+  if (Array.isArray(data)) return data;
+  if (Array.isArray(data?.data)) return data.data;
+  if (Array.isArray(data?.items)) return data.items;
+  if (Array.isArray(payload)) return payload;
+
+  return [];
+};
+
+const extractDepartmentsFromAssignments = (assignments = []) => {
+  const departments = new Map();
+
+  assignments.forEach((assignment) => {
+    const department = assignment?.department;
+    const id = department?.id || assignment?.department_id;
+
+    if (!id || departments.has(String(id))) return;
+
+    departments.set(String(id), {
+      id,
+      name: department?.name || `Department #${id}`,
+      description: department?.description || "Department from employee assignments",
+      employees: [],
+    });
+  });
+
+  return Array.from(departments.values());
+};
+
 export const fetchDepartments = createAsyncThunk(
   "departments/fetchAll",
   async (_, thunkAPI) => {
     const result = await getDepartmentsRequest();
 
     if (result.ok) {
-      const departments = result.data?.data ?? [];
+      const departments = extractList(result.data);
       const employeeDepartmentsResult = await getEmployeeDepartmentsRequest();
 
       if (employeeDepartmentsResult.ok) {
         return mergeEmployeeDepartmentIds(
           departments,
-          employeeDepartmentsResult.data?.data ?? []
+          extractList(employeeDepartmentsResult.data)
         );
       }
 
@@ -106,6 +137,17 @@ export const fetchDepartments = createAsyncThunk(
 
     if (result.status === 401) {
       return thunkAPI.rejectWithValue("Unauthorized. Please login again.");
+    }
+
+    const employeeDepartmentsResult = await getEmployeeDepartmentsRequest();
+    if (employeeDepartmentsResult.ok) {
+      const fallbackDepartments = extractDepartmentsFromAssignments(
+        extractList(employeeDepartmentsResult.data)
+      );
+
+      if (fallbackDepartments.length > 0) {
+        return fallbackDepartments;
+      }
     }
 
     return thunkAPI.rejectWithValue(normalizeErrorMessage(result.message));

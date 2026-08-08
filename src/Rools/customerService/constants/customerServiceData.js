@@ -1,3 +1,5 @@
+import { getLanguage } from "@/shared/i18n";
+
 export const customerServiceClients = [
   {
     id: "CL-1001",
@@ -115,7 +117,69 @@ export const customerServiceOrders = [
   },
 ];
 
-export const formatStatus = (status) =>
-  String(status || "-")
+const STATUS_LABELS = {
+  ar: {
+    active: "نشط",
+    accepted: "مقبول",
+    available: "متاح",
+    canceled: "ملغي",
+    cancelled: "ملغي",
+    closed: "مغلق",
+    completed: "مكتمل",
+    done: "منجز",
+    high: "عالية",
+    in_review: "قيد المراجعة",
+    initially_accepted: "مقبول مبدئياً",
+    low: "منخفضة",
+    married: "متزوج",
+    medium: "متوسطة",
+    open: "مفتوح",
+    pending: "قيد الانتظار",
+    rejected: "مرفوض",
+    reserved: "محجوز",
+    resolved: "تم الحل",
+    scheduled: "مجدول",
+    single: "أعزب",
+    unavailable: "غير متاح",
+    unverified: "غير موثق",
+    verified: "موثق",
+    vip: "VIP",
+  },
+  en: {
+    active: "Active",
+    accepted: "Accepted",
+    available: "Available",
+    canceled: "Canceled",
+    cancelled: "Cancelled",
+    closed: "Closed",
+    completed: "Completed",
+    done: "Done",
+    high: "High",
+    in_review: "In Review",
+    initially_accepted: "Initially Accepted",
+    low: "Low",
+    married: "Married",
+    medium: "Medium",
+    open: "Open",
+    pending: "Pending",
+    rejected: "Rejected",
+    reserved: "Reserved",
+    resolved: "Resolved",
+    scheduled: "Scheduled",
+    single: "Single",
+    unavailable: "Unavailable",
+    unverified: "Unverified",
+    verified: "Verified",
+    vip: "VIP",
+  },
+};
+
+export const formatStatus = (status) => {
+  const normalized = String(status || "-").trim().toLowerCase();
+  const lang = getLanguage() === "en" ? "en" : "ar";
+  if (STATUS_LABELS[lang][normalized]) return STATUS_LABELS[lang][normalized];
+
+  return String(status || "-")
     .replaceAll("_", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
+};

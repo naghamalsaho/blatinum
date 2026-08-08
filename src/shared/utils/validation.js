@@ -1,3 +1,5 @@
+import { t } from "@/shared/i18n";
+
 const DANGEROUS_PATTERNS = [
   /(\bor\b\s+1\s*=\s*1)/i,
   /(\b1\s*=\s*1\b)/i,
@@ -38,18 +40,16 @@ export const validateLogin = (value) => {
   const trimmed = toText(value);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const phoneRegex = /^\d{10}$/;
-
   if (!trimmed) {
-    return "Login is required";
+    return t("email_required");
   }
 
   if (containsMaliciousContent(trimmed)) {
-    return "Login contains invalid characters";
+    return t("email_invalid");
   }
 
-  if (!emailRegex.test(trimmed) && !phoneRegex.test(trimmed)) {
-    return "Login must be a valid email or 10-digit number";
+  if (!emailRegex.test(trimmed)) {
+    return t("email_invalid");
   }
 
   return "";
@@ -59,11 +59,11 @@ export const validatePassword = (value) => {
   const trimmed = toText(value);
 
   if (!trimmed) {
-    return "Password is required";
+    return t("password_required");
   }
 
   if (trimmed.length < 4) {
-    return "Password must be at least 4 characters";
+    return t("password_min");
   }
 
   return "";

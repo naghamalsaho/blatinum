@@ -2,9 +2,9 @@ import { Navigate, Outlet } from "react-router-dom";
 import { useSelector } from "react-redux";
 
 export default function RequireAuth() {
-  const token = useSelector((state) => state.auth.token) || localStorage.getItem("token");
+  const { token, verifiedByBackend } = useSelector((state) => state.auth);
 
-  if (!token) {
+  if (!token || !verifiedByBackend) {
     return <Navigate to="/" replace />;
   }
 

@@ -15,7 +15,6 @@ import {
 import Button from "@/shared/components/Button";
 import Field from "@/shared/components/Field";
 import Modal from "@/shared/components/Modal";
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
@@ -516,7 +515,11 @@ export default function AdminWarehousesPage() {
     const result = await dispatch(
       updateItem({
         id: item.id,
-        payload: { status },
+        payload: {
+          ...item,
+          warehouse_id: item.warehouse_id || item.warehouse?.id || activeItemsWarehouse?.id,
+          status,
+        },
       })
     );
 
@@ -568,21 +571,7 @@ export default function AdminWarehousesPage() {
   };
 
   return (
-    <div className="warehouse-page" dir="ltr">
-      <PageHeader
-        title="Warehouses"
-        action={
-          <button
-            type="button"
-            className="primary-action-btn"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus size={18} />
-            <span>New warehouse</span>
-          </button>
-        }
-      />
-
+    <div className="warehouse-page">
       <div className="legal-stats-grid">
         <StatCard title="Total" value={total} note="Warehouses" icon={Building2} />
         <StatCard title="With items" value={withItems} note="Stocked stores" icon={MapPin} />
@@ -597,6 +586,16 @@ export default function AdminWarehousesPage() {
         filterValue={itemFilter}
         onFilterChange={setItemFilter}
         selectOptions={FILTER_OPTIONS}
+        action={
+          <button
+            type="button"
+            className="primary-action-btn"
+            onClick={() => setCreateOpen(true)}
+          >
+            <Plus size={18} />
+            <span>New warehouse</span>
+          </button>
+        }
       />
 
       <TableCard title="Warehouse List" count={filteredWarehouses.length}>

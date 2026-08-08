@@ -1,7 +1,10 @@
 import {
   CalendarDays,
   ClipboardList,
+  Gift,
   LayoutDashboard,
+  MessageCircle,
+  ShieldAlert,
   UsersRound,
 } from "lucide-react";
 import { t } from "@/shared/i18n";
@@ -35,6 +38,21 @@ export const customerServiceSidebar = [
         label: t("orders"),
         icon: ClipboardList,
         to: "/customer-service/orders",
+      },
+      {
+        label: t("complaints"),
+        icon: ShieldAlert,
+        to: "/customer-service/complaints",
+      },
+      {
+        label: t("lottery"),
+        icon: Gift,
+        to: "/customer-service/lottery",
+      },
+      {
+        label: t("chat"),
+        icon: MessageCircle,
+        to: "/customer-service/chat",
       },
     ],
   },

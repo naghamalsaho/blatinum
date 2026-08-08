@@ -6,12 +6,7 @@
   padding: 8px 0 20px;
 }
 
-.legal-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-}
+
 
 .page-kicker {
   margin: 0 0 8px;

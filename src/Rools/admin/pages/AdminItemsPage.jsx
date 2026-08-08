@@ -6,10 +6,10 @@ import {
   PackageCheck,
   PackagePlus,
   PackageSearch,
+  PencilLine,
   Trash2,
 } from "lucide-react";
 
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import Toolbar from "@/shared/components/Toolbar";
 import TableCard from "@/shared/components/TableCard";
@@ -17,6 +17,7 @@ import Button from "@/shared/components/Button";
 import Field from "@/shared/components/Field";
 import Modal from "@/shared/components/Modal";
 import StatusDropdown from "@/shared/components/StatusDropdown";
+import { t } from "@/shared/i18n";
 import { getWarehousesRequest } from "../features/warehouses/api/warehouse.api";
 import {
   createItem,
@@ -26,31 +27,6 @@ import {
 } from "../features/items/model/item.thunks";
 
 import "../features/items/styles/items.css";
-
-const STATUS_OPTIONS = [
-  {
-    value: "all",
-    label: "All statuses",
-    dotClass: "",
-  },
-  {
-    value: "in_stock",
-    label: "In stock",
-    dotClass: "ok",
-  },
-  {
-    value: "out_of_stock",
-    label: "Out of stock",
-    dotClass: "busy",
-  },
-  {
-    value: "discontinued",
-    label: "Discontinued",
-    dotClass: "off",
-  },
-];
-
-const ITEM_STATUS_OPTIONS = STATUS_OPTIONS.filter((option) => option.value !== "all");
 
 const INITIAL_CREATE_FORM = {
   warehouse_id: "",
@@ -169,6 +145,7 @@ export default function AdminItemsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [createOpen, setCreateOpen] = useState(false);
+  const [formMode, setFormMode] = useState("create");
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [selectedItem, setSelectedItem] = useState(null);
   const [createFormData, setCreateFormData] = useState(INITIAL_CREATE_FORM);
@@ -176,6 +153,13 @@ export default function AdminItemsPage() {
   const [createError, setCreateError] = useState("");
   const [warehouses, setWarehouses] = useState([]);
   const [warehousesLoading, setWarehousesLoading] = useState(false);
+  const statusOptions = [
+    { value: "all", label: t("all_statuses"), dotClass: "" },
+    { value: "in_stock", label: t("in_stock"), dotClass: "ok" },
+    { value: "out_of_stock", label: t("out_of_stock"), dotClass: "busy" },
+    { value: "discontinued", label: t("discontinued"), dotClass: "off" },
+  ];
+  const itemStatusOptions = statusOptions.filter((option) => option.value !== "all");
 
   useEffect(() => {
     dispatch(fetchItems());
@@ -263,9 +247,39 @@ export default function AdminItemsPage() {
     return Array.from(optionsById.values());
   }, [items, warehouses]);
   const createFieldErrors = useMemo(
-    () => getItemFieldErrors(createFormData, items, { requireWarehouse: true }),
-    [createFormData, items]
+    () => getItemFieldErrors(
+      createFormData,
+      formMode === "edit" ? items.filter((item) => item.id !== selectedItem?.id) : items,
+      { requireWarehouse: true }
+    ),
+    [createFormData, formMode, items, selectedItem]
   );
+
+  const openCreateModal = () => {
+    setFormMode("create");
+    setSelectedItem(null);
+    setSelectedItem(null);
+    setCreateFormData(INITIAL_CREATE_FORM);
+    setCreateOpen(true);
+  };
+
+  const openEditModal = (item) => {
+    setFormMode("edit");
+    setSelectedItem(item);
+    setCreateTouched({});
+    setCreateError("");
+    setCreateFormData({
+      warehouse_id: String(getItemWarehouseId(item) || ""),
+      sku: item.sku || "",
+      name: item.name || "",
+      description: item.description || "",
+      quantity: String(item.quantity ?? ""),
+      expiry_date: getDateValue(item.expiry_date).slice(0, 10),
+      purchase_date: getDateValue(item.purchase_date).slice(0, 10),
+      received_date: getDateValue(item.received_date).slice(0, 10),
+    });
+    setCreateOpen(true);
+  };
 
   const handleCreateChange = (event) => {
     const { name, value } = event.target;
@@ -288,6 +302,7 @@ export default function AdminItemsPage() {
 
   const closeCreateModal = () => {
     setCreateOpen(false);
+    setFormMode("create");
     setCreateFormData(INITIAL_CREATE_FORM);
     setCreateTouched({});
     setCreateError("");
@@ -296,7 +311,10 @@ export default function AdminItemsPage() {
   const handleCreate = async (event) => {
     event.preventDefault();
 
-    const validationErrors = getItemFormErrors(createFormData, items, {
+    const comparableItems = formMode === "edit"
+      ? items.filter((item) => item.id !== selectedItem?.id)
+      : items;
+    const validationErrors = getItemFormErrors(createFormData, comparableItems, {
       requireWarehouse: true,
     });
 
@@ -308,14 +326,15 @@ export default function AdminItemsPage() {
     }
 
     const quantity = Number(createFormData.quantity || 0);
-    const result = await dispatch(
-      createItem({
-        ...createFormData,
-        status: quantity > 0 ? "in_stock" : "out_of_stock",
-      })
-    );
+    const payload = {
+      ...createFormData,
+      status: quantity > 0 ? "in_stock" : "out_of_stock",
+    };
+    const result = formMode === "edit"
+      ? await dispatch(updateItem({ id: selectedItem.id, payload }))
+      : await dispatch(createItem(payload));
 
-    if (createItem.fulfilled.match(result)) {
+    if (createItem.fulfilled.match(result) || updateItem.fulfilled.match(result)) {
       closeCreateModal();
     } else {
       const message = result.payload || "Failed to create item.";
@@ -329,7 +348,7 @@ export default function AdminItemsPage() {
     await dispatch(
       updateItem({
         id: item.id,
-        payload: { status },
+        payload: { ...item, warehouse_id: item.warehouse_id || item.warehouse?.id, status },
       })
     );
   };
@@ -355,62 +374,56 @@ export default function AdminItemsPage() {
   };
 
   return (
-    <div className="items-page" dir="ltr">
-      <PageHeader
-        kicker="Admin Core"
-        title="Warehouse Items"
-        subtitle="Track every item stored across company warehouses with quantity, status, dates, and warehouse ownership."
-        action={
-          <button
-            type="button"
-            className="primary-action-btn"
-            onClick={() => setCreateOpen(true)}
-          >
-            <PackagePlus size={18} />
-            <span>New item</span>
-          </button>
-        }
-      />
-
+    <div className="items-page">
       <div className="legal-stats-grid">
         <StatCard
-          title="Total items"
+          title={t("total_items")}
           value={total}
-          note="All item records"
+          note={t("all_item_records")}
           icon={Boxes}
         />
         <StatCard
-          title="In stock"
+          title={t("in_stock")}
           value={inStock}
-          note="Ready to use"
+          note={t("ready_to_use")}
           icon={PackageCheck}
         />
         <StatCard
-          title="Unavailable"
+          title={t("unavailable")}
           value={unavailable}
-          note="Out or discontinued"
+          note={t("out_or_discontinued")}
           icon={CircleSlash2}
         />
         <StatCard
-          title="Total quantity"
+          title={t("total_quantity")}
           value={totalQuantity}
-          note="Units across warehouses"
+          note={t("units_across_warehouses")}
           icon={PackageSearch}
         />
       </div>
 
       <Toolbar
-        placeholder="Search by SKU, item, warehouse, status, or date..."
+        placeholder={t("search_items")}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
         filterValue={statusFilter}
         onFilterChange={setStatusFilter}
-        selectOptions={STATUS_OPTIONS}
+        selectOptions={statusOptions}
+        action={
+          <button
+            type="button"
+            className="primary-action-btn"
+            onClick={openCreateModal}
+          >
+            <PackagePlus size={18} />
+            <span>{t("new_item")}</span>
+          </button>
+        }
       />
 
-      <TableCard title="Item list" count={filteredItems.length}>
+      <TableCard title={t("item_list")} count={filteredItems.length}>
         {loading ? (
-          <div style={{ padding: "16px" }}>Loading items...</div>
+          <div style={{ padding: "16px" }}>{t("loading_items")}</div>
         ) : error ? (
           <div style={{ padding: "16px", color: "red" }}>{error}</div>
         ) : (
@@ -419,14 +432,14 @@ export default function AdminItemsPage() {
               <tr>
                 <th>ID</th>
                 <th>SKU</th>
-                <th>Item</th>
-                <th>Warehouse</th>
-                <th>Quantity</th>
-                <th>Status</th>
-                <th>Purchase</th>
-                <th>Received</th>
-                <th>Expiry</th>
-                <th>Actions</th>
+                <th>{t("item")}</th>
+                <th>{t("warehouse")}</th>
+                <th>{t("quantity")}</th>
+                <th>{t("status")}</th>
+                <th>{t("purchase")}</th>
+                <th>{t("received")}</th>
+                <th>{t("expiry")}</th>
+                <th>{t("actions")}</th>
               </tr>
             </thead>
 
@@ -436,37 +449,46 @@ export default function AdminItemsPage() {
                     <tr key={item.id}>
                       <td data-label="ID">{item.id}</td>
                       <td data-label="SKU">{item.sku || "-"}</td>
-                      <td data-label="Item">
+                      <td data-label={t("item")}>
                         <div className="item-name-cell">
                           <strong>{item.name || "-"}</strong>
-                          <span>{item.description || "No description"}</span>
+                          <span>{item.description || t("no_description")}</span>
                         </div>
                       </td>
-                      <td data-label="Warehouse">
+                      <td data-label={t("warehouse")}>
                         <div className="item-warehouse-cell">
                           <strong>{getItemWarehouseLabel(item)}</strong>
                           <span>{getItemWarehouseLocation(item) || "-"}</span>
                         </div>
                       </td>
-                      <td data-label="Quantity">{item.quantity ?? "-"}</td>
-                      <td data-label="Status">
+                      <td data-label={t("quantity")}>{item.quantity ?? "-"}</td>
+                      <td data-label={t("status")}>
                         <StatusDropdown
                           trigger="button"
                           value={item.status || "out_of_stock"}
-                          options={ITEM_STATUS_OPTIONS}
+                          options={itemStatusOptions}
                           onChange={(status) => handleStatusChange(item, status)}
                         />
                       </td>
-                      <td data-label="Purchase">{formatDate(item.purchase_date)}</td>
-                      <td data-label="Received">{formatDate(item.received_date)}</td>
-                      <td data-label="Expiry">{formatDate(item.expiry_date)}</td>
-                      <td data-label="Actions">
+                      <td data-label={t("purchase")}>{formatDate(item.purchase_date)}</td>
+                      <td data-label={t("received")}>{formatDate(item.received_date)}</td>
+                      <td data-label={t("expiry")}>{formatDate(item.expiry_date)}</td>
+                      <td data-label={t("actions")}>
+                        <button
+                          type="button"
+                          className="icon-action-btn"
+                          onClick={() => openEditModal(item)}
+                          disabled={actionLoading}
+                          title={t("edit_item")}
+                        >
+                          <PencilLine size={16} />
+                        </button>
                         <button
                           type="button"
                           className="icon-action-btn danger"
                           onClick={() => openDeleteModal(item)}
                           disabled={actionLoading}
-                          title="Delete item"
+                          title={t("delete_item")}
                         >
                           <Trash2 size={16} />
                         </button>
@@ -476,7 +498,7 @@ export default function AdminItemsPage() {
               ) : (
                 <tr>
                   <td colSpan="10" style={{ padding: "16px", textAlign: "center" }}>
-                    No items found
+                    {t("no_items_found")}
                   </td>
                 </tr>
               )}
@@ -488,7 +510,7 @@ export default function AdminItemsPage() {
       <Modal
         open={createOpen}
         onClose={closeCreateModal}
-        title="Create item"
+        title={formMode === "edit" ? t("edit_item") : t("create_item")}
         size="md"
       >
         <form className="modal-form" onSubmit={handleCreate}>
@@ -505,14 +527,14 @@ export default function AdminItemsPage() {
                   onBlur={handleCreateBlur}
                   disabled={warehousesLoading && warehouseOptions.length === 0}
                 >
-                  <option value="">Select warehouse</option>
+                  <option value="">{t("select_warehouse")}</option>
                   {warehouseOptions.map((warehouse) => (
                     <option key={warehouse.id} value={String(warehouse.id)}>
                       {getWarehouseOptionLabel(warehouse)}
                     </option>
                   ))}
                 </select>
-                <label>Warehouse</label>
+                <label>{t("warehouse")}</label>
                 <i className="fa-solid fa-warehouse"></i>
               </div>
               {createTouched.warehouse_id && createFieldErrors.warehouse_id ? (
@@ -535,7 +557,7 @@ export default function AdminItemsPage() {
               value={createFormData.name}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Name"
+              label={t("name")}
               iconClass="fa-solid fa-box"
               error={createTouched.name ? createFieldErrors.name : ""}
             />
@@ -545,7 +567,7 @@ export default function AdminItemsPage() {
               value={createFormData.description}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Description"
+              label={t("description")}
               iconClass="fa-solid fa-align-left"
               error={createTouched.description ? createFieldErrors.description : ""}
             />
@@ -556,7 +578,7 @@ export default function AdminItemsPage() {
               value={createFormData.quantity}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Quantity"
+              label={t("quantity")}
               iconClass="fa-solid fa-hashtag"
               error={createTouched.quantity ? createFieldErrors.quantity : ""}
             />
@@ -567,7 +589,7 @@ export default function AdminItemsPage() {
               value={createFormData.expiry_date}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Expiry date"
+              label={t("expiry_date")}
               iconClass="fa-solid fa-calendar-xmark"
               error={createTouched.expiry_date ? createFieldErrors.expiry_date : ""}
             />
@@ -578,7 +600,7 @@ export default function AdminItemsPage() {
               value={createFormData.purchase_date}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Purchase date"
+              label={t("purchase_date")}
               iconClass="fa-solid fa-calendar-day"
               error={createTouched.purchase_date ? createFieldErrors.purchase_date : ""}
             />
@@ -589,7 +611,7 @@ export default function AdminItemsPage() {
               value={createFormData.received_date}
               onChange={handleCreateChange}
               onBlur={handleCreateBlur}
-              label="Received date"
+              label={t("received_date")}
               iconClass="fa-solid fa-calendar-check"
               error={createTouched.received_date ? createFieldErrors.received_date : ""}
             />
@@ -602,7 +624,7 @@ export default function AdminItemsPage() {
               onClick={closeCreateModal}
               disabled={actionLoading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
 
             <Button
@@ -610,7 +632,7 @@ export default function AdminItemsPage() {
               className="primary-action-btn"
               disabled={actionLoading}
             >
-              {actionLoading ? "Saving..." : "Save"}
+              {actionLoading ? t("saving") : t("save")}
             </Button>
           </div>
         </form>
@@ -619,14 +641,17 @@ export default function AdminItemsPage() {
       <Modal
         open={deleteOpen}
         onClose={closeDeleteModal}
-        title="Delete item"
+        title={t("delete_item")}
         size="sm"
       >
         <div className="modal-form">
           <p className="warehouse-delete-copy">
             {selectedItem
-              ? `Delete ${selectedItem.name || selectedItem.sku || `item #${selectedItem.id}`}?`
-              : "Delete this item?"}
+              ? t("delete_item_confirm").replace(
+                  "{name}",
+                  selectedItem.name || selectedItem.sku || `#${selectedItem.id}`
+                )
+              : t("delete_this_item")}
           </p>
 
           <div className="modal-actions">
@@ -636,7 +661,7 @@ export default function AdminItemsPage() {
               onClick={closeDeleteModal}
               disabled={actionLoading}
             >
-              Cancel
+              {t("cancel")}
             </Button>
 
             <Button
@@ -645,7 +670,7 @@ export default function AdminItemsPage() {
               onClick={handleDeleteItem}
               disabled={actionLoading}
             >
-              {actionLoading ? "Deleting..." : "Delete"}
+              {actionLoading ? t("deleting") : t("delete")}
             </Button>
           </div>
         </div>

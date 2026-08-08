@@ -13,8 +13,12 @@ import buildingReducer from "@/Rools/marketing/features/buildings/model/building
 import unitReducer from "@/Rools/marketing/features/units/model/unit.slice";
 import locationReducer from "@/Rools/marketing/features/locations/model/location.slice";
 import customerServiceAppointmentReducer from "@/Rools/customerService/features/appointments/model/appointment.slice";
+import customerServiceChatReducer from "@/Rools/customerService/features/chat/model/chat.slice";
 import customerServiceClientReducer from "@/Rools/customerService/features/clients/model/client.slice";
+import customerServiceComplaintReducer from "@/Rools/customerService/features/complaints/model/complaint.slice";
+import customerServiceLotteryReducer from "@/Rools/customerService/features/lottery/model/lottery.slice";
 import customerServiceOrderReducer from "@/Rools/customerService/features/orders/model/order.slice";
+import rolePermissionReducer from "@/Rools/admin/features/roles/model/role.slice";
 import errorReducer from "@/shared/store/error/error.slice";
 export const store = configureStore({
   reducer: {
@@ -33,7 +37,11 @@ export const store = configureStore({
     units: unitReducer,
     locations: locationReducer,
     customerServiceAppointments: customerServiceAppointmentReducer,
+    customerServiceChat: customerServiceChatReducer,
     customerServiceClients: customerServiceClientReducer,
+    customerServiceComplaints: customerServiceComplaintReducer,
+    customerServiceLotteries: customerServiceLotteryReducer,
     customerServiceOrders: customerServiceOrderReducer,
+    rolePermissions: rolePermissionReducer,
   },
 });

@@ -1,5 +1,5 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { loginUser } from "./auth.thunks";
+import { loginUser, selectRole } from "./auth.thunks";
 
 const readJsonStorage = (key, fallback) => {
   try {
@@ -65,13 +65,22 @@ const getAuthUser = (payload = {}) => payload.user || payload.data?.user || null
 
 const getAuthPermissions = (payload = {}) =>
   payload.permissions || payload.data?.permissions || [];
+const getAvailableRoles = (payload = {}) =>
+  payload.available_roles || payload.data?.available_roles || [];
+const getActiveRole = (payload = {}) =>
+  payload.active_role || payload.data?.active_role || null;
 
 const initialState = {
   user: readJsonStorage("user", null),
   token: normalizeToken(localStorage.getItem("token")),
   refreshToken: normalizeToken(localStorage.getItem("refreshToken")),
   permissions: readJsonStorage("permissions", []),
+  availableRoles: readJsonStorage("availableRoles", []),
+  activeRole: readJsonStorage("activeRole", null),
+  verifiedByBackend: sessionStorage.getItem("authVerified") === "true",
   loading: false,
+  roleSelecting: false,
+  roleError: null,
   error: null,
 };
 
@@ -86,12 +95,20 @@ const authSlice = createSlice({
       state.token = null;
       state.refreshToken = null;
       state.permissions = [];
+      state.availableRoles = [];
+      state.activeRole = null;
+      state.roleSelecting = false;
+      state.roleError = null;
+      state.verifiedByBackend = false;
       state.error = null;
 
       localStorage.removeItem("token");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("user");
       localStorage.removeItem("permissions");
+      localStorage.removeItem("availableRoles");
+      localStorage.removeItem("activeRole");
+      sessionStorage.removeItem("authVerified");
     },
   },
   extraReducers: (builder) => {
@@ -108,6 +125,7 @@ const authSlice = createSlice({
         const refreshToken = getRefreshToken(action.payload);
         const user = getAuthUser(action.payload);
         const permissions = getAuthPermissions(action.payload);
+        const availableRoles = getAvailableRoles(action.payload);
 
         console.log("[auth.slice] extracted auth:", {
           hasToken: Boolean(token),
@@ -122,7 +140,11 @@ const authSlice = createSlice({
         state.user = user;
         state.token = token;
         state.refreshToken = refreshToken;
-        state.permissions = permissions;
+        state.permissions = [];
+        state.availableRoles = availableRoles;
+        state.activeRole = null;
+        state.verifiedByBackend = true;
+        sessionStorage.setItem("authVerified", "true");
 
         if (token) {
           localStorage.setItem("token", token);
@@ -137,7 +159,9 @@ const authSlice = createSlice({
         }
 
         localStorage.setItem("user", JSON.stringify(user));
-        localStorage.setItem("permissions", JSON.stringify(permissions));
+        localStorage.setItem("permissions", JSON.stringify([]));
+        localStorage.setItem("availableRoles", JSON.stringify(availableRoles));
+        localStorage.removeItem("activeRole");
 
         console.log("[auth.slice] token saved:", token);
         console.log("[auth.slice] refreshToken saved:", refreshToken);
@@ -146,7 +170,26 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
+        state.verifiedByBackend = false;
+        sessionStorage.removeItem("authVerified");
         state.error = action.payload || "Login failed";
+      })
+      .addCase(selectRole.pending, (state) => {
+        state.roleSelecting = true;
+        state.roleError = null;
+      })
+      .addCase(selectRole.fulfilled, (state, action) => {
+        const activeRole = getActiveRole(action.payload);
+        const permissions = getAuthPermissions(action.payload);
+        state.roleSelecting = false;
+        state.activeRole = activeRole;
+        state.permissions = permissions;
+        localStorage.setItem("activeRole", JSON.stringify(activeRole));
+        localStorage.setItem("permissions", JSON.stringify(permissions));
+      })
+      .addCase(selectRole.rejected, (state, action) => {
+        state.roleSelecting = false;
+        state.roleError = action.payload || "Failed to select workspace";
       });
   },
 });

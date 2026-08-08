@@ -1,17 +1,28 @@
 import PropTypes from "prop-types";
-import { Menu, Search, SunMedium, Moon, Globe } from "lucide-react";
+import { ChevronDown, Menu, Search, SunMedium, Moon, PanelsTopLeft } from "lucide-react";
 import { useTheme } from "../../theme/useTheme";
+import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { getLanguage, setLanguage, t } from "@/shared/i18n";
+import { getAssignedWorkspaces } from "@/shared/auth/workspaces";
 
 export default function Topbar({
   onMenuClick = () => {},
-  title = "Platinum Admin",
+  title = "",
   subtitle = "",
   searchPlaceholder = "Search...",
   actions = [],
 }) {
   const { theme, toggleTheme } = useTheme();
+  const navigate = useNavigate();
   const ThemeIcon = theme === "dark" ? SunMedium : Moon;
+  const user = useSelector((state) => state.auth?.user);
+  const account = user?.account || user || {};
+  const accountName =
+    account.full_name ||
+    [account.first_name, account.last_name].filter(Boolean).join(" ") ||
+    "Administrator";
+  const canSwitchWorkspace = getAssignedWorkspaces(user).length > 1;
 
   const handleLangToggle = () => {
     const next = getLanguage() === "en" ? "ar" : "en";
@@ -56,12 +67,13 @@ export default function Topbar({
               <button
                 key={action.key}
                 type="button"
-                className="icon-btn"
+                className="icon-btn topbar-lang-btn"
                 onClick={handleLangToggle}
                 aria-label={t("language")}
                 title={t("language")}
               >
-                <Globe size={18} />
+                <span>{getLanguage().toUpperCase()}</span>
+                <ChevronDown size={13} />
               </button>
             );
           }
@@ -80,9 +92,33 @@ export default function Topbar({
           );
         })}
 
+        {canSwitchWorkspace && (
+          <button
+            type="button"
+            className="icon-btn workspace-switch-btn"
+            onClick={() => navigate("/choose-workspace")}
+            aria-label={t("switch_workspace")}
+            title={t("switch_workspace")}
+          >
+            <PanelsTopLeft size={18} />
+            <span>{t("switch_workspace")}</span>
+          </button>
+        )}
+
         <div className="search-box">
           <Search size={18} className="search-icon" />
           <input type="text" placeholder={searchPlaceholder} />
+          <span className="search-shortcut">Ctrl K</span>
+        </div>
+
+        <div className="topbar-user">
+          <span className="topbar-user-avatar" aria-hidden="true">
+            {accountName.charAt(0).toUpperCase()}
+          </span>
+          <span className="topbar-user-copy">
+            <strong>{accountName}</strong>
+            <small>{account.email || "Admin"}</small>
+          </span>
         </div>
       </div>
     </header>

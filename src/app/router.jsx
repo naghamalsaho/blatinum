@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "@/pages/LoginPage";
+import ChooseWorkspacePage from "@/pages/ChooseWorkspacePage";
 import DashboardPage from "@/pages/DashboardPage.jsx";
 
 import AdminLayout from "./layouts/adminLayout";
@@ -15,6 +16,7 @@ import AdminDepartmentsPage from "@/Rools/admin/pages/AdminDepartmentsPage";
 import AdminEmployeesPage from "@/Rools/admin/pages/AdminEmployeesPage";
 import AdminWarehousesPage from "@/Rools/admin/pages/AdminWarehousesPage";
 import AdminItemsPage from "@/Rools/admin/pages/AdminItemsPage";
+import AdminRolesPermissionsPage from "@/Rools/admin/pages/AdminRolesPermissionsPage";
 
 import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
@@ -29,6 +31,9 @@ import MarketingProjectsPage from "@/Rools/marketing/pages/MarketingProjectsPage
 import CustomerServiceDashboardPage from "@/Rools/customerService/pages/CustomerServiceDashboardPage";
 import CustomerServiceClientsPage from "@/Rools/customerService/pages/CustomerServiceClientsPage";
 import CustomerServiceAppointmentsPage from "@/Rools/customerService/pages/CustomerServiceAppointmentsPage";
+import CustomerServiceChatPage from "@/Rools/customerService/pages/CustomerServiceChatPage";
+import CustomerServiceComplaintsPage from "@/Rools/customerService/pages/CustomerServiceComplaintsPage";
+import CustomerServiceLotteryPage from "@/Rools/customerService/pages/CustomerServiceLotteryPage";
 import CustomerServiceOrdersPage from "@/Rools/customerService/pages/CustomerServiceOrdersPage";
 
 export default function AppRouter() {
@@ -37,6 +42,7 @@ export default function AppRouter() {
       <Route path="/" element={<LoginPage />} />
 
       <Route element={<RequireAuth />}>
+        <Route path="/choose-workspace" element={<ChooseWorkspacePage />} />
         <Route path="/admin" element={<RequireRole allowedRoles={["admin"]} />}>
           <Route element={<AdminLayout />}>
             <Route index element={<DashboardPage />} />
@@ -44,6 +50,7 @@ export default function AppRouter() {
             <Route path="employees" element={<AdminEmployeesPage />} />
             <Route path="warehouses" element={<AdminWarehousesPage />} />
             <Route path="items" element={<AdminItemsPage />} />
+            <Route path="roles-permissions" element={<AdminRolesPermissionsPage />} />
           </Route>
         </Route>
 
@@ -99,6 +106,9 @@ export default function AppRouter() {
             <Route index element={<CustomerServiceDashboardPage />} />
             <Route path="clients" element={<CustomerServiceClientsPage />} />
             <Route path="appointments" element={<CustomerServiceAppointmentsPage />} />
+            <Route path="chat" element={<CustomerServiceChatPage />} />
+            <Route path="complaints" element={<CustomerServiceComplaintsPage />} />
+            <Route path="lottery" element={<CustomerServiceLotteryPage />} />
             <Route path="orders" element={<CustomerServiceOrdersPage />} />
           </Route>
         </Route>

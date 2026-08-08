@@ -132,7 +132,7 @@ const handleApiError = (error) => {
     ok: false,
     status,
     message,
-    data: null,
+    data: responseData || null,
   };
 };
 
@@ -144,7 +144,7 @@ const normalizeSuccess = (response) => ({
 });
 
 export const api = {
-  get: async (url, params = {}) => {
+  get: async (url, params = {}, options = {}) => {
     try {
       const headers = buildHeaders(false);
       logRequest("GET", url, headers, params);
@@ -152,6 +152,7 @@ export const api = {
       const response = await http.get(url, {
         params,
         headers,
+        ...options,
       });
 
       console.log(`[API GET SUCCESS] ${url}`, response.data);

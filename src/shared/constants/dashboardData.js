@@ -3,8 +3,10 @@ import {
   Building2,
   BriefcaseBusiness,
   Globe,
+  KeyRound,
   LayoutGrid,
   LogOut,
+  PackageSearch,
   UsersRound,
 } from "lucide-react";
 import { t } from "@/shared/i18n";
@@ -48,6 +50,18 @@ export const adminDashboardConfig = {
           to: "/admin/warehouses",
           label: t("warehouses"),
           icon: Building2,
+        },
+        {
+          key: "items",
+          to: "/admin/items",
+          label: t("items"),
+          icon: PackageSearch,
+        },
+        {
+          key: "roles-permissions",
+          to: "/admin/roles-permissions",
+          label: t("roles_permissions"),
+          icon: KeyRound,
         },
       ],
     },

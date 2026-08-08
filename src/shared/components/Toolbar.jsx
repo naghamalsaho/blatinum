@@ -11,6 +11,7 @@ export default function Toolbar({
   filterValue,
   onFilterChange,
   selectOptions = [],
+  action = null,
 }) {
   return (
     <div className="legal-toolbar">
@@ -38,6 +39,8 @@ export default function Toolbar({
           onChange={onFilterChange}
           className="toolbar-status-dropdown"
         />
+
+        {action ? <div className="toolbar-action">{action}</div> : null}
       </div>
     </div>
   );
@@ -50,4 +53,5 @@ Toolbar.propTypes = {
   filterValue: PropTypes.string,
   onFilterChange: PropTypes.func,
   selectOptions: PropTypes.array,
+  action: PropTypes.node,
 };
