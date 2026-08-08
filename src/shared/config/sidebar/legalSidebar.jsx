@@ -1,39 +1,35 @@
 import {
   CalendarDays,
-  Users,
-  Scale,
+  Banknote,
   LayoutDashboard,
+  FileText,
 } from "lucide-react";
+import { t } from "@/shared/i18n";
 
-export const legalSidebar = [
+export const getLegalSidebar = () => [
   {
-    title: "القسم القانوني",
+    title: t("legal_sidebar.section_title"),
     items: [
       {
-  label: "لوحة القسم القانوني",
-  icon: LayoutDashboard,
-  to: "/legal",
-  end: true,
-},
+        label: t("legal_sidebar.dashboard"),
+        icon: LayoutDashboard,
+        to: "/legal",
+        end: true,
+      },
       {
-        label: "المواعيد المتاحة",
+        label: t("legal_sidebar.available_slots"),
         icon: CalendarDays,
         to: "/legal/slots",
       },
       {
-        label: "المهندسون",
-        icon: Users,
-        to: "/legal/engineers",
+        label: t("legal_sidebar.sales"),
+        icon: Banknote,
+        to: "/legal/sales",
       },
-    ],
-  },
-  {
-    title: "القانون",
-    items: [
       {
-        label: "القضايا",
-        icon: Scale,
-        to: "/legal/cases",
+        label: t("legal_sidebar.contracts"),
+        icon: FileText,
+        to: "/legal/contracts",
       },
     ],
   },

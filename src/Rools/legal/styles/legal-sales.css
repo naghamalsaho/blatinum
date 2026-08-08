@@ -1,0 +1,1207 @@
+@import "@/shared/constants/colors.css";
+
+.legal-sales-page {
+  width: 100%;
+  display: grid;
+  gap: 22px;
+}
+
+/* ================= HERO ================= */
+
+.legal-sales-hero {
+  width: 100%;
+  display: flex;
+  align-items: stretch;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 26px;
+  border-radius: 28px;
+  border: 1px solid var(--dash-line);
+  background:
+    radial-gradient(circle at top right, var(--dash-shell-glow-1), transparent 32%),
+    linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.legal-sales-hero-copy {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.legal-sales-kicker {
+  margin: 0;
+  color: var(--dash-accent);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.legal-sales-hero h1 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: clamp(24px, 3vw, 36px);
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.legal-sales-text {
+  margin: 0;
+  max-width: 720px;
+  color: var(--dash-muted);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.legal-sales-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.legal-sales-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ================= SUMMARY CARD ================= */
+
+.legal-sales-summary-card {
+  width: min(360px, 100%);
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+  border-radius: 22px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-card-bg), var(--dash-panel-bg));
+  box-shadow: var(--dash-shadow);
+}
+
+.legal-sales-summary-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.legal-sales-summary-head p {
+  margin: 0 0 4px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.legal-sales-summary-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 22px;
+  font-weight: 900;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-sales-summary-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+  flex-shrink: 0;
+}
+
+.legal-sales-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.legal-sales-summary-grid div {
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+}
+
+.legal-sales-summary-grid strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.legal-sales-summary-grid span {
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-sales-summary-preview {
+  display: grid;
+  gap: 10px;
+}
+
+.legal-sales-summary-preview-btn {
+  position: relative;
+  width: 100%;
+  height: 168px;
+  border: 1px solid var(--dash-line);
+  border-radius: 18px;
+  overflow: hidden;
+  padding: 0;
+  cursor: pointer;
+  background: var(--dash-blank-bg);
+}
+
+.legal-sales-summary-preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: 0.25s ease;
+}
+
+.legal-sales-summary-preview-btn:hover .legal-sales-summary-preview-img {
+  transform: scale(1.04);
+}
+
+.legal-sales-summary-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0, 0, 0, 0.72),
+    rgba(0, 0, 0, 0.08)
+  );
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 8px;
+  padding-bottom: 14px;
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  opacity: 0;
+  transition: 0.2s ease;
+}
+
+.legal-sales-summary-preview-btn:hover .legal-sales-summary-overlay {
+  opacity: 1;
+}
+
+.legal-sales-summary-preview-empty {
+  width: 100%;
+  height: 168px;
+  border-radius: 18px;
+  border: 1px dashed var(--dash-line);
+  background: var(--dash-blank-bg);
+  display: grid;
+  place-items: center;
+  color: var(--dash-muted);
+}
+
+.legal-sales-summary-actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+/* ================= STATS ================= */
+
+.legal-sales-stats-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ================= PANEL ================= */
+
+.legal-sales-panel {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.legal-sales-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+/* زر الإضافة على نفس سطر العنوان */
+.legal-sales-panel-head > div {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title action"
+    "sub action";
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+.legal-sales-panel-head h2 {
+  grid-area: title;
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.legal-sales-panel-head p {
+  grid-area: sub;
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.legal-sales-panel-head .legal-sales-primary-btn {
+  grid-area: action;
+  justify-self: end;
+  align-self: center;
+}
+
+/* ================= SEARCH ================= */
+
+.legal-sales-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.legal-sales-search {
+  width: min(100%, 560px);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+  box-shadow: var(--dash-shadow);
+}
+
+.legal-sales-search svg {
+  color: var(--dash-muted);
+  flex-shrink: 0;
+}
+
+.legal-sales-search input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.legal-sales-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+/* ================= TABLE ================= */
+
+.legal-sales-empty,
+.legal-sales-error {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  text-align: center;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.legal-sales-error {
+  color: var(--dash-danger);
+}
+
+.legal-sales-table-wrap {
+  width: 100%;
+  max-height: 72vh;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.legal-sales-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.legal-sales-table {
+  width: 100%;
+  min-width: 1180px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.legal-sales-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--dash-surface);
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  white-space: nowrap;
+}
+
+.legal-sales-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.legal-sales-table tbody tr {
+  transition: 0.2s ease;
+}
+
+.legal-sales-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
+.legal-sales-table th:nth-child(1),
+.legal-sales-table td:nth-child(1) {
+  width: 23%;
+}
+
+.legal-sales-table th:nth-child(2),
+.legal-sales-table td:nth-child(2) {
+  width: 24%;
+}
+
+.legal-sales-table th:nth-child(3),
+.legal-sales-table td:nth-child(3) {
+  width: 13%;
+}
+
+.legal-sales-table th:nth-child(4),
+.legal-sales-table td:nth-child(4) {
+  width: 12%;
+}
+
+.legal-sales-table th:nth-child(5),
+.legal-sales-table td:nth-child(5) {
+  width: 11%;
+}
+
+.legal-sales-table th:nth-child(6),
+.legal-sales-table td:nth-child(6) {
+  width: 11%;
+}
+
+.legal-sales-table th:nth-child(7),
+.legal-sales-table td:nth-child(7) {
+  width: 6%;
+}
+
+/* ================= CLIENT CELL ================= */
+
+.legal-sales-client-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.legal-sales-row-avatar {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+.legal-sales-client-main {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  text-align: right;
+  cursor: pointer;
+}
+
+.legal-sales-client-main strong {
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 900;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-sales-client-main span {
+  color: var(--dash-muted);
+  font-size: 11px;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ================= UNIT CELL ================= */
+
+.legal-sales-unit-cell {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.legal-sales-unit-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.legal-thumb-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.legal-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.legal-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--dash-muted);
+  background: var(--dash-blank-bg);
+}
+
+.legal-sales-unit-head svg {
+  color: var(--dash-accent);
+  flex-shrink: 0;
+}
+
+.legal-sales-unit-number {
+  color: var(--dash-text);
+  font-weight: 900;
+  font-size: 13px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.legal-sales-unit-sub,
+.legal-sales-unit-mini {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.legal-sales-unit-sub span,
+.legal-sales-unit-mini span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 9px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.legal-sales-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dash-accent);
+  font-weight: 900;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.legal-sales-date {
+  color: var(--dash-muted);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ================= ACTIONS ================= */
+
+.legal-sales-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex-wrap: nowrap;
+}
+
+.legal-sales-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+  flex-shrink: 0;
+}
+
+.legal-sales-icon-btn:hover {
+  transform: translateY(-1px);
+  background: var(--dash-icon-hover-bg);
+}
+
+.legal-sales-icon-btn.danger {
+  color: var(--dash-accent-strong);
+}
+
+/* ================= DETAILS MODAL ================= */
+
+.legal-sales-details {
+  display: grid;
+  gap: 16px;
+}
+
+.legal-sales-preview-image {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  box-shadow: var(--dash-shadow);
+}
+
+.legal-sales-preview-image img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.legal-sales-details-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.legal-sales-details-grid div {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  display: grid;
+  gap: 6px;
+}
+
+.legal-sales-details-grid strong {
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.legal-sales-details-grid span {
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.legal-sales-preview-description {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  box-shadow: var(--dash-shadow);
+  display: grid;
+  gap: 8px;
+}
+
+.legal-sales-preview-description h4 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.legal-sales-preview-description p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.legal-sales-attachments {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.legal-sales-attachment-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+/* ================= FORMS ================= */
+
+.legal-sales-form {
+  display: grid;
+  gap: 16px;
+}
+
+.legal-sales-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.legal-sales-field-block {
+  display: grid;
+  gap: 8px;
+}
+
+.legal-sales-field-label {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.legal-sales-select {
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  outline: none;
+}
+
+.legal-sales-file-box {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+}
+
+.legal-sales-file-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.legal-sales-file-name {
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 240px;
+}
+
+/* ================= CLIENT UNITS ================= */
+
+.legal-sales-client-units {
+  display: grid;
+  gap: 14px;
+}
+
+.legal-sales-client-units-table-wrap {
+  width: 100%;
+  max-height: 420px;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.legal-sales-client-units-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.legal-sales-client-units-table {
+  width: 100%;
+  min-width: 680px;
+  border-collapse: collapse;
+}
+
+.legal-sales-client-units-table th,
+.legal-sales-client-units-table td {
+  padding: 12px;
+  border-bottom: 1px solid var(--dash-line);
+  text-align: right;
+  white-space: nowrap;
+}
+
+.legal-sales-client-units-table th {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.legal-sales-client-units-table td {
+  color: var(--dash-text);
+  font-size: 13px;
+}
+
+/* ================= BUTTONS ================= */
+
+.legal-sales-primary-btn,
+.legal-sales-secondary-btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.25s ease;
+  white-space: nowrap;
+}
+
+.legal-sales-primary-btn {
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+}
+
+.legal-sales-secondary-btn {
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.legal-sales-primary-btn:hover,
+.legal-sales-secondary-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-accent);
+}
+
+.legal-sales-mini-btn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 12px;
+  font-size: 13px;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1180px) {
+  .legal-sales-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .legal-sales-hero {
+    flex-direction: column;
+  }
+
+  .legal-sales-summary-card {
+    width: 100%;
+  }
+
+  .legal-sales-panel-head > div {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+}
+
+@media (max-width: 768px) {
+  .legal-sales-stats-grid,
+  .legal-sales-details-grid,
+  .legal-sales-summary-grid,
+  .legal-sales-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .legal-sales-panel {
+    padding: 16px;
+  }
+
+  .legal-sales-panel-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .legal-sales-panel-head > div {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "sub"
+      "action";
+  }
+
+  .legal-sales-panel-head .legal-sales-primary-btn {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .legal-sales-hero {
+    padding: 20px;
+  }
+
+  .legal-sales-search {
+    width: 100%;
+  }
+
+  .legal-sales-table {
+    min-width: 980px;
+  }
+
+  .legal-sales-summary-head h3 {
+    font-size: 18px;
+  }
+
+  .legal-sales-file-name {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .legal-sales-row-actions {
+    gap: 5px;
+  }
+
+  .legal-sales-icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  .legal-thumb-btn {
+    width: 30px;
+    height: 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .legal-sales-hero h1 {
+    font-size: 20px;
+  }
+
+  .legal-sales-summary-card {
+    padding: 16px;
+  }
+
+  .legal-sales-summary-preview-btn,
+  .legal-sales-summary-preview-empty {
+    height: 150px;
+  }
+}
+/* ================= MODAL STYLES (MATCHING CONTRACTS MODAL) ================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal-card {
+  position: relative;
+  width: min(650px, 100%);
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  box-shadow: var(--dash-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-card h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface-2);
+  color: var(--dash-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: var(--dash-hover-bg);
+  color: var(--dash-text);
+  border-color: var(--dash-accent);
+  transform: scale(1.05);
+}
+
+.modal-form {
+  display: grid;
+  gap: 12px;
+}
+
+.form-group {
+  display: grid;
+  gap: 6px;
+}
+
+.form-group label {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+select.input-field {
+  background-color: var(--dash-input-bg) !important;
+  color: var(--dash-text) !important;
+  cursor: pointer;
+}
+
+select.input-field option {
+  background-color: var(--dash-surface-2, var(--dash-surface)) !important;
+  color: var(--dash-text) !important;
+  padding: 10px;
+}
+
+.file-upload-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--dash-line);
+  border-radius: 12px;
+  background: var(--dash-input-bg);
+  color: var(--dash-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-box:hover {
+  border-color: var(--dash-accent);
+  color: var(--dash-text);
+}
+
+.attachments-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--dash-blank-bg);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.attachment-chip svg {
+  cursor: pointer;
+  color: #ef4444;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  color: var(--dash-text);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+/* ================= شبكة كاردات الإحصائيات ================= */
+.legal-sales-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+  width: 100%;
+}
+
+/* التنسيق الرئيسي للكارد (أفقي وموزع) */
+.legal-sales-stats-grid > *,
+.stat-card {
+  background-color: #ffffff;
+  border: 1px solid #f1f5f9;
+  border-radius: 14px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex !important;
+  flex-direction: row !important; /* تحويل العرض إلى أفقي بدلاً من عمودي */
+  align-items: center !important;
+  justify-content: space-between !important;
+  transition: all 0.2s ease-in-out;
+}
+
+.legal-sales-stats-grid > *:hover,
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.05);
+}
+
+/* الحاوية الدائرية للأيقونة (نفس ستايل Slots) */
+.stat-card-icon,
+.stat-card .icon-wrapper,
+.legal-sales-stats-grid .stat-icon-box,
+.legal-sales-stats-grid svg {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid #00a8b5; /* لون التركواز من الصورة */
+  background-color: #f0fdfa;
+  color: #00a8b5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* تنسيق النصوص والبيانات داخل الكارد */
+.stat-card-content,
+.stat-card-info,
+.legal-sales-stats-grid .stat-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end; /* لمحاذاة النص لليمين */
+  text-align: right;
+  gap: 0.2rem;
+}
+
+/* عنوان الكارد (مثل Total Slots) */
+.stat-card-title,
+.legal-sales-stats-grid .stat-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+/* الرقم الرئيسي الكبير */
+.stat-card-value,
+.legal-sales-stats-grid .stat-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.2;
+}
+
+/* الملاحظة الفرعية إذا كانت موجودة */
+.stat-card-note,
+.legal-sales-stats-grid .stat-note {
+  font-size: 0.75rem;
+  color: #94a3b8;
+}

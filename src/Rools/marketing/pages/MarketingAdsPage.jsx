@@ -5,21 +5,21 @@ import {
   Image as ImageIcon,
   Plus,
   Eye,
-  Edit,
   Trash2,
   Sparkles,
-  MousePointerClick,
   Search,
   CalendarDays,
-  Layers3,
   Upload,
+  Filter,
+  ChevronDown,
+  Tag,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 
-import PageHeader from "@/shared/components/PageHeader";
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
-import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
 import ErrorMessage from "@/shared/ui/ErrorMessage";
 
@@ -29,8 +29,10 @@ import {
   deleteAdvertisement,
   createAdvertisement,
 } from "../features/advertisements/model/advertisement.thunks";
-import { validateAdvertisementForm } from "../features/advertisements/validation/advertisement.validation";
 
+import { fetchOffers } from "../features/offer/model/offer.thunks";
+
+import { validateAdvertisementForm } from "../features/advertisements/validation/advertisement.validation";
 import "../styles/marketing-ads.css";
 
 const STATUS_META = {
@@ -39,31 +41,12 @@ const STATUS_META = {
   scheduled: { label: "مجدول", type: "busy" },
 };
 
-const portfolio = [
-  {
-    id: "PRT-001",
-    name: "برج النخيل",
-    type: "مشروع سكني",
-    units: 48,
-    year: "2023",
-    icon: "🏗️",
-  },
-  {
-    id: "PRT-002",
-    name: "واجهة البحر",
-    type: "مشروع فاخر",
-    units: 32,
-    year: "2022",
-    icon: "🌊",
-  },
-  {
-    id: "PRT-003",
-    name: "الروضة ريزيدنس",
-    type: "مشروع متوسط",
-    units: 64,
-    year: "2021",
-    icon: "🌿",
-  },
+const STATUS_OPTIONS = [
+  { id: "all", label: "جميع الحالات" },
+  { id: "active", label: "نشط" },
+  { id: "draft", label: "مسودة" },
+  { id: "scheduled", label: "مجدول" },
+  { id: "with_offer", label: "عروض الخصم 🏷️" },
 ];
 
 function isAdvertisementActive(advertisement) {
@@ -105,7 +88,7 @@ function getAdvertisementRowMeta(advertisement) {
 
 function getFirstImage(advertisement) {
   return (
-    advertisement?.attachments?.find((item) => item.type === "image")?.url ||
+    advertisement?.attachments?.find((item) => item.type === "image" || item.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i))?.url ||
     null
   );
 }
@@ -117,6 +100,7 @@ function formatDate(value) {
 export default function MarketingAdsPage() {
   const dispatch = useDispatch();
   const fileInputRef = useRef(null);
+  const statusDropdownRef = useRef(null);
 
   const {
     advertisements = [],
@@ -126,20 +110,23 @@ export default function MarketingAdsPage() {
     error = null,
   } = useSelector((state) => state.advertisements || {});
 
+  const { items: offersList = [] } = useSelector((state) => state.offer || state.offers || {});
+
   const [createOpen, setCreateOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
-  const [previewImage, setPreviewImage] = useState(null);
   const [previewAdvertisement, setPreviewAdvertisement] = useState(null);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     status: "1",
     duration_days: "",
+    offer_id: "",
     attachmentFile: null,
   });
 
@@ -148,14 +135,28 @@ export default function MarketingAdsPage() {
   useEffect(() => {
     dispatch(fetchAdvertisements());
     dispatch(fetchActiveAdvertisements());
+    dispatch(fetchOffers());
   }, [dispatch]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(event.target)
+      ) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const stats = useMemo(() => {
     const totalAds = advertisements.length;
     const activeCount = activeAdvertisements.length;
 
-    const adsWithImages = advertisements.filter((item) =>
-      item.attachments?.some((att) => att.type === "image")
+    const offersCount = advertisements.filter(
+      (item) => item.offer && item.offer.is_active
     ).length;
 
     const avgDuration =
@@ -172,25 +173,21 @@ export default function MarketingAdsPage() {
       {
         title: "إجمالي الإعلانات",
         value: String(totalAds),
-        note: "كل الإعلانات",
         icon: Megaphone,
       },
       {
         title: "إعلانات نشطة",
         value: String(activeCount),
-        note: "من الراوت النشط",
         icon: Sparkles,
       },
       {
-        title: "إعلانات تحتوي صور",
-        value: String(adsWithImages),
-        note: "بوسائط مرئية",
-        icon: ImageIcon,
+        title: "إعلانات بعروض خصم",
+        value: String(offersCount),
+        icon: Tag,
       },
       {
         title: "متوسط مدة الإعلان",
         value: `${avgDuration} يوم`,
-        note: "متوسط المدة",
         icon: CalendarDays,
       },
     ];
@@ -200,9 +197,22 @@ export default function MarketingAdsPage() {
     const q = String(searchTerm || "").trim().toLowerCase();
 
     return advertisements.filter((item) => {
-      const matchesStatus =
-        statusFilter === "all" ||
-        (statusFilter === "active" && isAdvertisementActive(item));
+      let matchesStatus = true;
+      const isActive = isAdvertisementActive(item);
+
+      if (statusFilter === "active") {
+        matchesStatus = isActive;
+      } else if (statusFilter === "draft") {
+        matchesStatus =
+          !isActive ||
+          item.status === "draft" ||
+          item.status === 0 ||
+          item.status === "0";
+      } else if (statusFilter === "scheduled") {
+        matchesStatus = item.status === "scheduled";
+      } else if (statusFilter === "with_offer") {
+        matchesStatus = Boolean(item.offer && item.offer.is_active);
+      }
 
       const searchable = [
         item.title,
@@ -211,6 +221,7 @@ export default function MarketingAdsPage() {
         item.ends_at,
         String(item.duration_days || ""),
         String(item.status || item.is_active || ""),
+        item.offer?.discount_percentage ? `خصم ${item.offer.discount_percentage}%` : "",
       ]
         .join(" ")
         .toLowerCase();
@@ -262,6 +273,7 @@ export default function MarketingAdsPage() {
       description: "",
       status: "1",
       duration_days: "",
+      offer_id: "",
       attachmentFile: null,
     });
     setFormErrors({});
@@ -284,6 +296,10 @@ export default function MarketingAdsPage() {
     data.append("status", formData.status);
     data.append("duration_days", String(formData.duration_days));
 
+    if (formData.offer_id) {
+      data.append("offer_id", formData.offer_id);
+    }
+
     if (formData.attachmentFile) {
       data.append(
         "attachments[0]",
@@ -304,116 +320,17 @@ export default function MarketingAdsPage() {
 
   const openImagePreview = (advertisement) => {
     setPreviewAdvertisement(advertisement);
-    setPreviewImage(getFirstImage(advertisement));
     setPreviewOpen(true);
   };
 
-  const latestActiveAd = activeAdvertisements?.[0] || null;
   const pageLoading = loading || activeLoading;
 
+  const currentStatusLabel =
+    STATUS_OPTIONS.find((opt) => opt.id === statusFilter)?.label || "الحالة";
+
   return (
-    <div className="marketing-ads-page">
-      <PageHeader
-        kicker="التسويق"
-        title="الإعلانات والعروض"
-        subtitle="إدارة الإعلانات والعروض الترويجية ومعرض الأعمال من مكان واحد"
-        action={
-          <div className="marketing-ads-actions">
-            <Button
-              type="button"
-              className="marketing-secondary-btn"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Plus size={18} />
-              <span>إعلان جديد</span>
-            </Button>
-
-            <Button
-              type="button"
-              className="marketing-primary-btn"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Sparkles size={18} />
-              <span>عرض جديد</span>
-            </Button>
-          </div>
-        }
-      />
-
-      <section className="marketing-ads-hero">
-        <div className="marketing-ads-hero-copy">
-          <p className="marketing-ads-kicker">Marketing Ads Center</p>
-
-          <h1>واجهة إعلانات حديثة وسريعة لإدارة الحملات والعروض</h1>
-
-          <p className="marketing-ads-text">
-            كل شيء مصمم ليعطيك نظرة واضحة: المدة، البداية، النهاية، المرفقات،
-            والصور الخاصة بكل إعلان مع معاينة كاملة عند الضغط عليها.
-          </p>
-
-          <div className="marketing-ads-badges">
-            <span className="marketing-chip">
-              <CalendarDays size={14} />
-              آخر تحديث: اليوم
-            </span>
-
-            <span className="marketing-chip">
-              <Layers3 size={14} />
-              {activeAdvertisements.length} إعلان نشط
-            </span>
-          </div>
-        </div>
-
-        <div className="marketing-ads-summary-card">
-          <div className="marketing-ads-summary-head">
-            <div>
-              <p>أحدث إعلان نشط</p>
-
-              <h3>{latestActiveAd?.title || "لا يوجد إعلان نشط"}</h3>
-            </div>
-
-            <div className="marketing-summary-icon">
-              <MousePointerClick size={20} />
-            </div>
-          </div>
-
-          <div className="marketing-summary-action-area">
-            {latestActiveAd ? (
-              <button
-                type="button"
-                className="marketing-view-dialog-btn"
-                onClick={() => openImagePreview(latestActiveAd)}
-                title="عرض التفاصيل"
-              >
-                <Eye size={18} />
-                <span>عرض تفاصيل الإعلان</span>
-              </button>
-            ) : (
-              <div className="marketing-summary-preview-empty">
-                <Megaphone size={24} />
-              </div>
-            )}
-          </div>
-
-          <div className="marketing-ads-summary-metrics">
-            <div>
-              <strong>البداية</strong>
-              <span>{formatDate(latestActiveAd?.starts_at)}</span>
-            </div>
-
-            <div>
-              <strong>النهاية</strong>
-              <span>{formatDate(latestActiveAd?.ends_at)}</span>
-            </div>
-
-            <div>
-              <strong>المدة</strong>
-              <span>{latestActiveAd?.duration_days || "—"} يوم</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
+    <div className="marketing-ads-page" dir="rtl">
+      {/* 1. قسم الإحصائيات */}
       <section className="marketing-ads-stats-grid">
         {stats.map((item) => (
           <StatCard
@@ -426,12 +343,13 @@ export default function MarketingAdsPage() {
         ))}
       </section>
 
+      {/* 2. قسم الجدول والفلترة الرئيسي */}
       <section className="marketing-ads-main-grid">
         <article className="marketing-panel marketing-panel--full">
           <div className="marketing-panel-head">
             <div>
               <h2>الإعلانات والعروض الترويجية</h2>
-              <p>قائمة الإدارة السريعة مع إجراءات مباشرة</p>
+              <p>قائمة الإدارة السريعة مع استعراض حقول العروض النشطة</p>
             </div>
 
             <Button
@@ -444,28 +362,57 @@ export default function MarketingAdsPage() {
             </Button>
           </div>
 
+          {/* شريط البحث والتصفية */}
           <div className="marketing-ads-toolbar">
-            <div className="marketing-search">
-              <Search size={16} />
+            <div className="marketing-search-wrapper">
+              <div className="marketing-search">
+                <Search size={18} />
+                <input
+                  type="text"
+                  placeholder="ابحث بعنوان الإعلان، الوصف، أو نسب الخصم..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
 
-              <input
-                type="text"
-                placeholder="ابحث بعنوان الإعلان..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+              <div className="marketing-status-dropdown" ref={statusDropdownRef}>
+                <button
+                  type="button"
+                  className="marketing-status-trigger"
+                  onClick={() => setStatusDropdownOpen((prev) => !prev)}
+                >
+                  <Filter size={16} />
+                  <span>{currentStatusLabel}</span>
+                  <ChevronDown
+                    size={15}
+                    className={`status-arrow ${statusDropdownOpen ? "open" : ""}`}
+                  />
+                </button>
+
+                {statusDropdownOpen && (
+                  <div className="marketing-status-menu">
+                    {STATUS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        className={`status-menu-item ${
+                          statusFilter === opt.id ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          setStatusFilter(opt.id);
+                          setStatusDropdownOpen(false);
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
-
-            <select
-              className="marketing-select"
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">كل الحالات</option>
-              <option value="active">نشط</option>
-            </select>
           </div>
 
+          {/* الجدول الرئيسي */}
           {pageLoading ? (
             <div className="project-empty-state">جاري تحميل الإعلانات...</div>
           ) : error ? (
@@ -485,6 +432,7 @@ export default function MarketingAdsPage() {
                     <th>البداية</th>
                     <th>النهاية</th>
                     <th>المدة</th>
+                    <th>العرض المرفق</th>
                     <th>المرفقات</th>
                     <th>الحالة</th>
                     <th>إجراءات</th>
@@ -494,14 +442,17 @@ export default function MarketingAdsPage() {
                 <tbody>
                   {filteredAds.length === 0 ? (
                     <tr>
-                      <td colSpan="7">
-                        <div className="project-empty-state">لا توجد إعلانات حالياً</div>
+                      <td colSpan="8">
+                        <div className="project-empty-state">
+                          لا توجد إعلانات مطابقة لخيارات البحث والحالة
+                        </div>
                       </td>
                     </tr>
                   ) : (
                     filteredAds.map((item) => {
                       const meta = getAdvertisementRowMeta(item);
                       const firstImage = getFirstImage(item);
+                      const hasOffer = item.offer && item.offer.is_active;
 
                       return (
                         <tr key={item.id}>
@@ -535,15 +486,33 @@ export default function MarketingAdsPage() {
                           <td className="marketing-metric marketing-metric--duration">
                             {item.duration_days || "—"} يوم
                           </td>
+
+                          <td>
+                            {hasOffer ? (
+                              <div className="marketing-offer-cell">
+                                <span className="marketing-offer-badge">
+                                  🏷️ خصم {item.offer.discount_percentage}%
+                                </span>
+                                <span className="marketing-offer-price">
+                                  {Number(item.offer.new_price).toLocaleString("ar-SY")} ل.س
+                                </span>
+                              </div>
+                            ) : (
+                              <span className="marketing-no-offer-badge">بدون عرض</span>
+                            )}
+                          </td>
+
                           <td>
                             <span className="marketing-type-chip">
                               <ImageIcon size={12} />
                               {item.attachments?.length || 0} مرفق
                             </span>
                           </td>
+
                           <td>
                             <StatusBadge status={meta.label} type={meta.type} />
                           </td>
+
                           <td>
                             <div className="marketing-row-actions">
                               <button
@@ -576,145 +545,111 @@ export default function MarketingAdsPage() {
         </article>
       </section>
 
-      <section className="marketing-portfolio-section">
-        <div className="marketing-panel-head marketing-section-head">
-          <div>
-            <h2>معرض الأعمال</h2>
-            <p>المشاريع التي يمكن الترويج لها في الحملات التسويقية</p>
-          </div>
-        </div>
-
-        <div className="marketing-portfolio-grid">
-          {portfolio.map((item) => (
-            <article key={item.id} className="marketing-portfolio-card">
-              <div className="marketing-portfolio-hero">{item.icon}</div>
-
-              <div className="marketing-portfolio-body">
-                <div>
-                  <h3>{item.name}</h3>
-                  <p>
-                    {item.type} · {item.year}
-                  </p>
-                </div>
-
-                <div className="marketing-portfolio-footer">
-                  <span className="marketing-unit-chip">{item.units} وحدة</span>
-
-                  <div className="marketing-row-actions">
-                    <button type="button" className="marketing-icon-btn">
-                      <Eye size={13} />
-                    </button>
-
-                    <button type="button" className="marketing-icon-btn">
-                      <Edit size={13} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
+      {/* 3. مودال إضافة إعلان جديد */}
       <Modal
         open={createOpen}
         onClose={() => {
           setCreateOpen(false);
           resetForm();
         }}
-        title="إعلان / عرض جديد"
-        description="أدخل البيانات الأساسية ثم احفظ التغييرات."
+        title="إضافة إعلان جديد"
         size="lg"
       >
         <form className="marketing-modal-form" onSubmit={handleSubmit}>
           <div className="marketing-modal-grid">
             <div className="custom-form-group">
-              <Field
+              <label>عنوان الإعلان</label>
+              <input
                 type="text"
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                label="العنوان"
-                iconClass="fa-solid fa-heading"
+                placeholder="أدخل عنوان الإعلان"
               />
               <ErrorMessage message={formErrors.title} />
             </div>
 
             <div className="custom-form-group">
-              <Field
+              <label>مدة الإعلان (بالأيام)</label>
+              <input
                 type="number"
                 name="duration_days"
                 value={formData.duration_days}
                 onChange={handleChange}
-                label="مدة الإعلان (بالأيام)"
-                iconClass="fa-solid fa-calendar-days"
+                placeholder="أدخل المدة"
               />
               <ErrorMessage message={formErrors.duration_days} />
             </div>
           </div>
 
-          <div className="marketing-modal-grid marketing-modal-grid--single">
-            <div className="custom-form-group">
-              <Field
-                type="text"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                label="الوصف"
-                iconClass="fa-solid fa-file-lines"
-              />
-              <ErrorMessage message={formErrors.description} />
-            </div>
-          </div>
-
           <div className="marketing-modal-grid">
             <div className="custom-form-group">
-              <label className="marketing-file-label">
-                <i className="fa-solid fa-circle-info" style={{ marginLeft: "6px" }} />
-                الحالة
-              </label>
+              <label>العرض المرفق (اختياري)</label>
+              <select
+                name="offer_id"
+                value={formData.offer_id}
+                onChange={handleChange}
+              >
+                <option value="">-- بدون عرض --</option>
+                {offersList.map((off) => (
+                  <option key={off.id} value={off.id}>
+                    {off.title ? `${off.title} (${off.discount_percentage}%)` : `عرض #${off.id} - خصم ${off.discount_percentage}%`}
+                  </option>
+                ))}
+              </select>
+              <ErrorMessage message={formErrors.offer_id} />
+            </div>
 
+            <div className="custom-form-group">
+              <label>الحالة</label>
               <select
                 name="status"
                 value={formData.status}
                 onChange={handleChange}
-                className="marketing-select"
               >
                 <option value="1">نشط</option>
                 <option value="0">مسودة</option>
               </select>
               <ErrorMessage message={formErrors.status} />
             </div>
+          </div>
 
-            <div className="custom-form-group marketing-file-field">
-              <label className="marketing-file-label">
-                <i className="fa-solid fa-paperclip" style={{ marginLeft: "6px" }} />
-                المرفق
+          <div className="marketing-modal-grid marketing-modal-grid--single">
+            <div className="custom-form-group">
+              <label>
+                الوصف <span className="required-dot">•</span>
               </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                placeholder="أدخل وصف تفصيلي للإعلان"
+              />
+              <ErrorMessage message={formErrors.description} />
+            </div>
+          </div>
 
-              <div className="marketing-file-row">
-                <input
-                  type="file"
-                  name="attachment"
-                  ref={fileInputRef}
-                  onChange={handleChange}
-                  accept="image/*,application/pdf"
-                  style={{ display: "none" }}
-                />
+          <div className="marketing-modal-grid marketing-modal-grid--single">
+            <div className="custom-form-group">
+              <label>الملفات والمرفقات</label>
+              <input
+                type="file"
+                name="attachment"
+                ref={fileInputRef}
+                onChange={handleChange}
+                accept="image/*,application/pdf"
+                style={{ display: "none" }}
+              />
 
-                <Button
-                  type="button"
-                  className="marketing-secondary-btn"
-                  onClick={handleButtonClick}
-                >
-                  <Upload size={16} />
-                  اختر ملف
-                </Button>
-
-                <span className="marketing-file-name">
+              <div
+                className="marketing-upload-dropzone"
+                onClick={handleButtonClick}
+              >
+                <Upload size={18} />
+                <span>
                   {formData.attachmentFile
                     ? formData.attachmentFile.name
-                    : "لم يتم اختيار ملف"}
+                    : "اختر صور أو ملفات مرافقة"}
                 </span>
               </div>
 
@@ -722,45 +657,115 @@ export default function MarketingAdsPage() {
             </div>
           </div>
 
-          <div className="modal-actions">
-            <Button
+          <div className="marketing-modal-actions">
+            <button
+              type="submit"
+              className="btn-save-primary"
+              disabled={loading}
+            >
+              <span>+ {loading ? "جاري الحفظ..." : "حفظ الإعلان"}</span>
+            </button>
+
+            <button
               type="button"
-              className="marketing-secondary-btn"
+              className="btn-cancel-secondary"
               onClick={() => {
                 setCreateOpen(false);
                 resetForm();
               }}
             >
               إلغاء
-            </Button>
-
-            <Button type="submit" className="marketing-primary-btn" disabled={loading}>
-              <Plus size={16} />
-              <span>{loading ? "جاري الحفظ..." : "حفظ الإعلان"}</span>
-            </Button>
+            </button>
           </div>
         </form>
       </Modal>
 
+      {/* 4. مودال معاينة التفاصيل والمرفقات بالكامل 👈 */}
+     {/* 4. مودال معاينة التفاصيل والمرفقات بالكامل */}
       <Modal
         open={previewOpen}
         onClose={() => setPreviewOpen(false)}
-        title={previewAdvertisement?.title || "معاينة الصورة"}
-        description="عرض الصورة والوصف الكامل"
+        title={previewAdvertisement?.title || "معاينة الإعلان"}
         size="lg"
       >
         <div className="marketing-preview-modal">
-          {previewImage ? (
-            <div className="marketing-image-preview">
-              <img src={previewImage} alt="advertisement preview" />
-            </div>
-          ) : null}
+          
+          {/* قسم استعراض المرفقات كاملة */}
+          {previewAdvertisement?.attachments && previewAdvertisement.attachments.length > 0 ? (
+            <div className="marketing-preview-attachments">
+              <h4 className="marketing-preview-title">
+                المرفقات ({previewAdvertisement.attachments.length}):
+              </h4>
+              <div className="marketing-preview-grid">
+                {previewAdvertisement.attachments.map((att, idx) => {
+                  const isImg =
+                    att.type === "image" ||
+                    att.url?.match(/\.(jpeg|jpg|gif|png|webp)$/i);
 
+                  return isImg ? (
+                    <a
+                      key={idx}
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="marketing-preview-img-link"
+                    >
+                      <img
+                        src={att.url}
+                        alt={`attachment-${idx}`}
+                        className="marketing-preview-img"
+                      />
+                    </a>
+                  ) : (
+                    <a
+                      key={idx}
+                      href={att.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="marketing-preview-file-link"
+                    >
+                      <FileText size={20} className="file-icon" />
+                      <span className="file-name">مرفق {idx + 1}</span>
+                      <ExternalLink size={12} className="file-ext-icon" />
+                    </a>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="marketing-preview-empty">
+              لا توجد مرفقات مع هذا الإعلان.
+            </div>
+          )}
+
+          {/* التفاصيل والوصف والعرض */}
           <div className="marketing-preview-details">
-            <h3>{previewAdvertisement?.title || "-"}</h3>
-            <p>{previewAdvertisement?.description || "لا يوجد وصف."}</p>
+            <p className="marketing-preview-desc">
+              {previewAdvertisement?.description || "لا يوجد وصف."}
+            </p>
+
+            {previewAdvertisement?.offer && previewAdvertisement.offer.is_active && (
+              <div className="marketing-preview-offer-card">
+                <div className="offer-card-title">
+                  🏷️ تفاصيل العرض الترويجي (خصم {previewAdvertisement.offer.discount_percentage}%)
+                </div>
+                <div className="offer-card-price old">
+                  السعر القديم:{" "}
+                  <span>
+                    {Number(previewAdvertisement.offer.old_price).toLocaleString("ar-SY")} ل.س
+                  </span>
+                </div>
+                <div className="offer-card-price new">
+                  السعر الجديد:{" "}
+                  <span>
+                    {Number(previewAdvertisement.offer.new_price).toLocaleString("ar-SY")} ل.س
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
+      
       </Modal>
     </div>
   );

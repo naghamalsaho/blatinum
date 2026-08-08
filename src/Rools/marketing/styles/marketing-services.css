@@ -1,0 +1,794 @@
+@import "@/shared/constants/colors.css";
+
+/* ================= PAGE ================= */
+
+.services-page {
+  width: 100%;
+  display: grid;
+  gap: 22px;
+}
+
+/* ================= STATS ================= */
+
+.services-stats-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+/* ================= PANEL ================= */
+
+.services-panel {
+  width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+}
+
+.services-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.services-panel-head > div {
+  width: 100%;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title action"
+    "sub action";
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+.services-panel-head h2 {
+  grid-area: title;
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 21px;
+  font-weight: 900;
+}
+
+.services-panel-head p {
+  grid-area: sub;
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.services-panel-head .services-primary-btn {
+  grid-area: action;
+  justify-self: end;
+  align-self: center;
+}
+
+/* ================= SEARCH ================= */
+
+.services-toolbar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 18px;
+}
+
+.services-search {
+  width: min(100%, 560px);
+  height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 16px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+  box-shadow: var(--dash-shadow);
+}
+
+.services-search svg {
+  color: var(--dash-muted);
+  flex-shrink: 0;
+}
+
+.services-search input {
+  width: 100%;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.services-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+/* ================= TABLE ================= */
+
+.services-empty,
+.services-error-box {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  text-align: center;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.services-error-box {
+  color: var(--dash-danger, #ef4444);
+}
+
+.services-table-wrap {
+  width: 100%;
+  max-height: 72vh;
+  overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.services-table-wrap::-webkit-scrollbar {
+  display: none;
+}
+
+.services-table {
+  width: 100%;
+  min-width: 880px;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.services-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--dash-surface);
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: right;
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  white-space: nowrap;
+}
+
+.services-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 13px;
+  vertical-align: middle;
+}
+
+.services-table tbody tr {
+  transition: 0.2s ease;
+}
+
+.services-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
+.services-table th:nth-child(1),
+.services-table td:nth-child(1) {
+  width: 40%;
+}
+
+.services-table th:nth-child(2),
+.services-table td:nth-child(2) {
+  width: 20%;
+}
+
+.services-table th:nth-child(3),
+.services-table td:nth-child(3) {
+  width: 15%;
+}
+
+.services-table th:nth-child(4),
+.services-table td:nth-child(4) {
+  width: 15%;
+}
+
+.services-table th:nth-child(5),
+.services-table td:nth-child(5) {
+  width: 10%;
+}
+
+/* ================= CELL COMPONENTS ================= */
+
+.services-item-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.services-thumb-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+}
+
+.services-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.services-thumb-placeholder {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  color: var(--dash-accent);
+  background: var(--dash-blank-bg);
+}
+
+.services-item-info {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.services-item-info strong {
+  color: var(--dash-text);
+  font-size: 13.5px;
+  font-weight: 900;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.services-item-info span {
+  color: var(--dash-muted);
+  font-size: 11.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.services-price {
+  display: inline-flex;
+  align-items: center;
+  color: var(--dash-accent);
+  font-weight: 900;
+  white-space: nowrap;
+  font-size: 13px;
+}
+
+.services-date {
+  color: var(--dash-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ================= ACTIONS ================= */
+
+.services-row-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.services-icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.25s ease;
+  flex-shrink: 0;
+}
+
+.services-icon-btn:hover {
+  transform: translateY(-1px);
+  background: var(--dash-icon-hover-bg);
+}
+
+.services-icon-btn.danger {
+  color: #ef4444;
+}
+
+/* ================= DETAILS MODAL ================= */
+
+.services-details {
+  display: grid;
+  gap: 16px;
+}
+
+.services-preview-image {
+  width: 100%;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  box-shadow: var(--dash-shadow);
+}
+
+.services-preview-image img {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  display: block;
+}
+
+.services-details-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.services-details-grid div {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-card-bg);
+  display: grid;
+  gap: 6px;
+}
+
+.services-details-grid strong {
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.services-details-grid span {
+  color: var(--dash-text);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.services-price-text {
+  color: var(--dash-accent) !important;
+}
+
+.services-preview-description {
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  box-shadow: var(--dash-shadow);
+  display: grid;
+  gap: 8px;
+}
+
+.services-preview-description h4 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.services-preview-description p {
+  margin: 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+/* ================= BUTTONS ================= */
+
+.services-primary-btn,
+.services-secondary-btn {
+  height: 44px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.25s ease;
+  white-space: nowrap;
+}
+
+.services-primary-btn {
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-text);
+}
+
+.services-secondary-btn {
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.services-primary-btn:hover,
+.services-secondary-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-accent);
+}
+
+/* ================= MODAL STYLES (MATCHING SALES/CONTRACTS) ================= */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 99;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+}
+
+.modal-card {
+  position: relative;
+  width: min(600px, 100%);
+  padding: 20px;
+  border-radius: 24px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  box-shadow: var(--dash-shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-sizing: border-box;
+  direction: rtl;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modal-card h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 900;
+}
+
+.close-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface-2);
+  color: var(--dash-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+  background: var(--dash-hover-bg);
+  color: var(--dash-text);
+  border-color: var(--dash-accent);
+  transform: scale(1.05);
+}
+
+.modal-form {
+  display: grid;
+  gap: 12px;
+}
+
+.form-group {
+  display: grid;
+  gap: 6px;
+}
+
+.form-group label {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  font-size: 13px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.textarea-field {
+  resize: vertical;
+  min-height: 80px;
+  font-family: inherit;
+}
+
+.file-upload-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px;
+  border: 1px dashed var(--dash-line);
+  border-radius: 12px;
+  background: var(--dash-input-bg);
+  color: var(--dash-muted);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.file-upload-box:hover {
+  border-color: var(--dash-accent);
+  color: var(--dash-text);
+}
+
+.attachments-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.attachment-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--dash-blank-bg);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 12px;
+}
+
+.attachment-chip svg {
+  cursor: pointer;
+  color: #ef4444;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+  color: var(--dash-text);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1180px) {
+  .services-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .services-stats-grid,
+  .services-details-grid,
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .services-panel {
+    padding: 16px;
+  }
+
+  .services-panel-head > div {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "title"
+      "sub"
+      "action";
+  }
+
+  .services-panel-head .services-primary-btn {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .services-search {
+    width: 100%;
+  }
+
+  .services-table {
+    min-width: 680px;
+  }
+}
+/* ================= STATS ================= */
+/* ==========================================
+   كاردات الإحصائيات (تعديل السي اس اس فقط)
+   ========================================== */
+
+/* 1. جعل الـ 4 كاردات في سطر واحد أفقياً */
+.services-stats-grid {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
+/* 2. الكارد الخارجي */
+.services-stat-card {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
+  box-shadow: var(--dash-shadow) !important;
+  min-height: 74px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.services-stat-card:hover {
+  border-color: var(--dash-accent) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* 3. استهداف الابن الداخلي لمكون StatCard وجعله Flex أفقياً */
+.services-stat-card > * {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: row !important; /* صف عناصر StatCard أفقياً */
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 4. تجميع نصوص العنوان والقيمة (لتظهر جهة اليسار مسنترة) */
+.services-stat-card div:not(:has(svg)),
+.services-stat-card .stat-info,
+.services-stat-card .stat-content {
+display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* <--- يسنتر محتوى النصوص أفقياً */
+  justify-content: center !important;
+  order: 2 !important;
+}
+
+/* أسلوب حجم ولون العنوان والرقم */
+.services-stat-card span,
+.services-stat-card p,
+.services-stat-card label,
+.services-stat-card .stat-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--dash-muted) !important;
+  margin: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+ 
+}
+
+.services-stat-card h2,
+.services-stat-card h3,
+.services-stat-card strong,
+.services-stat-card .stat-value {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--dash-text) !important;
+  margin: 0 !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+  
+}
+
+/* 5. تجريد الأيقونة من الإطار والمربع الملون (لتظهر جهة اليمين) */
+.services-stat-card div:has(svg),
+.services-stat-card .stat-icon,
+.services-stat-card .icon-wrapper {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  order: 1 !important; /* يضع الأيقونة على اليمين في اتجاه RTL */
+  flex-shrink: 0 !important;
+}
+
+.services-stat-card svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: var(--dash-muted) !important;
+  stroke-width: 1.8 !important;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 1100px) {
+  .services-stats-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .services-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+/* 3. استهداف الابن الداخلي لمكون StatCard */
+.services-stat-card > * {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* 4. تجميع نصوص العنوان والقيمة (تعديل السنترة للوسط) */
+.services-stat-card div:not(:has(svg)),
+.services-stat-card .stat-info,
+.services-stat-card .stat-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* لسنترة العناصر رأسيين */
+  justify-content: center !important;
+  flex: 1 !important; /* <--- الإضافة هنا: تجعل حاوية النصوص تتمدد لتملأ المنتصف */
+  text-align: center !important;
+  order: 2 !important;
+}
+
+/* أسلوب حجم ولون العنوان والرقم */
+.services-stat-card span,
+.services-stat-card p,
+.services-stat-card label,
+.services-stat-card .stat-title,
+.services-stat-card h2,
+.services-stat-card h3,
+.services-stat-card strong,
+.services-stat-card .stat-value {
+  width: 100% !important; /* لضمان سنترة النص عبر كامل عرض الحاوية */
+  text-align: center !important;
+}

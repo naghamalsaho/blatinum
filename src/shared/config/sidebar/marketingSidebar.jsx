@@ -1,9 +1,10 @@
 import {
   LayoutDashboard,
- 
+  Tag,
   BadgeDollarSign,
  
     Building2,
+    Sparkles 
   
 } from "lucide-react";
 
@@ -40,10 +41,22 @@ export const marketingSidebar = [
   title: "إدارة المشاريع",
   items: [
     {
-      label: "المشاريع والخدمات",
+      label: "المشاريع ",
       icon: Building2,
       to: "/marketing/projects",
     },
+    {
+  label: "الخدمات",
+        icon: Sparkles,
+        to: "/marketing/services",
+        end: true,
+},
+{
+    label: "العروض والخصومات", 
+    to: "/marketing/offers",
+    icon: Tag,
+    end: true,
+  },
   ],
 },
 ];

@@ -3,9 +3,11 @@ import ar from "./ar.json";
 
 const LOCALE_KEY = "lang";
 
-export const getLanguage = () => localStorage.getItem(LOCALE_KEY) || "ar";
+export const getLanguage = () =>
+  localStorage.getItem(LOCALE_KEY) || "ar";
 
-export const getDirection = (lang = getLanguage()) => (lang === "en" ? "ltr" : "rtl");
+export const getDirection = (lang = getLanguage()) =>
+  lang === "en" ? "ltr" : "rtl";
 
 export const setLanguage = (lang) => {
   localStorage.setItem(LOCALE_KEY, lang);
@@ -17,12 +19,33 @@ const DICTS = { en, ar };
 
 export const t = (key, variables = {}) => {
   const lang = getLanguage();
-  const value = DICTS[lang]?.[key] ?? DICTS.en?.[key] ?? key;
+  const dict = DICTS[lang] || DICTS.ar;
 
+  // يدعم المفاتيح المتداخلة مثل legal_contracts.title
+  let value = key.split(".").reduce((obj, k) => obj?.[k], dict);
+
+  // fallback للإنجليزي إذا المفتاح غير موجود باللغة الحالية
+  if (value == null) {
+    value = key
+      .split(".")
+      .reduce((obj, k) => obj?.[k], DICTS.en);
+  }
+
+  if (value == null) {
+    value = key;
+  }
+
+  // يدعم المتغيرات مثل {name}
   return Object.entries(variables).reduce(
-    (text, [name, replacement]) => text.replaceAll(`{${name}}`, String(replacement)),
-    value
+    (text, [name, replacement]) =>
+      String(text).replaceAll(`{${name}}`, String(replacement)),
+    String(value)
   );
 };
 
-export default { getDirection, getLanguage, setLanguage, t };
+export default {
+  getDirection,
+  getLanguage,
+  setLanguage,
+  t,
+};

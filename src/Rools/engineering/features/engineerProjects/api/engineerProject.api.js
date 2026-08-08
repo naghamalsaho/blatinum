@@ -20,3 +20,13 @@ export const getEngineersAllocatedToBuildingRequest = async (buildingId) => {
     `/project-engineer/engineersAllocatedToBuilding/${buildingId}`
   );
 };
+export const getAllProjectsRequest = async () => {
+  return await api.get("/project");
+};
+
+export const getAllBuildingsRequest = async () => {
+  return await api.get("/building");
+};
+export const getAllEngineersRequest = async () => {
+  return await api.get("/engineer");
+};

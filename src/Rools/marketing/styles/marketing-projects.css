@@ -1025,3 +1025,233 @@
   background: rgba(239, 68, 68, 0.08);
   border-color: #ef4444;
 }
+/* =========================================================
+   تعديل اتجاه كاردات الإحصائيات (تبديل مواقع الأيقونة والنصوص)
+   ========================================================= */
+.projects-stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  animation: projectsFadeUp 0.45s ease both;
+}
+
+/* التنسيق الأساسي للكارد - تم تعديل flex-direction */
+.projects-stats > * {
+  background: linear-gradient(
+    135deg,
+    var(--dash-surface, #1e1e2d),
+    var(--dash-surface-2, #151521)
+  );
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
+  border-radius: 14px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-direction: row; /* تم التعديل إلى row لتعكس الأماكن */
+  gap: 12px;
+  box-shadow: var(--dash-shadow, 0 4px 12px rgba(0, 0, 0, 0.15));
+  transition: all 0.25s ease;
+}
+
+/* تأثير التمرير hover */
+.projects-stats > *:hover {
+  transform: translateY(-3px);
+  border-color: var(--dash-accent, #c99a5b);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* حاوي النصوص (العنوان + الرقم) */
+.projects-stats .stat-info,
+.projects-stats > * > div:not(.stat-icon) {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: right;
+}
+
+/* عنوان الكارد (المشاريع، الأبنية...) */
+.projects-stats .stat-title,
+.projects-stats label,
+.projects-stats span {
+  font-size: 0.88rem;
+  color: var(--dash-text-muted, #a1a5b7);
+  font-weight: 500;
+}
+
+/* الرقم / القيمة */
+.projects-stats .stat-value,
+.projects-stats h3,
+.projects-stats .number {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--dash-text, #ffffff);
+  line-height: 1.1;
+  margin: 0;
+}
+
+/* خلفية ومظهر الأيقونة */
+.projects-stats .stat-icon,
+.projects-stats i,
+.projects-stats svg {
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  background: rgba(201, 154, 91, 0.1);
+  border: 1px solid rgba(201, 154, 91, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  color: var(--dash-accent, #c99a5b);
+  flex-shrink: 0;
+}/* ==========================================
+   1. كاردات الإحصائيات (تعديل سي اس اس فقط)
+   ========================================== */
+
+.projects-stats {
+  display: grid !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  gap: 16px !important;
+  width: 100% !important;
+  margin-bottom: 24px !important;
+}
+
+/* الكارد الخارجي */
+.projects-stats > * {
+  background: var(--dash-surface) !important;
+  border: 1px solid var(--dash-line) !important;
+  border-radius: 14px !important;
+  padding: 14px 20px !important;
+  box-shadow: var(--dash-shadow) !important;
+  min-height: 74px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s ease !important;
+}
+
+.projects-stats > *:hover {
+  border-color: var(--dash-accent) !important;
+  transform: translateY(-2px) !important;
+}
+
+/* استهداف الابن الداخلي لمكون StatCard وجعله Flex أفقياً */
+.projects-stats > * > * {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: row !important; /* ترتيب أفقي */
+  align-items: center !important;
+  justify-content: space-between !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* حاوية النصوص (العنوان والعدد) */
+.projects-stats div:not(:has(svg)),
+.projects-stats .stat-info,
+.projects-stats .stat-content {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important; /* سنترة العناوين والأرقام */
+  justify-content: center !important;
+  gap: 4px !important;
+  order: 2 !important; /* يضع النصوص جهة اليسار في نظام RTL */
+}
+
+.projects-stats span,
+.projects-stats p,
+.projects-stats label,
+.projects-stats .stat-title {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: var(--dash-muted) !important;
+  margin: 0 !important;
+  text-align: center !important;
+  white-space: nowrap !important;
+}
+
+.projects-stats h2,
+.projects-stats h3,
+.projects-stats strong,
+.projects-stats .stat-value {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: var(--dash-text) !important;
+  margin: 0 !important;
+  line-height: 1.1 !important;
+  text-align: center !important;
+}
+
+/* الأيقونة مجردة جهة اليمين */
+.projects-stats div:has(svg),
+.projects-stats .stat-icon,
+.projects-stats .icon-wrapper {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  width: auto !important;
+  height: auto !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  order: 1 !important; /* يضع الأيقونة جهة اليمين */
+  flex-shrink: 0 !important;
+}
+
+.projects-stats svg {
+  width: 22px !important;
+  height: 22px !important;
+  color: var(--dash-muted) !important;
+  stroke-width: 1.8 !important;
+}
+
+
+/* ==========================================
+   2. إخفاء أشرطة التمرير (Scrollbars)
+   ========================================== */
+
+/* إخفاء شريط السكرول لجميع القوائم والحاويات في الواجهة */
+.projects-cards-scroll,
+.buildings-scroll,
+.units-scroll,
+.locations-scroll,
+.projects-page * {
+  scrollbar-width: none !important; /* متصفحات Firefox */
+  -ms-overflow-style: none !important; /* IE و Edge */
+}
+
+.projects-cards-scroll::-webkit-scrollbar,
+.buildings-scroll::-webkit-scrollbar,
+.units-scroll::-webkit-scrollbar,
+.locations-scroll::-webkit-scrollbar,
+.projects-page *::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari, Opera */
+  width: 0 !important;
+  height: 0 !important;
+}
+
+
+/* ==========================================
+   3. تجاوب الشاشات لكاردات الإحصائيات
+   ========================================== */
+
+@media (max-width: 1100px) {
+  .projects-stats {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .projects-stats {
+    grid-template-columns: 1fr !important;
+  }
+}
