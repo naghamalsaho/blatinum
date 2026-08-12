@@ -1,581 +1,789 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
   Plus,
   Search,
   ChevronDown,
   Eye,
-  Edit2,
+ 
   Trash2,
   ArrowUpRight,
   ArrowDownLeft,
-  CheckCircle2,
-  Clock,
-  XCircle,
-  Send,
   DollarSign,
   RefreshCw,
-  X
-} from 'lucide-react';
-import './financial-transfers.css';
+  X,
+  Upload,
+  FileText,
+  Filter,
+  Ban,
+  Send,
+} from "lucide-react";
 
-const initialTransfers = [
-  {
-    id: 1,
-    sender: 'شركة الأمل للمقاولات',
-    receiver: 'المهندس أحمد علي',
-    account_num: 'TR-98234-2026',
-    amount: 3500,
-    transfer_type: 'صادرة',
-    transfer_method: 'تحويل بنكي',
-    transfer_date: '2026-07-27',
-    status: 'completed',
-    notes: 'دفعة مستحقات المرحلة الأولى من المشروع'
-  },
-  {
-    id: 2,
-    sender: 'مؤسسة النور التجاري',
-    receiver: 'حساب الشركة الرئيسي',
-    account_num: 'TR-11029-2026',
-    amount: 1200,
-    transfer_type: 'واردة',
-    transfer_method: 'ويسترن يونيون',
-    transfer_date: '2026-07-26',
-    status: 'pending',
-    notes: 'تحويل دفعة أولى لشراء مواد بناء'
-  },
-  {
-    id: 3,
-    sender: 'حساب الشركة الرئيسي',
-    receiver: 'شركة توريد مواد البناء',
-    account_num: 'TR-55412-2026',
-    amount: 850,
-    transfer_type: 'صادرة',
-    transfer_method: 'نقدي (كاش)',
-    transfer_date: '2026-07-25',
-    status: 'completed',
-    notes: 'تسديد فاتورة توريد أسمنت'
-  },
-  {
-    id: 4,
-    sender: 'العميل خالد العبدالله',
-    receiver: 'حساب الشركة الرئيسي',
-    account_num: 'TR-88120-2026',
-    amount: 2100,
-    transfer_type: 'واردة',
-    transfer_method: 'تحويل بنكي',
-    transfer_date: '2026-07-24',
-    status: 'cancelled',
-    notes: 'تم إلغاء التحويل بطلب من العميل'
-  }
+import StatCard from "@/shared/components/StatCard";
+import Modal from "@/shared/components/Modal";
+import StatusBadge from "@/shared/components/StatusBadge";
+import ErrorMessage from "@/shared/ui/ErrorMessage";
+
+import {
+  fetchTransfers,
+  fetchTransferSummary,
+  fetchTransferById,
+  cancelTransfer,
+  createTransfer,
+  updateTransfer,
+  deleteTransfer,
+} from "../features/transfers/model/transfer.thunks";
+
+import "../styles/financial-transfers.css";
+
+const STATUS_META = {
+  posted: { label: "مكتملة", type: "ok" },
+  completed: { label: "مكتملة", type: "ok" },
+  pending: { label: "قيد الانتظار", type: "busy" },
+  cancelled: { label: "ملغاة", type: "off" },
+};
+
+const STATUS_OPTIONS = [
+  { id: "all", label: "جميع الحالات" },
+  { id: "posted", label: "المكتملة (Posted)" },
+  { id: "pending", label: "قيد الانتظار" },
+  { id: "cancelled", label: "الملغاة" },
 ];
 
-export default function FinancialTransfers() {
-  const [transfers, setTransfers] = useState(initialTransfers);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('all');
-  const [isFilterOpen, setIsFilterOpen] = useState(false);
+function getStatusMeta(status) {
+  return STATUS_META[status] || { label: status || "—", type: "off" };
+}
 
-  const [isAddOpen, setIsAddOpen] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+function formatPaymentMethod(method) {
+  switch (method) {
+    case "bank_transfer":
+      return "تحويل بنكي";
+    case "cash":
+      return "نقدي (كاش)";
+    case "western_union":
+      return "ويسترن يونيون";
+    case "e_wallet":
+      return "محفظة إلكترونية";
+    default:
+      return method || "—";
+  }
+}
+
+export default function FinancialTransfersPage() {
+  const dispatch = useDispatch();
+  const statusDropdownRef = useRef(null);
+
+  // Redux Store State
+  const {
+    items: transfers = [],
+    summary = {},
+    selectedTransferDetails = null,
+    loadingDetails = false,
+    loading = false,
+    error = null,
+  } = useSelector((state) => state.transfers || state.financialTransfers || {});
+
+  // Modals & States
+  const [createOpen, setCreateOpen] = useState(false);
+  const [editOpen, setEditOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  
+  // Cancel Modal State
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [itemToCancel, setItemToCancel] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
+
   const [selectedTransfer, setSelectedTransfer] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   const [formData, setFormData] = useState({
-    sender: '',
-    receiver: '',
-    amount: '',
-    transfer_type: 'صادرة',
-    transfer_method: 'تحويل بنكي',
-    transfer_date: new Date().toISOString().split('T')[0],
-    status: 'pending',
-    notes: ''
+    voucher_number: "",
+    type: "receipt", // receipt | payment
+    amount: "",
+    currency: "USD",
+    exchange_rate: "13200",
+    category: "down_payment", // installment | down_payment | rent | warehouse_purchase
+    payment_method: "bank_transfer", // cash | bank_transfer | check | card
+    status: "posted",
+    description: "",
+    party_id: "3",
+    party_type: "App\\Models\\Client\\Client",
+    project_id: "",
+    warehouse_id: "",
   });
 
-  const filteredTransfers = transfers.filter((t) => {
-    const matchesSearch =
-      t.sender.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.receiver.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      t.account_num.toLowerCase().includes(searchTerm.toLowerCase());
+  const [formErrors, setFormErrors] = useState({});
 
-    const matchesStatus =
-      statusFilter === 'all' || t.status === statusFilter;
+  useEffect(() => {
+    dispatch(fetchTransfers());
+    dispatch(fetchTransferSummary());
+  }, [dispatch]);
 
-    return matchesSearch && matchesStatus;
-  });
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        statusDropdownRef.current &&
+        !statusDropdownRef.current.contains(event.target)
+      ) {
+        setStatusDropdownOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
-  const handleInputChange = (e) => {
+  const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  const handleAddSubmit = (e) => {
-    e.preventDefault();
-    const newEntry = {
-    //   id: Date.now(),
-    //   account_num: `TR-${Math.floor(10000 + Math.random() * 90000)}-2026`,
-    //   ...formData,
-      amount: parseFloat(formData.amount) || 0
-    };
-    setTransfers([newEntry, ...transfers]);
-    setIsAddOpen(false);
-    resetForm();
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...filesArray]);
+    }
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   const resetForm = () => {
     setFormData({
-      sender: '',
-      receiver: '',
-      amount: '',
-      transfer_type: 'صادرة',
-      transfer_method: 'تحويل بنكي',
-      transfer_date: new Date().toISOString().split('T')[0],
-      status: 'pending',
-      notes: ''
+      voucher_number: "",
+      type: "receipt",
+      amount: "",
+      currency: "USD",
+      exchange_rate: "13200",
+      category: "down_payment",
+      payment_method: "bank_transfer",
+      status: "posted",
+      description: "",
+      party_id: "3",
+      party_type: "App\\Models\\Client\\Client",
+      project_id: "",
+      warehouse_id: "",
     });
+    setSelectedFiles([]);
+    setFormErrors({});
+    setSelectedTransfer(null);
   };
 
-  const handleDelete = (id) => {
-    if (window.confirm('هل أنت تأكد من رغبتك في حذف هذا التحويل؟')) {
-      setTransfers(transfers.filter((item) => item.id !== id));
-    }
-  };
+ 
 
-  const openPreview = (item) => {
+  // فتح معاينة التفاصيل باستخدام الفتش المباشر عبر الـ ID
+  const openPreviewModal = (item) => {
     setSelectedTransfer(item);
-    setIsPreviewOpen(true);
+    dispatch(fetchTransferById(item.id));
+    setPreviewOpen(true);
   };
 
-  const renderStatusChip = (status) => {
-    switch (status) {
-      case 'completed':
-        return (
-          <span className="financial-type-chip status-completed">
-            <CheckCircle2 size={12} /> مكتملة
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="financial-type-chip status-pending">
-            <Clock size={12} /> قيد الانتظار
-          </span>
-        );
-      case 'cancelled':
-        return (
-          <span className="financial-type-chip status-cancelled">
-            <XCircle size={12} /> ملغاة
-          </span>
-        );
-      default:
-        return null;
+  // فتح مودال الإلغاء
+  const openCancelModal = (item) => {
+    setItemToCancel(item);
+    setCancelReason("");
+    setCancelOpen(true);
+  };
+
+  // تأكيد الإلغاء
+  const handleConfirmCancel = async (e) => {
+    e.preventDefault();
+    if (!cancelReason.trim()) return;
+
+    const result = await dispatch(
+      cancelTransfer({ id: itemToCancel.id, reason: cancelReason })
+    );
+
+    if (cancelTransfer.fulfilled.match(result)) {
+      setCancelOpen(false);
+      setItemToCancel(null);
+      setCancelReason("");
     }
   };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!formData.amount) {
+      setFormErrors({ amount: "المبلغ مطلوب" });
+      return;
+    }
+
+    if (createOpen) {
+      const result = await dispatch(
+        createTransfer({ values: formData, files: selectedFiles })
+      );
+      if (createTransfer.fulfilled.match(result)) {
+        setCreateOpen(false);
+        resetForm();
+      }
+    } else if (editOpen && selectedTransfer) {
+      const result = await dispatch(
+        updateTransfer({
+          id: selectedTransfer.id,
+          values: formData,
+          files: selectedFiles,
+        })
+      );
+      if (updateTransfer.fulfilled.match(result)) {
+        setEditOpen(false);
+        resetForm();
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm(`هل أنت تأكد من رغبتك في حذف التحويل المالي رقم #${id}؟`)) {
+      dispatch(deleteTransfer(id));
+    }
+  };
+
+  // الإحصائيات من ملخص السيرفر (Summary)
+  const stats = useMemo(() => [
+    {
+      title: "إجمالي المقبوضات",
+      value: `$${(summary.total_receipts || 0).toLocaleString()}`,
+      icon: DollarSign,
+    },
+    {
+      title: "إجمالي المصروفات",
+      value: `$${(summary.total_payments || 0).toLocaleString()}`,
+      icon: RefreshCw,
+    },
+    {
+      title: "صافي الرصيد",
+      value: `$${(summary.net_balance || 0).toLocaleString()}`,
+      icon: DollarSign,
+    },
+  ], [summary]);
+
+  // التصفية والبحث
+  const filteredTransfers = useMemo(() => {
+    const q = String(searchTerm || "").trim().toLowerCase();
+
+    return transfers.filter((item) => {
+      const matchesStatus =
+        statusFilter === "all" || item.status === statusFilter;
+
+      const voucherNum = item.voucher_number || "";
+      const description = item.description || "";
+      const creatorName = item.creator?.account?.full_name || "";
+      const amountStr = String(item.amount || "");
+
+      const searchable = [voucherNum, description, creatorName, amountStr]
+        .join(" ")
+        .toLowerCase();
+
+      return matchesStatus && (!q || searchable.includes(q));
+    });
+  }, [transfers, searchTerm, statusFilter]);
+
+  const currentStatusLabel =
+    STATUS_OPTIONS.find((opt) => opt.id === statusFilter)?.label || "الحالة";
+
+  const displayDetails = selectedTransferDetails || selectedTransfer;
 
   return (
     <div className="financial-payments-page" dir="rtl">
-      {/* الهيدر */}
-      <div className="financial-page-header">
-        <div>
-          <h1 className="financial-page-title">التحويلات المالية</h1>
-          <p className="financial-page-subtitle">
-            إدارة ومتابعة كافة حركة التحويلات المالية الصادرة والواردة
-          </p>
-        </div>
-        <button className="financial-primary-btn" onClick={() => setIsAddOpen(true)}>
-          <Plus size={18} />
-          إجراء تحويل جديد
-        </button>
-      </div>
+      {/* 1. قسم البطاقات الإحصائية */}
+      <section className="financial-payments-stats-grid">
+        {stats.map((item) => (
+          <StatCard
+            key={item.title}
+            title={item.title}
+            value={item.value}
+            icon={item.icon}
+          />
+        ))}
+      </section>
 
-      {/* بطاقات الإحصائيات */}
-      <div className="financial-payments-stats-grid">
-        <div>
-          <div>
-            <span>إجمالي التحويلات</span>
-            <h2>{transfers.length}</h2>
-          </div>
-          <RefreshCw size={22} />
-        </div>
-
-        <div>
-          <div>
-            <span>مجموع المبالغ</span>
-            <h2>${transfers.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}</h2>
-          </div>
-          <DollarSign size={22} />
-        </div>
-
-        <div>
-          <div>
-            <span>التحويلات الناجحة</span>
-            <h2>{transfers.filter((t) => t.status === 'completed').length}</h2>
-          </div>
-          <CheckCircle2 size={22} />
-        </div>
-
-        <div>
-          <div>
-            <span>قيد المعالجة</span>
-            <h2>{transfers.filter((t) => t.status === 'pending').length}</h2>
-          </div>
-          <Clock size={22} />
-        </div>
-      </div>
-
-      {/* اللوحة الرئيسية */}
-      <div className="financial-panel">
-        <div className="financial-panel-head">
-          <div>
-            <h2>سجل الحركة المالية</h2>
-            <p>عرض تفصيلي لعمليات التحويل وتدفق الأموال</p>
-          </div>
-        </div>
-
-        {/* شريط البحث والفلترة */}
-        <div className="financial-payments-toolbar">
-          <div className="financial-search-wrapper">
-            <div className="financial-search">
-              <Search size={18} />
-              <input
-                type="text"
-                placeholder="ابحث باسم المرسل، المستلم، أو رقم المرجع..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
+      {/* 2. قسم الجدول واللوحة الرئيسية */}
+      <section className="financial-payments-main-grid">
+        <article className="financial-panel">
+          <div className="financial-panel-head">
+            <div>
+              <h2>سجل الحركة والتحويلات المالية</h2>
+              <p>عرض تفصيلي لعمليات التحويل وتدفق الأموال</p>
             </div>
 
-            <div className="financial-status-dropdown">
-              <button
-                className="financial-status-trigger"
-                onClick={() => setIsFilterOpen(!isFilterOpen)}
-              >
-                <span>
-                  {statusFilter === 'all' && 'جميع الحالات'}
-                  {statusFilter === 'completed' && 'المكتملة'}
-                  {statusFilter === 'pending' && 'قيد الانتظار'}
-                  {statusFilter === 'cancelled' && 'الملغاة'}
-                </span>
-                <ChevronDown className={`status-arrow ${isFilterOpen ? 'open' : ''}`} size={16} />
-              </button>
-
-              {isFilterOpen && (
-                <div className="financial-status-menu">
-                  <button
-                    className={`status-menu-item ${statusFilter === 'all' ? 'active' : ''}`}
-                    onClick={() => { setStatusFilter('all'); setIsFilterOpen(false); }}
-                  >
-                    جميع الحالات
-                  </button>
-                  <button
-                    className={`status-menu-item ${statusFilter === 'completed' ? 'active' : ''}`}
-                    onClick={() => { setStatusFilter('completed'); setIsFilterOpen(false); }}
-                  >
-                    المكتملة
-                  </button>
-                  <button
-                    className={`status-menu-item ${statusFilter === 'pending' ? 'active' : ''}`}
-                    onClick={() => { setStatusFilter('pending'); setIsFilterOpen(false); }}
-                  >
-                    قيد الانتظار
-                  </button>
-                  <button
-                    className={`status-menu-item ${statusFilter === 'cancelled' ? 'active' : ''}`}
-                    onClick={() => { setStatusFilter('cancelled'); setIsFilterOpen(false); }}
-                  >
-                    الملغاة
-                  </button>
-                </div>
-              )}
-            </div>
+            <button
+              className="financial-primary-btn"
+              onClick={() => {
+                resetForm();
+                setCreateOpen(true);
+              }}
+            >
+              <Plus size={18} />
+              إجراء تحويل جديد
+            </button>
           </div>
-        </div>
 
-        {/* جدول البيانات */}
-        <div className="financial-payments-table-wrap">
-          <table className="financial-payments-table">
-            <thead>
-              <tr>
-                <th>الأطراف (المرسل / المستلم)</th>
-                <th>طريقة / نوع التحويل</th>
-                <th>رقم المرجع</th>
-                <th>المبلغ</th>
-                <th>تاريخ التحويل</th>
-                <th>الحالة</th>
-                <th>الإجراءات</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredTransfers.length > 0 ? (
-                filteredTransfers.map((item) => (
-                  <tr key={item.id}>
-                    <td>
-                      <div className="financial-payment-title-cell">
-                        <div className="financial-payment-icon-box">
-                          {item.transfer_type === 'صادرة' ? (
-                            <ArrowUpRight size={18} className="icon-outbound" />
-                          ) : (
-                            <ArrowDownLeft size={18} className="icon-inbound" />
-                          )}
-                        </div>
-                        <div className="financial-payment-info">
-                          <span className="financial-payment-title">
-                            {item.sender} ➔ {item.receiver}
-                          </span>
-                        </div>
-                      </div>
-                    </td>
-
-                    <td>
-                      <span className="financial-type-chip">
-                        {item.transfer_method} • ({item.transfer_type})
-                      </span>
-                    </td>
-
-                    <td>
-                      <span className="financial-account-num">{item.account_num}</span>
-                    </td>
-
-                    <td>
-                      <span className="financial-metric">
-                        ${item.amount.toLocaleString()}
-                      </span>
-                    </td>
-
-                    <td>
-                      <span className="financial-account-num">{item.transfer_date}</span>
-                    </td>
-
-                    <td>{renderStatusChip(item.status)}</td>
-
-                    <td>
-                      <div className="financial-row-actions">
-                        <button
-                          className="financial-icon-btn"
-                          title="معاينة التفاصيل"
-                          onClick={() => openPreview(item)}
-                        >
-                          <Eye size={15} />
-                        </button>
-                        <button className="financial-icon-btn edit" title="تعديل">
-                          <Edit2 size={15} />
-                        </button>
-                        <button
-                          className="financial-icon-btn danger"
-                          title="حذف"
-                          onClick={() => handleDelete(item.id)}
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan="7" className="financial-no-data">
-                    لا توجد تحويلات مالية مطابقة للبحث.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ==========================================
-          MODAL: إضافة تحويل جديد
-         ========================================== */}
-      {isAddOpen && (
-        <div className="financial-modal-overlay">
-          <div className="financial-panel financial-modal-container">
-            <div className="financial-panel-head">
-              <h2>إجراء تحويل مال جديد</h2>
-              <button className="financial-modal-close" onClick={() => setIsAddOpen(false)}>
-                <X size={18} />
-              </button>
-            </div>
-
-            <form onSubmit={handleAddSubmit} className="financial-modal-form">
-              <div className="financial-modal-grid">
-                <div className="custom-form-group">
-                  <label>
-                    المرسل <span className="required-dot">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="sender"
-                    placeholder="اسم الجهة أو الشخص المرسل"
-                    required
-                    value={formData.sender}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="custom-form-group">
-                  <label>
-                    المستلم <span className="required-dot">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    name="receiver"
-                    placeholder="اسم المستلم"
-                    required
-                    value={formData.receiver}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="financial-modal-grid">
-                <div className="custom-form-group">
-                  <label>
-                    المبلغ ($) <span className="required-dot">*</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="amount"
-                    placeholder="0.00"
-                    required
-                    value={formData.amount}
-                    onChange={handleInputChange}
-                  />
-                </div>
-
-                <div className="custom-form-group">
-                  <label>تاريخ التحويل</label>
-                  <input
-                    type="date"
-                    name="transfer_date"
-                    value={formData.transfer_date}
-                    onChange={handleInputChange}
-                  />
-                </div>
-              </div>
-
-              <div className="financial-modal-grid">
-                <div className="custom-form-group">
-                  <label>نوع التحويل</label>
-                  <select name="transfer_type" value={formData.transfer_type} onChange={handleInputChange}>
-                    <option value="صادرة">صادرة (خارج من الحساب)</option>
-                    <option value="واردة">واردة (داخل للحساب)</option>
-                  </select>
-                </div>
-
-                <div className="custom-form-group">
-                  <label>طريقة التحويل</label>
-                  <select name="transfer_method" value={formData.transfer_method} onChange={handleInputChange}>
-                    <option value="تحويل بنكي">تحويل بنكي</option>
-                    <option value="ويسترن يونيون">ويسترن يونيون</option>
-                    <option value="نقدي (كاش)">نقدي (كاش)</option>
-                    <option value="محفظة إلكترونية">محفظة إلكترونية</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="custom-form-group">
-                <label>حالة التحويل</label>
-                <select name="status" value={formData.status} onChange={handleInputChange}>
-                  <option value="pending">قيد الانتظار</option>
-                  <option value="completed">مكتملة</option>
-                  <option value="cancelled">ملغاة</option>
-                </select>
-              </div>
-
-              <div className="custom-form-group">
-                <label>ملاحظات أو بيان التحويل</label>
-                <textarea
-                  name="notes"
-                  placeholder="اكتب أية تفاصيل إضافية عن العملية..."
-                  value={formData.notes}
-                  onChange={handleInputChange}
+          <div className="financial-payments-toolbar">
+            <div className="financial-search-wrapper">
+              <div className="financial-search">
+                <Search size={18} />
+                <input
+                  type="text"
+                  placeholder="ابحث برقم المرجع، الوصف، أو المنشئ..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
 
-              <div className="financial-modal-actions">
-                <button type="submit" className="btn-save-primary">
-                  <Send size={16} /> حفظ وإرسال
-                </button>
+              <div className="financial-status-dropdown" ref={statusDropdownRef}>
                 <button
                   type="button"
-                  className="btn-cancel-secondary"
-                  onClick={() => setIsAddOpen(false)}
+                  className="financial-status-trigger"
+                  onClick={() => setStatusDropdownOpen((prev) => !prev)}
                 >
-                  إلغاء
+                  <Filter size={16} />
+                  <span>{currentStatusLabel}</span>
+                  <ChevronDown
+                    size={15}
+                    className={`status-arrow ${statusDropdownOpen ? "open" : ""}`}
+                  />
                 </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
-      {/* ==========================================
-          MODAL: معاينة التفاصيل
-         ========================================== */}
-      {isPreviewOpen && selectedTransfer && (
-        <div className="financial-modal-overlay">
-          <div className="financial-panel financial-modal-container preview">
-            <div className="financial-panel-head">
-              <h2>تفاصيل التحويل المالي</h2>
-              <button className="financial-modal-close" onClick={() => setIsPreviewOpen(false)}>
-                <X size={18} />
+                {statusDropdownOpen && (
+                  <div className="financial-status-menu">
+                    {STATUS_OPTIONS.map((opt) => (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        className={`status-menu-item ${
+                          statusFilter === opt.id ? "active" : ""
+                        }`}
+                        onClick={() => {
+                          setStatusFilter(opt.id);
+                          setStatusDropdownOpen(false);
+                        }}
+                      >
+                        {opt.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="project-empty-state">جاري تحميل البيانات...</div>
+          ) : error ? (
+            <div className="project-empty-state">{error}</div>
+          ) : (
+            <div className="financial-payments-table-wrap">
+              <table className="financial-payments-table">
+                <thead>
+                  <tr>
+                    <th>المنشئ / الطرف</th>
+                    <th>طريقة / نوع التحويل</th>
+                    <th>رقم المرجع (Voucher)</th>
+                    <th>المبلغ</th>
+                    <th>تاريخ التحويل</th>
+                    <th>الحالة</th>
+                    <th>الإجراءات</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredTransfers.length === 0 ? (
+                    <tr>
+                      <td colSpan="7">
+                        <div className="project-empty-state">
+                          لا توجد تحويلات مالية مطابقة للبحث.
+                        </div>
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredTransfers.map((item) => {
+                      const meta = getStatusMeta(item.status);
+                      const creatorName =
+                        item.creator?.account?.full_name || "النظام الرئيسي";
+
+                      return (
+                        <tr key={item.id}>
+                          <td>
+                            <div className="financial-payment-title-cell">
+                              <div className="financial-payment-icon-box">
+                                {item.type === "receipt" ? (
+                                  <ArrowDownLeft size={18} className="icon-inbound" />
+                                ) : (
+                                  <ArrowUpRight size={18} className="icon-outbound" />
+                                )}
+                              </div>
+                              <div className="financial-payment-info">
+                                <span className="financial-payment-title">
+                                  {creatorName} 
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+
+                          <td>
+                            <span className="financial-type-chip">
+                              {formatPaymentMethod(item.payment_method)} • ({item.type === "receipt" ? "واردة" : "صادرة"})
+                            </span>
+                          </td>
+
+                          <td>
+                            <span className="financial-account-num">
+                              {item.voucher_number || "—"}
+                            </span>
+                          </td>
+
+                          <td>
+                            <span className="financial-metric">
+                              ${Number(item.amount).toLocaleString()} {item.currency}
+                            </span>
+                          </td>
+
+                          <td>
+                            <span className="financial-account-num">
+                              {item.created_at?.split(" ")[0] || "—"}
+                            </span>
+                          </td>
+
+                          <td>
+                            <StatusBadge status={meta.label} type={meta.type} />
+                          </td>
+
+                          <td>
+                            <div className="financial-row-actions">
+                              <button
+                                className="financial-icon-btn"
+                                title="معاينة التفاصيل"
+                                onClick={() => openPreviewModal(item)}
+                              >
+                                <Eye size={15} />
+                              </button>
+                              
+
+                              {/* زر الإلغاء يظهر فقط في حال كانت المعاملة ليست ملغاة بعد */}
+                              {item.status !== "cancelled" && (
+                                <button
+                                  className="financial-icon-btn danger"
+                                  title="إلغاء المعاملة"
+                                  onClick={() => openCancelModal(item)}
+                                >
+                                  <Ban size={15} />
+                                </button>
+                              )}
+
+                              <button
+                                className="financial-icon-btn danger"
+                                title="حذف"
+                                onClick={() => handleDelete(item.id)}
+                              >
+                                <Trash2 size={15} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </article>
+      </section>
+
+      {/* 3. مودال إضافة وتعديل التحويل المالي */}
+      <Modal
+        open={createOpen || editOpen}
+        onClose={() => {
+          setCreateOpen(false);
+          setEditOpen(false);
+          resetForm();
+        }}
+        title={editOpen ? `تعديل المعاملة المالية #${selectedTransfer?.id}` : "إضافة معاملة / تحويل مالي جديد"}
+        size="lg"
+      >
+        <form className="financial-modal-form" onSubmit={handleSubmit} noValidate>
+          <div className="financial-modal-grid">
+            <div className="custom-form-group">
+              <label>نوع المعاملة (Type)</label>
+              <select name="type" value={formData.type} onChange={handleChange}>
+                <option value="receipt">سند قبض (Receipt)</option>
+                <option value="payment">سند صرف (Payment)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="financial-modal-grid" style={{ gridTemplateColumns: "1fr 1fr 1fr" }}>
+            <div className="custom-form-group">
+              <label>
+                المبلغ (Amount) <span className="required-dot">*</span>
+              </label>
+              <input
+                type="number"
+                name="amount"
+                placeholder="50000"
+                value={formData.amount}
+                onChange={handleChange}
+                required
+              />
+              <ErrorMessage message={formErrors.amount} />
+            </div>
+
+            <div className="custom-form-group">
+              <label>العملة</label>
+              <select name="currency" value={formData.currency} onChange={handleChange}>
+                <option value="USD">USD ($)</option>
+                <option value="EUR">EUR (€)</option>
+                <option value="SYP">SYP (ل.س)</option>
+              </select>
+            </div>
+
+            <div className="custom-form-group">
+              <label>سعر الصرف (Exchange Rate)</label>
+              <input
+                type="number"
+                name="exchange_rate"
+                placeholder="13200"
+                value={formData.exchange_rate}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="financial-modal-grid">
+            <div className="custom-form-group">
+              <label>التصنيف (Category)</label>
+              <select name="category" value={formData.category} onChange={handleChange}>
+                <option value="down_payment">دفعة أولى (Down Payment)</option>
+                <option value="installment">قسط (Installment)</option>
+                <option value="rent">إيجار (Rent)</option>
+                <option value="warehouse_purchase">شراء مستودع (Warehouse Purchase)</option>
+              </select>
+            </div>
+
+            <div className="custom-form-group">
+              <label>طريقة الدفع (Payment Method)</label>
+              <select name="payment_method" value={formData.payment_method} onChange={handleChange}>
+                <option value="bank_transfer">تحويل بنكي (Bank Transfer)</option>
+                <option value="cash">نقدي (Cash)</option>
+                <option value="check">شيك (Check)</option>
+                <option value="card">بطاقة دائنة (Card)</option>
+                <option value="western_union">ويسترن يونيون (Western Union)</option>
+                <option value="e_wallet">محفظة إلكترونية (E-Wallet)</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="financial-modal-grid">
+            <div className="custom-form-group">
+              <label>رقم العميل / الطرف (Party ID)</label>
+              <input
+                type="number"
+                name="party_id"
+                placeholder="3"
+                value={formData.party_id}
+                onChange={handleChange}
+              />
+            </div>
+
+            <div className="custom-form-group">
+              <label>المشروع (Project ID - اختياري)</label>
+              <input
+                type="number"
+                name="project_id"
+                placeholder="1"
+                value={formData.project_id}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          <div className="custom-form-group">
+            <label>وصف المعاملة (Description)</label>
+            <textarea
+              name="description"
+              placeholder="استلام قسط الشقة رقم 102 للمشروع الأول..."
+              value={formData.description}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="custom-form-group">
+            <label>المرفقات (إيصالات / صور)</label>
+            <input
+              type="file"
+              multiple
+              id="file-input-transfer"
+              style={{ display: "none" }}
+              onChange={handleFileChange}
+            />
+            <label
+              htmlFor="file-input-transfer"
+              className="financial-secondary-btn"
+              style={{ cursor: "pointer", width: "fit-content" }}
+            >
+              <Upload size={16} />
+              <span>اختر الملفات...</span>
+            </label>
+
+            {selectedFiles.length > 0 && (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                {selectedFiles.map((file, idx) => (
+                  <span key={idx} className="financial-type-chip" style={{ gap: "6px" }}>
+                    <FileText size={14} />
+                    {file.name}
+                    <X size={14} style={{ cursor: "pointer" }} onClick={() => removeFile(idx)} />
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="financial-modal-actions">
+            <button type="submit" className="btn-save-primary" disabled={loading}>
+              <Send size={16} />
+              <span>{loading ? "جاري الحفظ..." : editOpen ? "تحديث المعاملة" : "حفظ المعاملة"}</span>
+            </button>
+            <button
+              type="button"
+              className="btn-cancel-secondary"
+              onClick={() => {
+                setCreateOpen(false);
+                setEditOpen(false);
+                resetForm();
+              }}
+            >
+              إلغاء
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* 4. مودال إلغاء المعاملة */}
+      <Modal
+        open={cancelOpen}
+        onClose={() => {
+          setCancelOpen(false);
+          setItemToCancel(null);
+        }}
+        title="إلغاء المعاملة المالية"
+        size="md"
+      >
+        <form onSubmit={handleConfirmCancel}>
+          <p style={{ marginBottom: "16px", fontSize: "14px", color: "var(--text-secondary, #666)" }}>
+            هل أنت تأكد من إلغاء المعاملة رقم <strong>#{itemToCancel?.voucher_number || itemToCancel?.id}</strong>؟
+          </p>
+
+          <div className="custom-form-group">
+            <label>
+              سبب الإلغاء (Reason) <span className="required-dot">*</span>
+            </label>
+            <textarea
+              required
+              rows={3}
+              placeholder="يرجى كتابة سبب الإلغاء..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+          </div>
+
+          <div className="financial-modal-actions justify-end" style={{ marginTop: "20px" }}>
+            <button type="submit" className="btn-save-primary danger-btn" disabled={loading}>
+              تأكيد الإلغاء
+            </button>
+            <button
+              type="button"
+              className="btn-cancel-secondary"
+              onClick={() => {
+                setCancelOpen(false);
+                setItemToCancel(null);
+              }}
+            >
+              تراجع
+            </button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* 5. مودال معاينة التفاصيل المباشرة */}
+      <Modal
+        open={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setSelectedTransfer(null);
+        }}
+        title="تفاصيل التحويل المالي"
+        size="lg"
+      >
+        {loadingDetails ? (
+          <div className="project-empty-state">جاري تحميل بيانات المعاملة من السيرفر...</div>
+        ) : (
+          <div className="financial-preview-modal">
+            <div className="financial-preview-card">
+              <div className="financial-preview-row">
+                <span className="label">رقم مرجع العملية (Voucher)</span>
+                <span className="value">{displayDetails?.voucher_number || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">الطرف المستلم / العميل</span>
+                <span className="value">العميل {displayDetails?.party_id || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">المبلغ الإجمالي</span>
+                <span className="value highlight">
+                  ${Number(displayDetails?.amount || 0).toLocaleString()} {displayDetails?.currency}
+                </span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">طريقة التحويل</span>
+                <span className="value">{formatPaymentMethod(displayDetails?.payment_method)}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">اسم المنشئ</span>
+                <span className="value">{displayDetails?.creator?.account?.full_name || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">التاريخ</span>
+                <span className="value">{displayDetails?.created_at || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">الحالة الحالية</span>
+                <span className="value">
+                  <StatusBadge
+                    status={getStatusMeta(displayDetails?.status).label}
+                    type={getStatusMeta(displayDetails?.status).type}
+                  />
+                </span>
+              </div>
+            </div>
+
+            {displayDetails?.description && (
+              <div className="financial-preview-details">
+                <h4 className="financial-preview-title">البيان / الوصف</h4>
+                <p className="financial-preview-desc">{displayDetails.description}</p>
+              </div>
+            )}
+
+            <div className="financial-modal-actions justify-end">
+              <button
+                className="btn-cancel-secondary"
+                onClick={() => setPreviewOpen(false)}
+              >
+                إغلاق
               </button>
             </div>
-
-            <div className="financial-preview-modal">
-              <div className="financial-preview-card">
-                <div className="financial-preview-row">
-                  <span className="label">رقم مرجع العملية</span>
-                  <span className="value">{selectedTransfer.account_num}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">المرسل</span>
-                  <span className="value">{selectedTransfer.sender}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">المستلم</span>
-                  <span className="value">{selectedTransfer.receiver}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">المبلغ الإجمالي</span>
-                  <span className="value highlight">${selectedTransfer.amount.toLocaleString()}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">طريقة التحويل</span>
-                  <span className="value">{selectedTransfer.transfer_method}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">التاريخ</span>
-                  <span className="value">{selectedTransfer.transfer_date}</span>
-                </div>
-
-                <div className="financial-preview-row">
-                  <span className="label">الحالة الحالية</span>
-                  <span className="value">{renderStatusChip(selectedTransfer.status)}</span>
-                </div>
-              </div>
-
-              {selectedTransfer.notes && (
-                <div className="financial-preview-details">
-                  <h4 className="financial-preview-title">البيان / الملاحظات</h4>
-                  <p className="financial-preview-desc">{selectedTransfer.notes}</p>
-                </div>
-              )}
-
-              <div className="financial-modal-actions justify-end">
-                <button
-                  className="btn-cancel-secondary"
-                  onClick={() => setIsPreviewOpen(false)}
-                >
-                  إغلاق
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
-      )}
+        )}
+      </Modal>
     </div>
   );
 }

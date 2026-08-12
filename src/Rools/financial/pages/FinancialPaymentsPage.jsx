@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CreditCard,
@@ -16,6 +16,7 @@ import {
   Upload,
   FileText,
   X,
+  
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
@@ -24,12 +25,17 @@ import Modal from "@/shared/components/Modal";
 import StatusBadge from "@/shared/components/StatusBadge";
 import ErrorMessage from "@/shared/ui/ErrorMessage";
 
+// Redux Thunks
 import {
   fetchPayments,
   createPayment,
   updatePayment,
   deletePayment,
 } from "../features/payments/model/payment.thunks";
+import { fetchCustomerServiceClients } from "../../customerService/features/clients/model/client.thunks";
+import { fetchClientContracts } from "../../legal/features/contracts/model/contract.thunks";
+
+// Validations
 import {
   validateCreatePaymentForm,
   validateUpdatePaymentForm,
@@ -109,18 +115,29 @@ export default function FinancialPaymentsPage() {
   const dispatch = useDispatch();
   const statusDropdownRef = useRef(null);
 
+  // Selector للدفعات
   const {
     items: payments = [],
     loading = false,
     error = null,
   } = useSelector((state) => state.payments || state.financialPayments || {});
 
+  // Selector للعملاء المجلوبين من /client
+  const clients = useSelector(
+    (state) => state.customerServiceClients?.items || []
+  );
+
+  // حالات المودال والفلترة
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
 
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
+
+  // عقود العميل المحدد حالياً
+  const [clientContracts, setClientContracts] = useState([]);
+  const [loadingContracts, setLoadingContracts] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
@@ -139,8 +156,10 @@ export default function FinancialPaymentsPage() {
 
   const [formErrors, setFormErrors] = useState({});
 
+  // 1. جلب سجل الدفعات وقائمة العملاء عند بداية التشغيل
   useEffect(() => {
     dispatch(fetchPayments());
+    dispatch(fetchCustomerServiceClients());
   }, [dispatch]);
 
   useEffect(() => {
@@ -155,6 +174,191 @@ export default function FinancialPaymentsPage() {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // 2. معالجة تغيير الزبون وجلب عقوده من `/contract/client/{clientId}`
+  const handleClientChange = async (e) => {
+    const clientId = e.target.value;
+
+    setFormData((prev) => ({
+      ...prev,
+      client_id: clientId,
+      contract_id: "", // إعادة تعيين العقد عند تغيير الزبون
+    }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      client_id: "",
+      contract_id: "",
+    }));
+
+    if (!clientId) {
+      setClientContracts([]);
+      return;
+    }
+
+    // جلب عقود الزبون المحدد
+    setLoadingContracts(true);
+    try {
+      const result = await dispatch(fetchClientContracts(clientId)).unwrap();
+      setClientContracts(Array.isArray(result) ? result : []);
+    } catch {
+      setClientContracts([]);
+    } finally {
+      setLoadingContracts(false);
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+
+    setFormErrors((prev) => ({
+      ...prev,
+      [name]: "",
+    }));
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      const filesArray = Array.from(e.target.files);
+      setSelectedFiles((prev) => [...prev, ...filesArray]);
+      setFormErrors((prev) => ({ ...prev, files: "" }));
+    }
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const resetForm = () => {
+    setFormData({
+      client_id: "",
+      contract_id: "",
+      amount: "",
+      payment_date: "",
+      payment_method: "cash",
+      payment_type: "down_payment",
+      status: "pending",
+      notes: "",
+    });
+    setSelectedFiles([]);
+    setClientContracts([]);
+    setFormErrors({});
+    setSelectedPayment(null);
+  };
+
+  const openEditModal = async (payment) => {
+    setSelectedPayment(payment);
+
+    let rawDate = payment.payment_date || "";
+    if (rawDate.includes(" ")) {
+      rawDate = rawDate.split(" ")[0];
+    }
+
+    const clientId = payment.client_id || payment.client?.additional_info?.client_id || payment.client?.id || "";
+
+    setFormData({
+      client_id: clientId,
+      contract_id: payment.contract_id || payment.contract?.id || "",
+      amount: payment.amount || payment.amount_limit || "",
+      payment_date: rawDate,
+      payment_method: payment.payment_method || "cash",
+      payment_type: payment.payment_type || "down_payment",
+      status: payment.status || "pending",
+      notes: "",
+    });
+
+    // جلب العقود في حال التعديل أيضاً
+    if (clientId) {
+      setLoadingContracts(true);
+      try {
+        const result = await dispatch(fetchClientContracts(clientId)).unwrap();
+        setClientContracts(Array.isArray(result) ? result : []);
+      } catch  {
+        setClientContracts([]);
+      } finally {
+        setLoadingContracts(false);
+      }
+    }
+
+    setSelectedFiles([]);
+    setFormErrors({});
+    setEditOpen(true);
+  };
+
+  const openPreviewModal = (payment) => {
+    setSelectedPayment(payment);
+    setPreviewOpen(true);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (createOpen) {
+      const { errors, isValid } = validateCreatePaymentForm(formData, selectedFiles);
+      if (!isValid) {
+        setFormErrors(errors);
+        return;
+      }
+
+      const values = {
+        client_id: formData.client_id,
+        contract_id: formData.contract_id,
+        amount: formData.amount,
+        payment_date: formData.payment_date,
+        payment_type: formData.payment_type,
+        payment_method: formData.payment_method,
+        status: formData.status,
+      };
+
+      const result = await dispatch(
+        createPayment({
+          values,
+          files: selectedFiles,
+        })
+      );
+
+      if (createPayment.fulfilled.match(result)) {
+        setCreateOpen(false);
+        resetForm();
+      }
+    } else if (editOpen && selectedPayment) {
+      const { errors, isValid } = validateUpdatePaymentForm(formData, selectedFiles);
+      if (!isValid) {
+        setFormErrors(errors);
+        return;
+      }
+
+      const values = {
+        payment_date: formData.payment_date,
+        payment_type: formData.payment_type,
+        payment_method: formData.payment_method,
+        status: formData.status,
+      };
+
+      const result = await dispatch(
+        updatePayment({
+          id: selectedPayment.id,
+          values,
+          files: selectedFiles,
+        })
+      );
+
+      if (updatePayment.fulfilled.match(result)) {
+        setEditOpen(false);
+        resetForm();
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm(`هل أنت تأكد من رغبتك في حذف الدفعة #${id}؟`)) {
+      dispatch(deletePayment(id));
+    }
+  };
 
   const stats = useMemo(() => {
     const totalPayments = payments.length;
@@ -229,143 +433,6 @@ export default function FinancialPaymentsPage() {
       return matchesStatus && (!q || searchable.includes(q));
     });
   }, [payments, searchTerm, statusFilter]);
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
-  };
-
-  const handleFileChange = (e) => {
-    if (e.target.files) {
-      const filesArray = Array.from(e.target.files);
-      setSelectedFiles((prev) => [...prev, ...filesArray]);
-      setFormErrors((prev) => ({ ...prev, files: "" }));
-    }
-  };
-
-  const removeFile = (index) => {
-    setSelectedFiles((prev) => prev.filter((_, i) => i !== index));
-  };
-
-  const resetForm = () => {
-    setFormData({
-      client_id: "",
-      contract_id: "",
-      amount: "",
-      payment_date: "",
-      payment_method: "cash",
-      payment_type: "down_payment",
-      status: "pending",
-      notes: "",
-    });
-    setSelectedFiles([]);
-    setFormErrors({});
-    setSelectedPayment(null);
-  };
-
-  const openEditModal = (payment) => {
-    setSelectedPayment(payment);
-
-    let rawDate = payment.payment_date || "";
-    if (rawDate.includes(" ")) {
-      rawDate = rawDate.split(" ")[0];
-    }
-
-    setFormData({
-      client_id: payment.client_id || payment.client?.id || "",
-      contract_id: payment.contract_id || payment.contract?.id || "",
-      amount: payment.amount || payment.amount_limit || "",
-      payment_date: rawDate,
-      payment_method: payment.payment_method || "cash",
-      payment_type: payment.payment_type || "down_payment",
-      status: payment.status || "pending",
-      notes: "",
-    });
-    setSelectedFiles([]);
-    setFormErrors({});
-    setEditOpen(true);
-  };
-
-  const openPreviewModal = (payment) => {
-    setSelectedPayment(payment);
-    setPreviewOpen(true);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (createOpen) {
-      // 1. التحقق من مدخلات الإضافة
-      const { errors, isValid } = validateCreatePaymentForm(formData, selectedFiles);
-      if (!isValid) {
-        setFormErrors(errors);
-        return;
-      }
-
-      const values = {
-        client_id: formData.client_id,
-        contract_id: formData.contract_id,
-        amount: formData.amount,
-        payment_date: formData.payment_date,
-        payment_type: formData.payment_type,
-        payment_method: formData.payment_method,
-        status: formData.status,
-      };
-
-      const result = await dispatch(
-        createPayment({
-          values,
-          files: selectedFiles,
-        })
-      );
-
-      if (createPayment.fulfilled.match(result)) {
-        setCreateOpen(false);
-        resetForm();
-      }
-    } else if (editOpen && selectedPayment) {
-      // 2. التحقق من مدخلات التعديل
-      const { errors, isValid } = validateUpdatePaymentForm(formData, selectedFiles);
-      if (!isValid) {
-        setFormErrors(errors);
-        return;
-      }
-
-      const values = {
-        payment_date: formData.payment_date,
-        payment_type: formData.payment_type,
-        payment_method: formData.payment_method,
-        status: formData.status,
-      };
-
-      const result = await dispatch(
-        updatePayment({
-          id: selectedPayment.id,
-          values,
-          files: selectedFiles,
-        })
-      );
-
-      if (updatePayment.fulfilled.match(result)) {
-        setEditOpen(false);
-        resetForm();
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (window.confirm(`هل أنت تأكد من رغبتك في حذف الدفعة #${id}؟`)) {
-      dispatch(deletePayment(id));
-    }
-  };
 
   const currentStatusLabel =
     STATUS_OPTIONS.find((opt) => opt.id === statusFilter)?.label || "الحالة";
@@ -569,7 +636,7 @@ export default function FinancialPaymentsPage() {
         </article>
       </section>
 
-      {/* 3. مودال تسجيل / تعديل الدفعة */}
+      {/* 3. مودال تسجيل / تعديل الدفعة الديناميكي */}
       <Modal
         open={createOpen || editOpen}
         onClose={() => {
@@ -581,35 +648,58 @@ export default function FinancialPaymentsPage() {
         size="lg"
       >
         <form className="financial-modal-form" onSubmit={handleSubmit} noValidate>
-          {/* حقول المعرفات والمبلغ (خاصة بالإضافة) */}
+          {/* اختيار الزبون والعقد بشكل ديناميكي */}
           <div className="financial-modal-grid">
             <div className="custom-form-group">
               <label>
-                معرف العميل (client_id) <span className="required-dot">•</span>
+                اختيار الزبون <span className="required-dot">•</span>
               </label>
-              <input
-                type="number"
+              <select
                 name="client_id"
-                placeholder="مثال: 4"
                 value={formData.client_id}
-                onChange={handleChange}
+                onChange={handleClientChange}
                 disabled={editOpen}
-              />
+              >
+                <option value="">-- اختر الزبون --</option>
+                {clients.map((client) => {
+                  const cId = client.additional_info?.client_id || client.account?.id;
+                  const name = client.account?.full_name || `زبون #${cId}`;
+                  const phone = client.account?.phone ? ` (${client.account.phone})` : "";
+                  return (
+                    <option key={cId} value={cId}>
+                      {name} {phone}
+                    </option>
+                  );
+                })}
+              </select>
               <ErrorMessage message={formErrors.client_id} />
             </div>
 
             <div className="custom-form-group">
               <label>
-                معرف العقد (contract_id) <span className="required-dot">•</span>
+                اختيار العقد <span className="required-dot">•</span>
               </label>
-              <input
-                type="number"
+              <select
                 name="contract_id"
-                placeholder="مثال: 12"
                 value={formData.contract_id}
                 onChange={handleChange}
-                disabled={editOpen}
-              />
+                disabled={!formData.client_id || loadingContracts || editOpen}
+              >
+                <option value="">
+                  {loadingContracts
+                    ? "جاري تحميل العقود..."
+                    : !formData.client_id
+                    ? "-- اختر الزبون أولاً --"
+                    : clientContracts.length === 0
+                    ? "لا توجد عقود لهذا الزبون"
+                    : "-- اختر العقد --"}
+                </option>
+                {clientContracts.map((contract) => (
+                  <option key={contract.id} value={contract.id}>
+                    عقد #{contract.id} {contract.total_price ? `(${contract.total_price} ل.س)` : ""}
+                  </option>
+                ))}
+              </select>
               <ErrorMessage message={formErrors.contract_id} />
             </div>
           </div>
@@ -617,7 +707,7 @@ export default function FinancialPaymentsPage() {
           <div className="financial-modal-grid">
             <div className="custom-form-group">
               <label>
-                المبلغ (amount) <span className="required-dot">•</span>
+                المبلغ <span className="required-dot">•</span>
               </label>
               <input
                 type="number"
@@ -695,7 +785,7 @@ export default function FinancialPaymentsPage() {
             </div>
           </div>
 
-          {/* رفع المرفقات المتعددة attachments */}
+          {/* رفع المرفقات */}
           <div className="financial-modal-grid financial-modal-grid--single">
             <div className="custom-form-group">
               <label>مرفقات الدفعة (ملفات / صور)</label>
@@ -778,8 +868,12 @@ export default function FinancialPaymentsPage() {
               </span>
             </div>
 
-            {/* 1. رقم العقد مع كافة الاحتمالات الشائعة */}
-
+            <div className="financial-preview-row">
+              <span className="label">رقم العقد:</span>
+              <span className="value">
+                #{selectedPayment?.contract_id || selectedPayment?.contract?.id || "—"}
+              </span>
+            </div>
 
             <div className="financial-preview-row">
               <span className="label">طريقة الدفع:</span>

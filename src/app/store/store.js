@@ -17,7 +17,6 @@ import unitReducer from "@/Rools/marketing/features/units/model/unit.slice";
 import locationReducer from "@/Rools/marketing/features/locations/model/location.slice";
 import serviceReducer from "@/Rools/marketing/features/services/model/service.slice";
 import offerReducer from "@/Rools/marketing/features/offer/model/offer.slice";
-
 import customerServiceAppointmentReducer from "@/Rools/customerService/features/appointments/model/appointment.slice";
 import customerServiceChatReducer from "@/Rools/customerService/features/chat/model/chat.slice";
 import customerServiceClientReducer from "@/Rools/customerService/features/clients/model/client.slice";
@@ -30,10 +29,10 @@ import rolePermissionReducer from "@/Rools/admin/features/roles/model/role.slice
 import soldUnitOwnershipReducer from "@/Rools/legal/features/soldUnits/model/soldUnitOwnership.slice";
 import contractReducer from "@/Rools/legal/features/contracts/model/contract.slice";
 
+import transferReducer from "@/Rools/financial/features/transfers/model/transfer.slice";
 import paymentReducer from "@/Rools/financial/features/payments/model/payment.slice";
 
 import errorReducer from "@/shared/store/error/error.slice";
-
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -58,16 +57,17 @@ export const store = configureStore({
     services: serviceReducer,
     offer: offerReducer,
 
-    soldUnitOwnership: soldUnitOwnershipReducer,
-    contract: contractReducer,
+  soldUnitOwnership: soldUnitOwnershipReducer,
+  contract: contractReducer,
 
-    customerServiceAppointments: customerServiceAppointmentReducer,
-    customerServiceChat: customerServiceChatReducer,
-    customerServiceClients: customerServiceClientReducer,
-    customerServiceComplaints: customerServiceComplaintReducer,
-    customerServiceLotteries: customerServiceLotteryReducer,
-    customerServiceOrders: customerServiceOrderReducer,
+  customerServiceAppointments: customerServiceAppointmentReducer,
+  customerServiceChat: customerServiceChatReducer,
+  customerServiceClients: customerServiceClientReducer,
+  customerServiceComplaints: customerServiceComplaintReducer,
+  customerServiceLotteries: customerServiceLotteryReducer,
+  customerServiceOrders: customerServiceOrderReducer,
 
+  transfers: transferReducer,
     payments: paymentReducer,
   },
 });

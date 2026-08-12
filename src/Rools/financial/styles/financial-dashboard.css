@@ -20,14 +20,14 @@
 
 .financial-dash-welcome h2 {
   margin: 0;
-  color: var(--dash-text);
+  color: var(--dash-text, #fff);
   font-size: 22px;
   font-weight: 800;
 }
 
 .financial-dash-welcome p {
   margin: 6px 0 0;
-  color: var(--dash-muted);
+  color: var(--dash-muted, #94a3b8);
   font-size: 13.5px;
 }
 
@@ -44,9 +44,9 @@
   padding: 0 14px;
   height: 42px;
   border-radius: 12px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-surface);
-  color: var(--dash-muted);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
+  background: var(--dash-surface, #0b111e);
+  color: var(--dash-muted, #94a3b8);
   font-size: 12.5px;
   font-weight: 600;
 }
@@ -55,7 +55,7 @@
   height: 42px;
   padding: 0 18px;
   border-radius: 12px;
-  background: var(--dash-accent);
+  background: var(--dash-accent, #3b82f6);
   color: #fff;
   border: none;
   font-weight: 700;
@@ -69,6 +69,15 @@
 .financial-primary-btn:hover {
   opacity: 0.9;
   transform: translateY(-1px);
+}
+
+.spin {
+  animation: spinAnimation 1s linear infinite;
+}
+
+@keyframes spinAnimation {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 /* ==========================================
@@ -95,7 +104,7 @@
   box-shadow: var(--dash-shadow);
   display: flex !important;
   align-items: center !important;
-  justify-content: center !important;
+  justify-content: space-between !important;
   min-height: 86px;
 }
 
@@ -116,18 +125,159 @@
 }
 
 /* ==========================================
+   CHARTS SECTION
+   ========================================== */
+.financial-dash-charts-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.chart-panel {
+  background: var(--dash-surface, #0b111e);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
+  border-radius: 18px;
+  padding: 20px;
+}
+
+/* Flow Bar Chart */
+.financial-flow-chart-box {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 10px;
+}
+
+.flow-bar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.flow-bar-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+}
+
+.flow-bar-info span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dash-muted);
+}
+
+.flow-bar-info strong {
+  color: var(--dash-text);
+  font-weight: 700;
+}
+
+.flow-progress-track {
+  height: 10px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.flow-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.flow-progress-fill.success {
+  background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.flow-progress-fill.danger {
+  background: linear-gradient(90deg, #ef4444, #dc2626);
+}
+
+/* SVG Donut Chart */
+.financial-donut-chart-container {
+  margin-top: 10px;
+}
+
+.donut-and-legend {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  gap: 20px;
+}
+
+.svg-donut-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+}
+
+.donut-svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+  border-radius: 50%;
+}
+
+.donut-center-text {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--dash-muted);
+}
+
+.chart-legend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12.5px;
+}
+
+.legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.legend-label {
+  color: var(--dash-muted);
+}
+
+.legend-value {
+  color: var(--dash-text);
+  margin-right: auto;
+}
+
+.chart-empty {
+  text-align: center;
+  padding: 30px;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+/* ==========================================
    MAIN GRID & PANELS
    ========================================== */
 .financial-dash-main-grid {
   display: grid;
-  grid-template-columns: 1fr 340px;
+  grid-template-columns: 1fr 320px;
   gap: 20px;
   align-items: start;
 }
 
 .financial-dash-panel {
-  background: var(--dash-surface);
-  border: 1px solid var(--dash-line);
+  background: var(--dash-surface, #0b111e);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
   border-radius: 18px;
   padding: 20px;
 }
@@ -141,9 +291,12 @@
 
 .financial-panel-head h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: 15.5px;
   font-weight: 800;
   color: var(--dash-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .financial-panel-head p {
@@ -152,17 +305,8 @@
   color: var(--dash-muted);
 }
 
-.financial-text-btn {
-  background: transparent;
-  border: none;
-  color: var(--dash-accent);
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
 /* ==========================================
-   RECENT TRANSACTIONS TABLE
+   TABLE & ACTIONS
    ========================================== */
 .financial-dash-table-wrap {
   overflow-x: auto;
@@ -177,7 +321,7 @@
 .financial-dash-table th,
 .financial-dash-table td {
   padding: 12px 10px;
-  border-bottom: 1px solid var(--dash-line);
+  border-bottom: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
   font-size: 12.5px;
 }
 
@@ -197,8 +341,8 @@
 }
 
 .financial-tx-icon {
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   border-radius: 8px;
   display: grid;
   place-items: center;
@@ -217,6 +361,12 @@
 
 .financial-tx-title {
   font-weight: 700;
+  display: block;
+}
+
+.financial-tx-sub {
+  font-size: 11px;
+  color: var(--dash-muted);
 }
 
 .financial-amount-cell {
@@ -233,6 +383,34 @@
   color: #ef4444;
 }
 
+.financial-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.financial-icon-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
+  color: var(--dash-text);
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.financial-icon-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.financial-icon-btn.danger:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+
 /* ==========================================
    SIDEBAR & PROGRESS CARDS
    ========================================== */
@@ -243,14 +421,14 @@
 }
 
 .financial-side-panel {
-  background: var(--dash-surface);
-  border: 1px solid var(--dash-line);
+  background: var(--dash-surface, #0b111e);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
   border-radius: 18px;
   padding: 18px;
 }
 
 .financial-accent-icon {
-  color: var(--dash-accent);
+  color: var(--dash-accent, #3b82f6);
 }
 
 .financial-warning-icon {
@@ -286,7 +464,7 @@
 .balance-progress {
   height: 6px;
   width: 100%;
-  background: var(--dash-pill-bg);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 999px;
   overflow: hidden;
 }
@@ -295,10 +473,6 @@
   height: 100%;
   background: #10b981;
   border-radius: 999px;
-}
-
-.balance-progress .progress-bar.accent {
-  background: var(--dash-accent);
 }
 
 .balance-progress .progress-bar.warning {
@@ -321,8 +495,8 @@
   font-size: 12px;
   padding: 10px;
   border-radius: 12px;
-  background: var(--dash-blank-bg);
-  border: 1px solid var(--dash-line);
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
 }
 
 .financial-alerts-list li strong {
@@ -335,12 +509,14 @@
   font-size: 11px;
 }
 
-/* التجاوب والتكيف مع الشاشات */
+/* responsive */
 @media (max-width: 1024px) {
+  .financial-dash-charts-grid {
+    grid-template-columns: 1fr;
+  }
   .financial-dash-main-grid {
     grid-template-columns: 1fr;
   }
-
   .financial-dash-stats-grid {
     grid-template-columns: repeat(2, 1fr);
   }

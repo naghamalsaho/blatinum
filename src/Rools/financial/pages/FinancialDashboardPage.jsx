@@ -1,7 +1,7 @@
-import {  useMemo } from "react";
-import {  useSelector } from "react-redux";
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import {
-  DollarSign,
+
   TrendingUp,
   TrendingDown,
   CreditCard,
@@ -10,299 +10,451 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-
   Calendar,
   Activity,
-  Plus,
+ArrowDownLeft,
+  Eye,
+  Ban,
+  BarChart3,
+  PieChart,
+  RefreshCw,
+  Wallet,
+  ArrowUpCircle,
+  ArrowDownCircle,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import StatusBadge from "@/shared/components/StatusBadge";
+import Modal from "@/shared/components/Modal";
 
-// import { fetchPayments } from "../features/payments/model/payment.thunks";
+import {
+  fetchTransfers,
+  fetchTransferSummary,
+  fetchTransferById,
+  cancelTransfer,
+} from "../features/transfers/model/transfer.thunks";
+
 import "../styles/financial-dashboard.css";
 
-function formatCurrency(amount) {
-  if (!amount && amount !== 0) return "0 ل.س";
-  return `${Number(amount).toLocaleString("ar-SY")} ل.س`;
+function formatCurrency(amount, currency = "USD") {
+  const numeric = Number(amount || 0);
+  if (currency === "USD") return `$${numeric.toLocaleString("en-US")}`;
+  return `${numeric.toLocaleString("ar-SY")} ${currency}`;
 }
 
+const CATEGORY_LABELS = {
+  down_payment: "دفعة أولى",
+  installment: "قسط شهري",
+  rent: "إيجار",
+  warehouse_purchase: "شراء مستودع",
+};
+
 export default function FinancialDashboardPage() {
-//   const dispatch = useDispatch();
+  const dispatch = useDispatch();
 
-  const { payments = []} = useSelector(
-    (state) => state.payments || state.financialPayments || {}
-  );
+  // Redux Store Data
+  const {
+    items: transfers = [],
+    summary = { total_receipts: 0, total_payments: 0, net_balance: 0 },
+    selectedTransferDetails = null,
+    loadingDetails = false,
+    loading = false,
+  } = useSelector((state) => state.transfers || state.financialTransfers || {});
 
-//   useEffect(() => {
-//     dispatch(fetchPayments());
-//   }, [dispatch]);
+  // Modals
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [cancelOpen, setCancelOpen] = useState(false);
+  const [selectedTx, setSelectedTx] = useState(null);
+  const [cancelReason, setCancelReason] = useState("");
 
-  // إحصائيات سريعة للوحة التحكم
+  useEffect(() => {
+    dispatch(fetchTransfers());
+    dispatch(fetchTransferSummary());
+  }, [dispatch]);
+
+  // 1. الإحصائيات الحقيقية المربوطة بالـ Summary
   const stats = useMemo(() => {
-    const totalTransactions = payments.length;
-    const totalAmount = payments.reduce(
-      (sum, item) => sum + Number(item.amount_limit || item.amount || 0),
-      0
-    );
-
+    const totalTransactions = transfers.length;
     return [
       {
-        title: "إجمالي التدفقات والسيولة",
-        value: formatCurrency(totalAmount),
-        icon: DollarSign,
-        trend: "+12.5%",
-        isUp: true,
+        title: "صافي السيولة والرصيد",
+        value: formatCurrency(summary.net_balance),
+        icon: Wallet,
+        trend: "+14.2%",
+        isUp: (summary.net_balance || 0) >= 0,
       },
       {
-        title: "إجمالي المقبوضات",
-        value: formatCurrency(totalAmount * 0.65),
+        title: "إجمالي المقبوضات (Inflow)",
+        value: formatCurrency(summary.total_receipts),
         icon: TrendingUp,
-        trend: "+8.2%",
+        trend: "+8.5%",
         isUp: true,
       },
       {
-        title: "إجمالي المدفوعات والمعاملات",
-        value: formatCurrency(totalAmount * 0.35),
+        title: "إجمالي المدفوعات (Outflow)",
+        value: formatCurrency(summary.total_payments),
         icon: TrendingDown,
-        trend: "-3.1%",
+        trend: "-2.1%",
         isUp: false,
       },
       {
-        title: "نشاط طرق الدفع",
-        value: `${totalTransactions} طرق مسجلة`,
+        title: "عدد المعاملات المسجلة",
+        value: `${totalTransactions} معاملة`,
         icon: CreditCard,
-        trend: "مستقر",
+        trend: "نشط",
         isUp: true,
       },
     ];
-  }, [payments]);
+  }, [summary, transfers]);
 
-  // معاملات وهمية/مثالية للعرض السريع
+  // 2. تحليل توزيع التصنيفات للمخطط الدائري (Category Breakdown)
+  const categoryChartData = useMemo(() => {
+    if (!transfers.length) return [];
+    
+    const counts = transfers.reduce((acc, curr) => {
+      const cat = curr.category || "down_payment";
+      acc[cat] = (acc[cat] || 0) + Number(curr.amount || 0);
+      return acc;
+    }, {});
+
+    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+
+    const colors = ["#10b981", "#3b82f6", "#f59e0b", "#ec4899", "#8b5cf6"];
+    return Object.entries(counts).map(([key, val], idx) => ({
+      key,
+      label: CATEGORY_LABELS[key] || key,
+      amount: val,
+      percentage: Math.round((val / total) * 100),
+      color: colors[idx % colors.length],
+    }));
+  }, [transfers]);
+
+  // 3. أحدث المعاملات للعرض
   const recentTransactions = useMemo(() => {
-    if (payments.length > 0) {
-      return payments.slice(0, 5).map((item) => ({
-        id: item.id,
-        title: item.title || item.name || `عملية #${item.id}`,
-        type: item.type === "cash" ? "نقدي" : "تحويل بنكي",
-        amount: item.amount_limit || item.amount || 150000,
-        status: item.status === "active" || item.status === 1 ? "مكتملة" : "قيد المراجعة",
-        statusType: item.status === "active" || item.status === 1 ? "ok" : "busy",
-        date: item.created_at || "اليوم",
-        isIncome: true,
-      }));
-    }
+    return transfers.slice(0, 6);
+  }, [transfers]);
 
-    return [
-      {
-        id: 101,
-        title: "دفعة عقد صيانة هندسية",
-        type: "تحويل بنكي",
-        amount: 4500000,
-        status: "مكتملة",
-        statusType: "ok",
-        date: "2026-07-27",
-        isIncome: true,
-      },
-      {
-        id: 102,
-        title: "سداد رسوم استشارات قانونية",
-        type: "نقدي (كاش)",
-        amount: 850000,
-        status: "مكتملة",
-        statusType: "ok",
-        date: "2026-07-26",
-        isIncome: true,
-      },
-      {
-        id: 103,
-        title: "شراء مستلزمات مكتبية وتجهيزات",
-        type: "شيك مصرفي",
-        amount: 320000,
-        status: "قيد المراجعة",
-        statusType: "busy",
-        date: "2026-07-25",
-        isIncome: false,
-      },
-      {
-        id: 104,
-        title: "تحصيل دفعة مشروع Platinum",
-        type: "تحويل بنكي",
-        amount: 12000000,
-        status: "مكتملة",
-        statusType: "ok",
-        date: "2026-07-24",
-        isIncome: true,
-      },
-      {
-        id: 105,
-        title: "مصاريف تشغيلية ودورية",
-        type: "نقدي (كاش)",
-        amount: 150000,
-        status: "ملغاة",
-        statusType: "off",
-        date: "2026-07-23",
-        isIncome: false,
-      },
-    ];
-  }, [payments]);
+  // معالجة فتح معاينة التفاصيل
+  const handleOpenPreview = (item) => {
+    setSelectedTx(item);
+    dispatch(fetchTransferById(item.id));
+    setPreviewOpen(true);
+  };
+
+  // معالجة فتح مودال الإلغاء
+  const handleOpenCancel = (item) => {
+    setSelectedTx(item);
+    setCancelReason("");
+    setCancelOpen(true);
+  };
+
+  // تأكيد الإلغاء
+  const handleConfirmCancel = async (e) => {
+    e.preventDefault();
+    if (!cancelReason.trim() || !selectedTx) return;
+
+    const res = await dispatch(
+      cancelTransfer({ id: selectedTx.id, reason: cancelReason })
+    );
+
+    if (cancelTransfer.fulfilled.match(res)) {
+      setCancelOpen(false);
+      setSelectedTx(null);
+      setCancelReason("");
+    }
+  };
+
+  const displayDetails = selectedTransferDetails || selectedTx;
 
   return (
     <div className="financial-dashboard-page" dir="rtl">
       {/* 1. الترويسة والترحيب */}
       <section className="financial-dash-header">
         <div className="financial-dash-welcome">
-          <h2>لوحة التحكم المالية</h2>
-          <p>متابعة الميزانية العامة، التدفقات النقدية، وأحدث المعاملات اليومية</p>
+          <h2>لوحة التحكم المالية والسيولة</h2>
+          <p>متابعة الميزانية العامة، تدفقات الأموال، والمخططات التحليلية للحركة المالية</p>
         </div>
 
         <div className="financial-dash-actions">
           <div className="financial-date-badge">
             <Calendar size={16} />
-            <span>اليوم: {new Date().toLocaleDateString("ar-SY")}</span>
+            <span>تاريخ اليوم: {new Date().toLocaleDateString("ar-SY")}</span>
           </div>
 
-          <Button type="button" className="financial-primary-btn">
-            <Plus size={16} />
-            <span>معاملة جديدة</span>
+          <Button
+            type="button"
+            className="financial-primary-btn"
+            onClick={() => dispatch(fetchTransferSummary())}
+          >
+            <RefreshCw size={16} className={loading ? "spin" : ""} />
+            <span>تحديث البيانات</span>
           </Button>
         </div>
       </section>
 
-      {/* 2. شبكة بطاقات الإحصائيات */}
+      {/* 2. شبكة بطاقات الإحصائيات الرئيسيّة */}
       <section className="financial-dash-stats-grid">
         {stats.map((item, idx) => (
           <div key={idx} className="financial-stat-card-wrap">
-            <StatCard
-              title={item.title}
-              value={item.value}
-              icon={item.icon}
-            />
+            <StatCard title={item.title} value={item.value} icon={item.icon} />
             <div className={`financial-stat-trend ${item.isUp ? "up" : "down"}`}>
               {item.isUp ? <ArrowUpRight size={14} /> : <ArrowDownRight size={14} />}
-              <span>{item.trend} مقارنة بالشهر السابق</span>
+              <span>{item.trend} مقارنة بالفترة السابقة</span>
             </div>
           </div>
         ))}
       </section>
 
-      {/* 3. شبكة المحتوى الرئيسي (جدول العمليات + بطاقات الملخص) */}
+      {/* 3. قسم المخططات البيانية (Graphics & Visual Charts) */}
+      <section className="financial-dash-charts-grid">
+        {/* المخطط الشريطي: المقارنة بين المقبوضات والمدفوعات */}
+        <article className="financial-panel chart-panel">
+          <div className="financial-panel-head">
+            <div>
+              <h3><BarChart3 size={18} className="financial-accent-icon" /> نسبة المقبوضات مقابل المدفوعات</h3>
+              <p>مقارنة مرئية سريعة لنسبة التحصيل مقابل المصروفات</p>
+            </div>
+          </div>
+
+          <div className="financial-flow-chart-box">
+            <div className="flow-bar-item">
+              <div className="flow-bar-info">
+                <span><ArrowDownCircle size={15} color="#10b981" /> إجمالي المقبوضات</span>
+                <strong>{formatCurrency(summary.total_receipts)}</strong>
+              </div>
+              <div className="flow-progress-track">
+                <div
+                  className="flow-progress-fill success"
+                  style={{
+                    width: `${
+                      summary.total_receipts + summary.total_payments > 0
+                        ? (summary.total_receipts / (summary.total_receipts + summary.total_payments)) * 100
+                        : 50
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+
+            <div className="flow-bar-item">
+              <div className="flow-bar-info">
+                <span><ArrowUpCircle size={15} color="#ef4444" /> إجمالي المصروفات</span>
+                <strong>{formatCurrency(summary.total_payments)}</strong>
+              </div>
+              <div className="flow-progress-track">
+                <div
+                  className="flow-progress-fill danger"
+                  style={{
+                    width: `${
+                      summary.total_receipts + summary.total_payments > 0
+                        ? (summary.total_payments / (summary.total_receipts + summary.total_payments)) * 100
+                        : 30
+                    }%`,
+                  }}
+                ></div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        {/* المخطط الدائري: توزيع المعاملات حسب التصنيف */}
+        <article className="financial-panel chart-panel">
+          <div className="financial-panel-head">
+            <div>
+              <h3><PieChart size={18} className="financial-accent-icon" /> توزيع الحركة حسب التصنيف</h3>
+              <p>نسب المبالغ الموزعة بين الدفعات والأقساط</p>
+            </div>
+          </div>
+
+          <div className="financial-donut-chart-container">
+            {categoryChartData.length === 0 ? (
+              <div className="chart-empty">لا توجد بيانات كافية لرسم المخطط</div>
+            ) : (
+              <div className="donut-and-legend">
+                {/* رسم SVG Donut Chart */}
+                <div className="svg-donut-wrapper">
+                  <svg viewBox="0 0 36 36" className="donut-svg">
+                    <circle cx="18" cy="18" r="15.915" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="3.8" />
+                    {categoryChartData.map((item, index) => {
+                      const prevPercentages = categoryChartData
+                        .slice(0, index)
+                        .reduce((sum, el) => sum + el.percentage, 0);
+                      return (
+                        <circle
+                          key={item.key}
+                          cx="18"
+                          cy="18"
+                          r="15.915"
+                          fill="none"
+                          stroke={item.color}
+                          strokeWidth="3.8"
+                          strokeDasharray={`${item.percentage} ${100 - item.percentage}`}
+                          strokeDashoffset={100 - prevPercentages + 25}
+                        />
+                      );
+                    })}
+                  </svg>
+                  <div className="donut-center-text">
+                    <span>التوزيع</span>
+                  </div>
+                </div>
+
+                {/* مفتاح المخطط (Legend) */}
+                <div className="chart-legend-list">
+                  {categoryChartData.map((item) => (
+                    <div key={item.key} className="legend-item">
+                      <span className="legend-dot" style={{ backgroundColor: item.color }}></span>
+                      <span className="legend-label">{item.label}</span>
+                      <strong className="legend-value">{item.percentage}%</strong>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </article>
+      </section>
+
+      {/* 4. شبكة المحتوى الرئيسي (جدول أحدث المعاملات + الشريط الجانبي) */}
       <section className="financial-dash-main-grid">
-        {/* جدول أحدث المعاملات */}
+        {/* جدول أحدث المعاملات من Redux */}
         <article className="financial-panel financial-dash-panel">
           <div className="financial-panel-head">
             <div>
-              <h3>أحدث المعاملات المالية</h3>
-              <p>استعراض آخر العمليات المسجلة في النظام</p>
+              <h3>أحدث المعاملات الماليّة</h3>
+              <p>عرض تفصيلي لآخر العمليات الواردة والصادرة في النظام</p>
             </div>
-            <Button type="button" className="financial-text-btn">
-              عرض الكل
-            </Button>
           </div>
 
           <div className="financial-dash-table-wrap">
             <table className="financial-dash-table">
               <thead>
                 <tr>
-                  <th>الوصف / البيان</th>
+                  <th>النوع / المنشئ</th>
                   <th>طريقة الدفع</th>
+                  <th>رقم المرجع (Voucher)</th>
                   <th>المبلغ</th>
-                  <th>التاريخ</th>
                   <th>الحالة</th>
+                  <th>الإجراءات</th>
                 </tr>
               </thead>
               <tbody>
-                {recentTransactions.map((tx) => (
-                  <tr key={tx.id}>
-                    <td>
-                      <div className="financial-tx-title-cell">
-                        <div
-                          className={`financial-tx-icon ${
-                            tx.isIncome ? "income" : "expense"
-                          }`}
-                        >
-                          {tx.isIncome ? (
-                            <ArrowUpRight size={16} />
-                          ) : (
-                            <ArrowDownRight size={16} />
-                          )}
-                        </div>
-                        <span className="financial-tx-title">{tx.title}</span>
-                      </div>
-                    </td>
-
-                    <td>
-                      <span className="financial-type-chip">{tx.type}</span>
-                    </td>
-
-                    <td
-                      className={`financial-amount-cell ${
-                        tx.isIncome ? "income" : "expense"
-                      }`}
-                    >
-                      {tx.isIncome ? "+ " : "- "}
-                      {formatCurrency(tx.amount)}
-                    </td>
-
-                    <td className="financial-date">{tx.date}</td>
-
-                    <td>
-                      <StatusBadge status={tx.status} type={tx.statusType} />
+                {recentTransactions.length === 0 ? (
+                  <tr>
+                    <td colSpan="6">
+                      <div className="project-empty-state">لا توجد معاملات مسجلة حتى الآن.</div>
                     </td>
                   </tr>
-                ))}
+                ) : (
+                  recentTransactions.map((tx) => {
+                    const isReceipt = tx.type === "receipt";
+                    const isCancelled = tx.status === "cancelled";
+
+                    return (
+                      <tr key={tx.id}>
+                        <td>
+                          <div className="financial-tx-title-cell">
+                            <div className={`financial-tx-icon ${isReceipt ? "income" : "expense"}`}>
+                              {isReceipt ? <ArrowDownLeft size={16} /> : <ArrowUpRight size={16} />}
+                            </div>
+                            <div>
+                              <span className="financial-tx-title">
+                                {tx.creator?.account?.full_name || `العميل #${tx.party_id}`}
+                              </span>
+                              <span className="financial-tx-sub">
+                                {isReceipt ? "سند قبض (وارد)" : "سند صرف (صادر)"}
+                              </span>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td>
+                          <span className="financial-type-chip">{tx.payment_method || "تحويل"}</span>
+                        </td>
+
+                        <td>
+                          <span className="financial-account-num">{tx.voucher_number || "—"}</span>
+                        </td>
+
+                        <td className={`financial-amount-cell ${isReceipt ? "income" : "expense"}`}>
+                          {isReceipt ? "+ " : "- "}
+                          {formatCurrency(tx.amount, tx.currency)}
+                        </td>
+
+                        <td>
+                          <StatusBadge
+                            status={isCancelled ? "ملغاة" : "مكتملة"}
+                            type={isCancelled ? "off" : "ok"}
+                          />
+                        </td>
+
+                        <td>
+                          <div className="financial-row-actions">
+                            <button
+                              className="financial-icon-btn"
+                              title="معاينة التفاصيل"
+                              onClick={() => handleOpenPreview(tx)}
+                            >
+                              <Eye size={15} />
+                            </button>
+
+                            {!isCancelled && (
+                              <button
+                                className="financial-icon-btn danger"
+                                title="إلغاء المعاملة"
+                                onClick={() => handleOpenCancel(tx)}
+                              >
+                                <Ban size={15} />
+                              </button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
               </tbody>
             </table>
           </div>
         </article>
 
-        {/* جانب الملخص والمؤشرات */}
+        {/* جانب الملخص والتنبيهات */}
         <aside className="financial-dash-sidebar">
-          {/* بطاقة توزيع السيولة */}
+          {/* بطاقة توزيع السيولة في الحسابات */}
           <div className="financial-panel financial-side-panel">
             <div className="financial-panel-head">
-              <h3>ملخص الحسابات</h3>
+              <h3>توزيع السيولة النقدية</h3>
               <Activity size={18} className="financial-accent-icon" />
             </div>
 
             <div className="financial-balance-summary">
               <div className="balance-item">
                 <div className="balance-info">
-                  <span>مصرف سوريا الدولي</span>
-                  <strong>45,000,000 ل.س</strong>
+                  <span>المستلم الفعلي (المقبوضات)</span>
+                  <strong>{formatCurrency(summary.total_receipts)}</strong>
                 </div>
                 <div className="balance-progress">
-                  <div className="progress-bar" style={{ width: "70%" }}></div>
+                  <div className="progress-bar" style={{ width: "85%" }}></div>
                 </div>
               </div>
 
               <div className="balance-item">
                 <div className="balance-info">
-                  <span>الصندوق الرئيسي (كاش)</span>
-                  <strong>12,500,000 ل.س</strong>
+                  <span>المصروفات والمستحقات</span>
+                  <strong>{formatCurrency(summary.total_payments)}</strong>
                 </div>
                 <div className="balance-progress">
-                  <div className="progress-bar accent" style={{ width: "40%" }}></div>
-                </div>
-              </div>
-
-              <div className="balance-item">
-                <div className="balance-info">
-                  <span>حساب الشيكات تحت التحصيل</span>
-                  <strong>8,200,000 ل.س</strong>
-                </div>
-                <div className="balance-progress">
-                  <div className="progress-bar warning" style={{ width: "25%" }}></div>
+                  <div className="progress-bar warning" style={{ width: "35%" }}></div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* بطاقة التنبيهات والمهام المالية */}
+          {/* بطاقة التنبيهات والمهام */}
           <div className="financial-panel financial-side-panel">
             <div className="financial-panel-head">
-              <h3>تنبيهات واستحقاقات</h3>
+              <h3>تنبيهات وإشعار النظام</h3>
               <AlertCircle size={18} className="financial-warning-icon" />
             </div>
 
@@ -310,21 +462,138 @@ export default function FinancialDashboardPage() {
               <li>
                 <Clock size={16} />
                 <div>
-                  <strong>استثناء عقد #842</strong>
-                  <span>يحتاج موافقة اعتماد مالية</span>
+                  <strong>مطابقة الحسابات الدورية</strong>
+                  <span>يُنصح بعمل مطابقة مالية لنهاية الشهر</span>
                 </div>
               </li>
               <li>
                 <CheckCircle2 size={16} />
                 <div>
-                  <strong>مطابقة الحساب الشهرية</strong>
-                  <span>تمت المطابقة بنجاح</span>
+                  <strong>اتصال الـ API متصل</strong>
+                  <span>تم تحديث الملخص المالي بنجاح</span>
                 </div>
               </li>
             </ul>
           </div>
         </aside>
       </section>
+
+      {/* 5. مودال معاينة التفاصيل بالـ ID */}
+      <Modal
+        open={previewOpen}
+        onClose={() => {
+          setPreviewOpen(false);
+          setSelectedTx(null);
+        }}
+        title="تفاصيل المعاملة المالية"
+        size="lg"
+      >
+        {loadingDetails ? (
+          <div className="project-empty-state">جاري تحميل التفاصيل من السيرفر...</div>
+        ) : (
+          <div className="financial-preview-modal">
+            <div className="financial-preview-card">
+              <div className="financial-preview-row">
+                <span className="label">رقم مرجع العملية (Voucher)</span>
+                <span className="value">{displayDetails?.voucher_number || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">نوع المعاملة</span>
+                <span className="value">
+                  {displayDetails?.type === "receipt" ? "سند قبض (Receipt)" : "سند صرف (Payment)"}
+                </span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">المبلغ الإجمالي</span>
+                <span className="value highlight">
+                  {formatCurrency(displayDetails?.amount, displayDetails?.currency)}
+                </span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">طريقة الدفع</span>
+                <span className="value">{displayDetails?.payment_method || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">الطرف / العميل</span>
+                <span className="value">العميل #{displayDetails?.party_id || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">اسم المنشئ</span>
+                <span className="value">{displayDetails?.creator?.account?.full_name || "—"}</span>
+              </div>
+
+              <div className="financial-preview-row">
+                <span className="label">تاريخ الإنشاء</span>
+                <span className="value">{displayDetails?.created_at || "—"}</span>
+              </div>
+            </div>
+
+            {displayDetails?.description && (
+              <div className="financial-preview-details">
+                <h4 className="financial-preview-title">البيان / الوصف</h4>
+                <p className="financial-preview-desc">{displayDetails.description}</p>
+              </div>
+            )}
+
+            <div className="financial-modal-actions justify-end">
+              <button className="btn-cancel-secondary" onClick={() => setPreviewOpen(false)}>
+                إغلاق
+              </button>
+            </div>
+          </div>
+        )}
+      </Modal>
+
+      {/* 6. مودال إلغاء المعاملة */}
+      <Modal
+        open={cancelOpen}
+        onClose={() => {
+          setCancelOpen(false);
+          setSelectedTx(null);
+        }}
+        title="إلغاء المعاملة المالية"
+        size="md"
+      >
+        <form onSubmit={handleConfirmCancel}>
+          <p style={{ marginBottom: "14px", fontSize: "14px", color: "var(--dash-muted)" }}>
+            هل أنت تأكد من إلغاء المعاملة رقم <strong>#{selectedTx?.voucher_number || selectedTx?.id}</strong>؟
+          </p>
+
+          <div className="custom-form-group">
+            <label>
+              سبب الإلغاء (Reason) <span className="required-dot">*</span>
+            </label>
+            <textarea
+              required
+              rows={3}
+              placeholder="يرجى كتابة سبب إلغاء المعاملة..."
+              value={cancelReason}
+              onChange={(e) => setCancelReason(e.target.value)}
+            />
+          </div>
+
+          <div className="financial-modal-actions justify-end" style={{ marginTop: "18px" }}>
+            <button type="submit" className="btn-save-primary danger-btn" disabled={loading}>
+              تأكيد الإلغاء
+            </button>
+            <button
+              type="button"
+              className="btn-cancel-secondary"
+              onClick={() => {
+                setCancelOpen(false);
+                setSelectedTx(null);
+              }}
+            >
+              تراجع
+            </button>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

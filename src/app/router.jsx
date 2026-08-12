@@ -44,7 +44,7 @@ import CustomerServiceOrdersPage from "@/Rools/customerService/pages/CustomerSer
 
 import FinancialDashboardPage from "@/Rools/financial/pages/FinancialDashboardPage";
 import FinancialPaymentsPage from "@/Rools/financial/pages/FinancialPaymentsPage";
-
+import FinancialTransfersPage from "@/Rools/financial/pages/FinancialTransactionsPage";
 export default function AppRouter() {
   return (
     <Routes>
@@ -189,18 +189,10 @@ export default function AppRouter() {
             <Route index element={<FinancialDashboardPage />} />
             <Route path="payments" element={<FinancialPaymentsPage />} />
 
-            <Route
-              path="transactions"
-              element={<FinancialDashboardPage />}
-            />
-            <Route
-              path="exceptions"
-              element={<FinancialDashboardPage />}
-            />
-            <Route
-              path="department-orders"
-              element={<FinancialDashboardPage />}
-            />
+            {/* مسارات مؤقتة لروابط السايدبار لمنع توجيه المستخدم لصفحة Login عند الضغط عليها */}
+            <Route path="transactions" element={<FinancialTransfersPage />} />
+            <Route path="exceptions" element={<FinancialDashboardPage />} />
+            <Route path="department-orders" element={<FinancialDashboardPage />} />
           </Route>
         </Route>
       </Route>
