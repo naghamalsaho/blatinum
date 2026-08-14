@@ -1,11 +1,25 @@
 import DashboardLayout from "@/app/layouts/DashboardLayout";
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { getLegalSidebar } from "@/shared/config/sidebar/legalSidebar";
 import { LogOut, Globe, Bell } from "lucide-react";
 import { t } from "@/shared/i18n";
+import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
+import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
 
 export default function LegalLayout() {
   const sidebarConfig = getLegalSidebar();
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      dispatch(logout());
+      navigate("/", { replace: true });
+    }
+  };
 
   return (
     <DashboardLayout
@@ -38,13 +52,7 @@ export default function LegalLayout() {
           avatar: t("legal_layout.brand_short"),
         },
       }}
-      footer={{
-        label: t("legal_layout.logout"),
-        icon: LogOut,
-        onClick: () => {
-          window.location.href = `${window.location.origin}/logout`;
-        },
-      }}
+      footer={{ label: t("legal_layout.logout"), icon: LogOut, onClick: handleLogout }}
     >
       <Outlet />
     </DashboardLayout>

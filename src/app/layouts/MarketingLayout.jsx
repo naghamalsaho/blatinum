@@ -1,16 +1,26 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 
 import DashboardLayout from "@/app/layouts/DashboardLayout";
 
 import { marketingSidebar } from "@/shared/config/sidebar/marketingSidebar";
 
-import {
-  Bell,
-  Globe,
-  LogOut,
-} from "lucide-react";
+import { Bell, Globe, LogOut } from "lucide-react";
+import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
+import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
 
 export default function MarketingLayout() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await logoutRequest();
+    } finally {
+      dispatch(logout());
+      navigate("/", { replace: true });
+    }
+  };
   return (
     <DashboardLayout
       sidebarConfig={marketingSidebar}
@@ -45,13 +55,7 @@ export default function MarketingLayout() {
           avatar: "ت",
         },
       }}
-      footer={{
-        label: "تسجيل الخروج",
-        icon: LogOut,
-        onClick: () => {
-          window.location.href = `${window.location.origin}/logout`;
-        },
-      }}
+      footer={{ label: "تسجيل الخروج", icon: LogOut, onClick: handleLogout }}
     >
       <Outlet />
     </DashboardLayout>
