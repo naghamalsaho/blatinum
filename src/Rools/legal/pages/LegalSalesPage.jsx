@@ -38,7 +38,7 @@ import {
 } from "../features/soldUnits/model/soldUnitOwnership.slice";
 
 // Thunks جلب الوحدات والعملاء للمودال
-import { fetchUnits } from "@/Rools/Marketing/features/units/model/unit.thunks";
+import { fetchUnits } from "@/Rools/marketing/features/units/model/unit.thunks";
 import { fetchCustomerServiceClients } from "@/Rools/customerService/features/clients/model/client.thunks";
 
 import "../styles/legal-sales.css";
