@@ -5,6 +5,7 @@ import { engineeringSidebar } from "@/shared/config/sidebar/engineeringSidebar";
 import { Bell, Globe, LogOut } from "lucide-react";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
 import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
+import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
 
 export default function EngineeringLayout() {
   const dispatch = useDispatch();
@@ -12,6 +13,13 @@ export default function EngineeringLayout() {
 
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem("fcmToken");
+      if (token) {
+        try {
+          await deleteDeviceTokenApi(token);
+        } catch (e) {}
+        localStorage.removeItem("fcmToken");
+      }
       await logoutRequest();
     } finally {
       dispatch(logout());

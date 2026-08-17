@@ -4,6 +4,7 @@ import {
   createAvailableSlotRequest,
   updateAvailableSlotRequest,
   deleteAvailableSlotRequest,
+  getAppointmentsRequest,
 } from "../api/availableSlot";
 
 export const fetchAvailableSlots = createAsyncThunk(
@@ -77,6 +78,22 @@ export const deleteAvailableSlot = createAsyncThunk(
     }
 
     console.error("[deleteAvailableSlot] error:", result.message);
+    return thunkAPI.rejectWithValue(result.message);
+  }
+);
+export const fetchAppointments = createAsyncThunk(
+  "appointments/fetchAll",
+  async (params, thunkAPI) => {
+    const result = await getAppointmentsRequest(params);
+
+    console.log("[fetchAppointments] response:", result);
+
+    if (result.ok) {
+      // إرجاع مصفوفة الحجوزات الموجودة داخل data
+      return result.data?.data ?? [];
+    }
+
+    console.error("[fetchAppointments] error:", result.message);
     return thunkAPI.rejectWithValue(result.message);
   }
 );

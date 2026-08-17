@@ -7,7 +7,7 @@ import {
   Filter, 
   Upload, 
   X,
-  Pencil,
+ 
   Eye
 } from "lucide-react";
 
@@ -53,7 +53,7 @@ export default function LegalContractsPage() {
 
   const [selectedContract, setSelectedContract] = useState(null);
   const [showStatusModal, setShowStatusModal] = useState(false);
-  const [selectedStatusContract, setSelectedStatusContract] = useState(null);
+  const [selectedStatusContract] = useState(null);
   const [newStatus, setNewStatus] = useState("");
 
   // Form State
@@ -232,7 +232,7 @@ export default function LegalContractsPage() {
               <tbody>
                 {filteredContracts.map((contract) => (
                   <tr key={contract.id}>
-                    <td>#{contract.id}</td>
+                    <td>{contract.id}</td>
 
                     <td>
                       <button
@@ -281,18 +281,7 @@ export default function LegalContractsPage() {
                           <Eye size={16} />
                         </button>
 
-                        <button
-                          type="button"
-                          className="icon-btn"
-                          title={t("legal_contracts.edit_status")}
-                          onClick={() => {
-                            setSelectedStatusContract(contract);
-                            setNewStatus(contract.status);
-                            setShowStatusModal(true);
-                          }}
-                        >
-                          <Pencil size={16} />
-                        </button>
+                        
                       </div>
                     </td>
                   </tr>
@@ -442,7 +431,7 @@ export default function LegalContractsPage() {
           <div className="modal-card contract-details-modal">
             <div className="modal-header">
               <div>
-                <h3>{t("legal_contracts.contract_details")} #{selectedContract?.id}</h3>
+                <h3>{t("legal_contracts.contract_details")} {selectedContract?.id}</h3>
               </div>
               <button
                 className="close-btn"
@@ -600,7 +589,7 @@ export default function LegalContractsPage() {
               ) : (
                 clientContracts.map((contract) => (
                   <div key={contract.id} className="details-section">
-                    <h4>{t("legal_contracts.contract")} #{contract.id}</h4>
+                    <h4>{t("legal_contracts.contract")} {contract.id}</h4>
 
                     <div className="details-grid">
                       <div className="details-item">

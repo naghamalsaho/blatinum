@@ -23,6 +23,7 @@ import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import StatusBadge from "@/shared/components/StatusBadge";
 
+// Thunks المبيعات والملكيات
 import {
   fetchSoldUnitOwnership,
   fetchClientUnits,
@@ -35,6 +36,10 @@ import {
   clearSoldUnitOwnershipError,
   clearClientUnitsError,
 } from "../features/soldUnits/model/soldUnitOwnership.slice";
+
+// Thunks جلب الوحدات والعملاء للمودال
+import { fetchUnits } from "@/Rools/Marketing/features/units/model/unit.thunks";
+import { fetchCustomerServiceClients } from "@/Rools/customerService/features/clients/model/client.thunks";
 
 import "../styles/legal-sales.css";
 
@@ -225,9 +230,12 @@ export default function LegalSalesPage() {
   const createFileRef = useRef(null);
   const editFileRef = useRef(null);
 
+  // Redux States
   const soldUnitOwnershipState = useSelector(
     (state) => state.soldUnitOwnership || {}
   );
+  const unitsState = useSelector((state) => state.units || {});
+  const clientsState = useSelector((state) => state.customerServiceClients || {});
 
   const items = soldUnitOwnershipState.items || [];
   const meta = soldUnitOwnershipState.meta || {};
@@ -239,6 +247,10 @@ export default function LegalSalesPage() {
   const clientUnitsError = soldUnitOwnershipState.clientUnitsError || null;
   const error = soldUnitOwnershipState.error || null;
   const clientUnits = soldUnitOwnershipState.clientUnits || [];
+
+  // Lists for Select Dropdowns
+  const unitsList = unitsState.units || [];
+  const clientsList = clientsState.items || [];
 
   const [search, setSearch] = useState("");
   const [selectedItem, setSelectedItem] = useState(null);
@@ -259,6 +271,8 @@ export default function LegalSalesPage() {
 
   useEffect(() => {
     dispatch(fetchSoldUnitOwnership(1));
+    dispatch(fetchUnits());
+    dispatch(fetchCustomerServiceClients());
   }, [dispatch]);
 
   const stats = useMemo(() => {
@@ -275,25 +289,21 @@ export default function LegalSalesPage() {
       {
         title: t("legal_sales.total_sales"),
         value: String(total),
-      
         icon: Banknote,
       },
       {
         title: t("legal_sales.active_sales"),
         value: String(activeCount),
-     
         icon: HeartHandshake,
       },
       {
         title: t("legal_sales.sold_units"),
         value: String(soldUnits),
-       
         icon: BadgeCheck,
       },
       {
         title: t("legal_sales.contacts"),
         value: String(withPhone),
-        
         icon: ContactRound,
       },
     ];
@@ -544,7 +554,6 @@ export default function LegalSalesPage() {
         <div className="legal-sales-panel-head">
           <div>
             <h2>{t("legal_sales.title")}</h2>
-           
             <Button className="legal-sales-primary-btn" onClick={openCreate}>
               <Plus size={18} />
               <span>{t("legal_sales.add_sale")}</span>
@@ -738,30 +747,63 @@ export default function LegalSalesPage() {
             <form onSubmit={submitCreate} className="modal-form" noValidate>
               <div className="form-row">
                 <div className="form-group">
-                  <label>{t("legal_sales.unit_id")}</label>
-                  <input
-                    type="number"
-                    name="unit_id"
-                    className="input-field"
-                    placeholder={t("legal_sales.enter_unit_id")}
-                    value={createForm.unit_id}
-                    onChange={handleCreateChange}
-                    required
-                  />
-                </div>
+  <label>{t("legal_sales.unit_id")}</label>
+  <select
+    name="unit_id"
+    className="input-field"
+    value={createForm.unit_id}
+    onChange={handleCreateChange}
+    required
+  >
+    <option value="">اختر الوحدة...</option>
+    {unitsList.map((unit, index) => {
+      const unitId = unit?.id ?? unit?.unit_id;
+      const unitNum = unit?.unit_number || unitId;
+
+      return (
+        <option key={unitId || index} value={unitId || ""}>
+          {unitNum ? `وحدة رقم ${unitNum}` : `وحدة ${unitId}`}
+          {unit?.type ? ` (${unit.type})` : ""}
+        </option>
+      );
+    })}
+  </select>
+</div>
 
                 <div className="form-group">
-                  <label>{t("legal_sales.client_id")}</label>
-                  <input
-                    type="number"
-                    name="client_id"
-                    className="input-field"
-                    placeholder={t("legal_sales.enter_client_id")}
-                    value={createForm.client_id}
-                    onChange={handleCreateChange}
-                    required
-                  />
-                </div>
+  <label>{t("legal_sales.client_id")}</label>
+  <select
+    name="client_id"
+    className="input-field"
+    value={createForm.client_id}
+    onChange={handleCreateChange}
+    required
+  >
+    <option value="">اختر العميل...</option>
+    {clientsList.map((client, index) => {
+      // استخراج المعرف الآمن من أكثر من مسار متوقع للبيانات
+      const clientId =
+        client?.id ??
+        client?.client_id ??
+        client?.additional_info?.client_id ??
+        client?.account?.id;
+
+      const clientName =
+        client?.account?.full_name ||
+        client?.full_name ||
+        client?.name ||
+        `عميل ${clientId}`;
+
+      const clientPhone = client?.account?.phone || client?.phone || "";
+
+      return (
+        <option key={clientId || index} value={clientId || ""}>
+          {clientName} {clientPhone ? `(${clientPhone})` : ""} {clientId ? `[ID: ${clientId}]` : ""}
+        </option>
+      );
+    })}
+  </select>
+</div>
               </div>
 
               <div className="form-row">
@@ -889,15 +931,23 @@ export default function LegalSalesPage() {
               <div className="form-row">
                 <div className="form-group">
                   <label>{t("legal_sales.client_id")}</label>
-                  <input
-                    type="number"
+                  <select
                     name="client_id"
                     className="input-field"
-                    placeholder={t("legal_sales.enter_client_id")}
                     value={editForm.client_id}
                     onChange={handleEditChange}
                     required
-                  />
+                  >
+                    <option value="">اختر العميل...</option>
+                    {clientsList.map((client) => {
+                      const clientName = client?.account?.full_name || client?.full_name || `عميل ${client.id}`;
+                      return (
+                        <option key={client.id} value={client.id}>
+                          {clientName}
+                        </option>
+                      );
+                    })}
+                  </select>
                 </div>
 
                 <div className="form-group">

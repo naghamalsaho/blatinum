@@ -6,6 +6,7 @@ import { LogOut, Globe, Bell } from "lucide-react";
 import { t } from "@/shared/i18n";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
 import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
+import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
 
 export default function LegalLayout() {
   const sidebarConfig = getLegalSidebar();
@@ -14,6 +15,16 @@ export default function LegalLayout() {
 
   const handleLogout = async () => {
     try {
+      const token = localStorage.getItem("fcmToken");
+      if (token) {
+        try {
+          await deleteDeviceTokenApi(token);
+        } catch (e) {
+          // best-effort
+        }
+        localStorage.removeItem("fcmToken");
+      }
+
       await logoutRequest();
     } finally {
       dispatch(logout());

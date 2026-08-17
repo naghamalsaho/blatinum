@@ -5,8 +5,7 @@ import {
   Search,
   ChevronDown,
   Eye,
- 
-  Trash2,
+
   ArrowUpRight,
   ArrowDownLeft,
   DollarSign,
@@ -31,8 +30,12 @@ import {
   cancelTransfer,
   createTransfer,
   updateTransfer,
-  deleteTransfer,
+ 
 } from "../features/transfers/model/transfer.thunks";
+
+// 1️⃣ استيراد Thunks الخاصة بالعملاء والمشاريع
+import { fetchCustomerServiceClients } from "../../customerService/features/clients/model/client.thunks";
+import { fetchProjects } from "../../marketing/features/projects/model/project.thunks";
 
 import "../styles/financial-transfers.css";
 
@@ -73,7 +76,7 @@ export default function FinancialTransfersPage() {
   const dispatch = useDispatch();
   const statusDropdownRef = useRef(null);
 
-  // Redux Store State
+  // Redux Store State الخاصة بالتحويلات
   const {
     items: transfers = [],
     summary = {},
@@ -82,6 +85,14 @@ export default function FinancialTransfersPage() {
     loading = false,
     error = null,
   } = useSelector((state) => state.transfers || state.financialTransfers || {});
+
+  // 2️⃣ جلب قائمة العملاء والمشاريع من الـ Redux Store
+  const clients = useSelector(
+    (state) => state.customerServiceClients?.items || []
+  );
+  const projects = useSelector(
+    (state) => state.projects?.projects || []
+  );
 
   // Modals & States
   const [createOpen, setCreateOpen] = useState(false);
@@ -110,7 +121,7 @@ export default function FinancialTransfersPage() {
     payment_method: "bank_transfer", // cash | bank_transfer | check | card
     status: "posted",
     description: "",
-    party_id: "3",
+    party_id: "",
     party_type: "App\\Models\\Client\\Client",
     project_id: "",
     warehouse_id: "",
@@ -118,9 +129,12 @@ export default function FinancialTransfersPage() {
 
   const [formErrors, setFormErrors] = useState({});
 
+  // 3️⃣ استدعاء البيانات عند الفتح
   useEffect(() => {
     dispatch(fetchTransfers());
     dispatch(fetchTransferSummary());
+    dispatch(fetchCustomerServiceClients());
+    dispatch(fetchProjects());
   }, [dispatch]);
 
   useEffect(() => {
@@ -164,7 +178,7 @@ export default function FinancialTransfersPage() {
       payment_method: "bank_transfer",
       status: "posted",
       description: "",
-      party_id: "3",
+      party_id: "",
       party_type: "App\\Models\\Client\\Client",
       project_id: "",
       warehouse_id: "",
@@ -174,23 +188,18 @@ export default function FinancialTransfersPage() {
     setSelectedTransfer(null);
   };
 
- 
-
-  // فتح معاينة التفاصيل باستخدام الفتش المباشر عبر الـ ID
   const openPreviewModal = (item) => {
     setSelectedTransfer(item);
     dispatch(fetchTransferById(item.id));
     setPreviewOpen(true);
   };
 
-  // فتح مودال الإلغاء
   const openCancelModal = (item) => {
     setItemToCancel(item);
     setCancelReason("");
     setCancelOpen(true);
   };
 
-  // تأكيد الإلغاء
   const handleConfirmCancel = async (e) => {
     e.preventDefault();
     if (!cancelReason.trim()) return;
@@ -237,13 +246,8 @@ export default function FinancialTransfersPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm(`هل أنت تأكد من رغبتك في حذف التحويل المالي رقم #${id}؟`)) {
-      dispatch(deleteTransfer(id));
-    }
-  };
+  
 
-  // الإحصائيات من ملخص السيرفر (Summary)
   const stats = useMemo(() => [
     {
       title: "إجمالي المقبوضات",
@@ -262,7 +266,6 @@ export default function FinancialTransfersPage() {
     },
   ], [summary]);
 
-  // التصفية والبحث
   const filteredTransfers = useMemo(() => {
     const q = String(searchTerm || "").trim().toLowerCase();
 
@@ -461,9 +464,7 @@ export default function FinancialTransfersPage() {
                               >
                                 <Eye size={15} />
                               </button>
-                              
 
-                              {/* زر الإلغاء يظهر فقط في حال كانت المعاملة ليست ملغاة بعد */}
                               {item.status !== "cancelled" && (
                                 <button
                                   className="financial-icon-btn danger"
@@ -474,13 +475,7 @@ export default function FinancialTransfersPage() {
                                 </button>
                               )}
 
-                              <button
-                                className="financial-icon-btn danger"
-                                title="حذف"
-                                onClick={() => handleDelete(item.id)}
-                              >
-                                <Trash2 size={15} />
-                              </button>
+                              
                             </div>
                           </td>
                         </tr>
@@ -577,27 +572,46 @@ export default function FinancialTransfersPage() {
             </div>
           </div>
 
+          {/* 4️⃣ إظهار القوائم المنسدلة للعميل والمشروع بدلاً من الحقول النصية */}
           <div className="financial-modal-grid">
             <div className="custom-form-group">
-              <label>رقم العميل / الطرف (Party ID)</label>
-              <input
-                type="number"
+              <label>اختر العميل / الطرف (Party)</label>
+              <select
                 name="party_id"
-                placeholder="3"
                 value={formData.party_id}
                 onChange={handleChange}
-              />
+              >
+                <option value="">-- اختر العميل --</option>
+                {clients.map((client) => {
+                  const cId =
+                    client.additional_info?.client_id ||
+                    client.account?.id ||
+                    client.id;
+                  const name =
+                    client.account?.full_name || `عميل #${cId}`;
+                  return (
+                    <option key={cId} value={cId}>
+                      {name}
+                    </option>
+                  );
+                })}
+              </select>
             </div>
 
             <div className="custom-form-group">
-              <label>المشروع (Project ID - اختياري)</label>
-              <input
-                type="number"
+              <label>اختر المشروع (Project - اختياري)</label>
+              <select
                 name="project_id"
-                placeholder="1"
                 value={formData.project_id}
                 onChange={handleChange}
-              />
+              >
+                <option value="">-- اختر المشروع --</option>
+                {projects.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name || project.title || `مشروع #${project.id}`}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
 

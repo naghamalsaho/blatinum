@@ -7,24 +7,23 @@ import {
   CreditCard,
   ArrowUpRight,
   ArrowDownRight,
-  Clock,
-  CheckCircle2,
-  AlertCircle,
-  Calendar,
+  
+  
+  
   Activity,
 ArrowDownLeft,
   Eye,
   Ban,
   BarChart3,
   PieChart,
-  RefreshCw,
+  
   Wallet,
   ArrowUpCircle,
   ArrowDownCircle,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
-import Button from "@/shared/components/Button";
+
 import StatusBadge from "@/shared/components/StatusBadge";
 import Modal from "@/shared/components/Modal";
 
@@ -169,29 +168,8 @@ export default function FinancialDashboardPage() {
 
   return (
     <div className="financial-dashboard-page" dir="rtl">
-      {/* 1. الترويسة والترحيب */}
-      <section className="financial-dash-header">
-        <div className="financial-dash-welcome">
-          <h2>لوحة التحكم المالية والسيولة</h2>
-          <p>متابعة الميزانية العامة، تدفقات الأموال، والمخططات التحليلية للحركة المالية</p>
-        </div>
-
-        <div className="financial-dash-actions">
-          <div className="financial-date-badge">
-            <Calendar size={16} />
-            <span>تاريخ اليوم: {new Date().toLocaleDateString("ar-SY")}</span>
-          </div>
-
-          <Button
-            type="button"
-            className="financial-primary-btn"
-            onClick={() => dispatch(fetchTransferSummary())}
-          >
-            <RefreshCw size={16} className={loading ? "spin" : ""} />
-            <span>تحديث البيانات</span>
-          </Button>
-        </div>
-      </section>
+    
+      
 
       {/* 2. شبكة بطاقات الإحصائيات الرئيسيّة */}
       <section className="financial-dash-stats-grid">
@@ -452,29 +430,7 @@ export default function FinancialDashboardPage() {
           </div>
 
           {/* بطاقة التنبيهات والمهام */}
-          <div className="financial-panel financial-side-panel">
-            <div className="financial-panel-head">
-              <h3>تنبيهات وإشعار النظام</h3>
-              <AlertCircle size={18} className="financial-warning-icon" />
-            </div>
-
-            <ul className="financial-alerts-list">
-              <li>
-                <Clock size={16} />
-                <div>
-                  <strong>مطابقة الحسابات الدورية</strong>
-                  <span>يُنصح بعمل مطابقة مالية لنهاية الشهر</span>
-                </div>
-              </li>
-              <li>
-                <CheckCircle2 size={16} />
-                <div>
-                  <strong>اتصال الـ API متصل</strong>
-                  <span>تم تحديث الملخص المالي بنجاح</span>
-                </div>
-              </li>
-            </ul>
-          </div>
+         
         </aside>
       </section>
 

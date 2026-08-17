@@ -31,8 +31,11 @@ import contractReducer from "@/Rools/legal/features/contracts/model/contract.sli
 
 import transferReducer from "@/Rools/financial/features/transfers/model/transfer.slice";
 import paymentReducer from "@/Rools/financial/features/payments/model/payment.slice";
-
+import contractExceptionReducer from "@/Rools/financial/features/exceptions/model/contractException.slice";
 import errorReducer from "@/shared/store/error/error.slice";
+
+
+import appointmentReducer from "@/Rools/legal/features/availableSlots/model/appointment.slice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -67,7 +70,12 @@ export const store = configureStore({
   customerServiceLotteries: customerServiceLotteryReducer,
   customerServiceOrders: customerServiceOrderReducer,
 
+
+
+
+  appointments: appointmentReducer,
   transfers: transferReducer,
     payments: paymentReducer,
+    contractExceptions: contractExceptionReducer,
   },
 });

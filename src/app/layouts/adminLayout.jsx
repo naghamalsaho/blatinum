@@ -9,6 +9,7 @@ import { getDirection, t } from "@/shared/i18n";
 import "../../shared/ui/layout.css";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
 import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
+import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
 
 export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -26,7 +27,14 @@ export default function AdminLayout() {
   }[pathname] || [adminDashboardConfig.topbar.title, adminDashboardConfig.topbar.subtitle];
 
   const handleLogout = async () => {
-    try { await logoutRequest(); } finally {
+    try {
+      const token = localStorage.getItem("fcmToken");
+      if (token) {
+        try { await deleteDeviceTokenApi(token); } catch (e) {}
+        localStorage.removeItem("fcmToken");
+      }
+      await logoutRequest();
+    } finally {
       dispatch(logout());
       navigate("/", { replace: true });
     }

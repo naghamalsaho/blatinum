@@ -8,6 +8,7 @@ import { customerServiceSidebar } from "@/shared/config/sidebar/customerServiceS
 import { t, getDirection } from "@/shared/i18n";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
 import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
+import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
 
 export default function CustomerServiceLayout() {
   const dispatch = useDispatch();
@@ -25,9 +26,17 @@ export default function CustomerServiceLayout() {
   }[location.pathname] || [t("service_title"), ""];
 
   const handleLogout = async () => {
-    await logoutRequest();
-    dispatch(logout());
-    navigate("/", { replace: true });
+    try {
+      const token = localStorage.getItem("fcmToken");
+      if (token) {
+        try { await deleteDeviceTokenApi(token); } catch (e) {}
+        localStorage.removeItem("fcmToken");
+      }
+      await logoutRequest();
+    } finally {
+      dispatch(logout());
+      navigate("/", { replace: true });
+    }
   };
 
   return (

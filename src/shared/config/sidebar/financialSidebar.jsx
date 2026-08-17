@@ -3,7 +3,7 @@ import {
   Receipt,
   CreditCard,
   AlertTriangle,
-  Building2,
+  
 } from "lucide-react";
 
 export const financialSidebar = [
@@ -41,11 +41,7 @@ export const financialSidebar = [
         icon: AlertTriangle,
         to: "/financial/exceptions",
       },
-      {
-        label: "طلبات الأقسام",
-        icon: Building2,
-        to: "/financial/department-orders",
-      },
+     
     ],
   },
 ];

@@ -5,7 +5,7 @@ import {
   Plus,
   Eye,
   Pencil,
-  Trash2,
+  
   Search,
   Filter,
   ChevronDown,
@@ -16,6 +16,7 @@ import {
   Upload,
   FileText,
   X,
+  History // 🆕 آيقونة التتبع
   
 } from "lucide-react";
 
@@ -30,7 +31,8 @@ import {
   fetchPayments,
   createPayment,
   updatePayment,
-  deletePayment,
+  
+  fetchPaymentsByContract, // 🆕 Thunk التتبع
 } from "../features/payments/model/payment.thunks";
 import { fetchCustomerServiceClients } from "../../customerService/features/clients/model/client.thunks";
 import { fetchClientContracts } from "../../legal/features/contracts/model/contract.thunks";
@@ -45,6 +47,7 @@ import "../styles/financial-payments.css";
 
 const STATUS_META = {
   paid: { label: "مدفوع", type: "ok" },
+  posted: { label: "مرحّل / مدفوع", type: "ok" },
   active: { label: "نشط", type: "ok" },
   pending: { label: "قيد الانتظار", type: "busy" },
   inactive: { label: "غير نشط", type: "off" },
@@ -54,7 +57,7 @@ const STATUS_META = {
 
 const STATUS_OPTIONS = [
   { id: "all", label: "جميع الحالات" },
-  { id: "paid", label: "مدفوع" },
+  { id: "paid", label: "مدفوع / مرحّل" },
   { id: "pending", label: "قيد الانتظار" },
   { id: "active", label: "نشط" },
   { id: "failed", label: "فاشل / ملغى" },
@@ -75,7 +78,7 @@ function formatDate(value) {
 
 function formatCurrency(amount) {
   if (!amount && amount !== 0) return "—";
-  return `${Number(amount).toLocaleString("ar-SY")} ل.س`;
+  return `${Number(amount).toLocaleString("ar-SY")} $`;
 }
 
 function formatPaymentMethod(method) {
@@ -111,6 +114,35 @@ function formatPaymentType(type) {
   }
 }
 
+// 💡 دالة مرنة لاستخراج بيانات الزبون سواءً كانت Response سندات مالية أودفعات مباشرة
+function getClientDetails(item) {
+  const partyAccount = item?.party?.account;
+  const clientAccount = item?.client?.account;
+
+  const fullName =
+    partyAccount?.full_name ||
+    clientAccount?.full_name ||
+    item?.party?.full_name ||
+    item?.client?.full_name ||
+    "—";
+
+  const phone =
+    partyAccount?.phone ||
+    clientAccount?.phone ||
+    item?.party?.phone ||
+    item?.client?.phone ||
+    "—";
+
+  const clientId =
+    item?.party?.additional_info?.client_id ||
+    item?.party_id ||
+    item?.client?.additional_info?.client_id ||
+    item?.client_id ||
+    item?.client?.id;
+
+  return { fullName, phone, clientId };
+}
+
 export default function FinancialPaymentsPage() {
   const dispatch = useDispatch();
   const statusDropdownRef = useRef(null);
@@ -131,6 +163,12 @@ export default function FinancialPaymentsPage() {
   const [createOpen, setCreateOpen] = useState(false);
   const [editOpen, setEditOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
+
+  // 🆕 حالات مودال تتبع دفعات العقد
+  const [trackingOpen, setTrackingOpen] = useState(false);
+  const [contractPayments, setContractPayments] = useState([]);
+  const [loadingTracking, setLoadingTracking] = useState(false);
+  const [selectedContractInfo, setSelectedContractInfo] = useState(null);
 
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [selectedFiles, setSelectedFiles] = useState([]);
@@ -156,7 +194,6 @@ export default function FinancialPaymentsPage() {
 
   const [formErrors, setFormErrors] = useState({});
 
-  // 1. جلب سجل الدفعات وقائمة العملاء عند بداية التشغيل
   useEffect(() => {
     dispatch(fetchPayments());
     dispatch(fetchCustomerServiceClients());
@@ -175,14 +212,45 @@ export default function FinancialPaymentsPage() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // 2. معالجة تغيير الزبون وجلب عقوده من `/contract/client/{clientId}`
+  // 🆕 فتح مودال التتبع وجلب قائمة أقساط العقد من الراوت جديد
+  const handleOpenTracking = async (item) => {
+    // محاولة الحصول على contract_id من أكثر من مكان متوقع
+    const contractId =
+      item?.contract_id ||
+      item?.contract?.id ||
+      item?.transactionable?.contract_id ||
+      item?.transactionable_id;
+
+    if (!contractId) {
+      alert("تعذر العثور على رقم العقد المربوط به الموفق / السند.");
+      return;
+    }
+
+    setTrackingOpen(true);
+    setLoadingTracking(true);
+    setContractPayments([]);
+    setSelectedContractInfo(null);
+
+    try {
+      const data = await dispatch(fetchPaymentsByContract(contractId)).unwrap();
+      setContractPayments(Array.isArray(data) ? data : []);
+      if (data && data.length > 0 && data[0].contract) {
+        setSelectedContractInfo(data[0].contract);
+      }
+    } catch {
+      setContractPayments([]);
+    } finally {
+      setLoadingTracking(false);
+    }
+  };
+
   const handleClientChange = async (e) => {
     const clientId = e.target.value;
 
     setFormData((prev) => ({
       ...prev,
       client_id: clientId,
-      contract_id: "", // إعادة تعيين العقد عند تغيير الزبون
+      contract_id: "",
     }));
 
     setFormErrors((prev) => ({
@@ -196,7 +264,6 @@ export default function FinancialPaymentsPage() {
       return;
     }
 
-    // جلب عقود الزبون المحدد
     setLoadingContracts(true);
     try {
       const result = await dispatch(fetchClientContracts(clientId)).unwrap();
@@ -210,15 +277,8 @@ export default function FinancialPaymentsPage() {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    setFormErrors((prev) => ({
-      ...prev,
-      [name]: "",
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleFileChange = (e) => {
@@ -253,31 +313,30 @@ export default function FinancialPaymentsPage() {
   const openEditModal = async (payment) => {
     setSelectedPayment(payment);
 
-    let rawDate = payment.payment_date || "";
+    let rawDate = payment.payment_date || payment.created_at || "";
     if (rawDate.includes(" ")) {
       rawDate = rawDate.split(" ")[0];
     }
 
-    const clientId = payment.client_id || payment.client?.additional_info?.client_id || payment.client?.id || "";
+    const { clientId } = getClientDetails(payment);
 
     setFormData({
-      client_id: clientId,
+      client_id: clientId || "",
       contract_id: payment.contract_id || payment.contract?.id || "",
       amount: payment.amount || payment.amount_limit || "",
       payment_date: rawDate,
       payment_method: payment.payment_method || "cash",
-      payment_type: payment.payment_type || "down_payment",
+      payment_type: payment.payment_type || payment.category || "down_payment",
       status: payment.status || "pending",
       notes: "",
     });
 
-    // جلب العقود في حال التعديل أيضاً
     if (clientId) {
       setLoadingContracts(true);
       try {
         const result = await dispatch(fetchClientContracts(clientId)).unwrap();
         setClientContracts(Array.isArray(result) ? result : []);
-      } catch  {
+      } catch {
         setClientContracts([]);
       } finally {
         setLoadingContracts(false);
@@ -314,12 +373,7 @@ export default function FinancialPaymentsPage() {
         status: formData.status,
       };
 
-      const result = await dispatch(
-        createPayment({
-          values,
-          files: selectedFiles,
-        })
-      );
+      const result = await dispatch(createPayment({ values, files: selectedFiles }));
 
       if (createPayment.fulfilled.match(result)) {
         setCreateOpen(false);
@@ -340,11 +394,7 @@ export default function FinancialPaymentsPage() {
       };
 
       const result = await dispatch(
-        updatePayment({
-          id: selectedPayment.id,
-          values,
-          files: selectedFiles,
-        })
+        updatePayment({ id: selectedPayment.id, values, files: selectedFiles })
       );
 
       if (updatePayment.fulfilled.match(result)) {
@@ -354,24 +404,20 @@ export default function FinancialPaymentsPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (window.confirm(`هل أنت تأكد من رغبتك في حذف الدفعة #${id}؟`)) {
-      dispatch(deletePayment(id));
-    }
-  };
+ 
 
   const stats = useMemo(() => {
     const totalPayments = payments.length;
     const activeCount = payments.filter(
       (item) =>
         item.status === "paid" ||
+        item.status === "posted" ||
         item.status === "active" ||
         item.status === 1 ||
         item.status === true
     ).length;
-    const pendingCount = payments.filter(
-      (item) => item.status === "pending"
-    ).length;
+
+    const pendingCount = payments.filter((item) => item.status === "pending").length;
 
     const totalLimits = payments.reduce(
       (sum, item) => sum + Number(item.amount || item.amount_limit || 0),
@@ -379,26 +425,10 @@ export default function FinancialPaymentsPage() {
     );
 
     return [
-      {
-        title: "إجمالي السجلات والمعاملات",
-        value: String(totalPayments),
-        icon: CreditCard,
-      },
-      {
-        title: "معاملات مدفوعة / نشطة",
-        value: String(activeCount),
-        icon: CheckCircle2,
-      },
-      {
-        title: "دفعة قيد الانتظار",
-        value: String(pendingCount),
-        icon: Clock,
-      },
-      {
-        title: "إجمالي المبالغ والسيولة",
-        value: formatCurrency(totalLimits),
-        icon: DollarSign,
-      },
+      { title: "إجمالي السجلات والمعاملات", value: String(totalPayments), icon: CreditCard },
+      { title: "معاملات مدفوعة / مرحّلة", value: String(activeCount), icon: CheckCircle2 },
+      { title: "دفعة قيد الانتظار", value: String(pendingCount), icon: Clock },
+      { title: "إجمالي المبالغ والسيولة", value: formatCurrency(totalLimits), icon: DollarSign },
     ];
   }, [payments]);
 
@@ -413,17 +443,16 @@ export default function FinancialPaymentsPage() {
         matchesStatus = statusKey === statusFilter;
       }
 
-      const clientName = item.client?.account?.full_name || "";
-      const clientPhone = item.client?.account?.phone || "";
-      const clientEmail = item.client?.account?.email || "";
+      const { fullName, phone } = getClientDetails(item);
+      const voucherNum = item.voucher_number || "";
       const amountStr = String(item.amount || item.amount_limit || "");
 
       const searchable = [
-        clientName,
-        clientPhone,
-        clientEmail,
+        fullName,
+        phone,
+        voucherNum,
         item.payment_method,
-        item.payment_type,
+        item.payment_type || item.category,
         amountStr,
         item.id,
       ]
@@ -437,17 +466,29 @@ export default function FinancialPaymentsPage() {
   const currentStatusLabel =
     STATUS_OPTIONS.find((opt) => opt.id === statusFilter)?.label || "الحالة";
 
+  // 🆕 حسابات التتبع للعقد الحالي في المودال
+  const trackingSummary = useMemo(() => {
+    if (!contractPayments || contractPayments.length === 0) {
+      return { paidCount: 0, totalCount: 0, totalPaidAmount: 0 };
+    }
+    const paidList = contractPayments.filter((p) => p.status === "paid");
+    const totalPaidAmount = paidList.reduce((acc, curr) => acc + Number(curr.amount || 0), 0);
+    const contractMeta = selectedContractInfo || contractPayments[0]?.contract;
+
+    return {
+      paidCount: paidList.length,
+      totalCount: contractMeta?.installments_count || contractPayments.length,
+      totalPaidAmount,
+      contractMeta,
+    };
+  }, [contractPayments, selectedContractInfo]);
+
   return (
     <div className="financial-payments-page" dir="rtl">
       {/* 1. قسم الإحصائيات */}
       <section className="financial-payments-stats-grid">
         {stats.map((item) => (
-          <StatCard
-            key={item.title}
-            title={item.title}
-            value={item.value}
-            icon={item.icon}
-          />
+          <StatCard key={item.title} title={item.title} value={item.value} icon={item.icon} />
         ))}
       </section>
 
@@ -457,7 +498,7 @@ export default function FinancialPaymentsPage() {
           <div className="financial-panel-head">
             <div>
               <h2>إدارة الوسائل والدفعات المالية</h2>
-              <p>استعراض، متابعة، وإدارة دفعات العملاء في النظام</p>
+              <p>استعراض، متابعة، وتتبع أقساط ودفعات العقود والعملاء</p>
             </div>
 
             <Button
@@ -479,7 +520,7 @@ export default function FinancialPaymentsPage() {
                 <Search size={18} />
                 <input
                   type="text"
-                  placeholder="ابحث باسم العميل، الهاتف، أو نوع الدفعة..."
+                  placeholder="ابحث باسم العميل، رقم السند، أو نوع الدفعة..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -495,9 +536,7 @@ export default function FinancialPaymentsPage() {
                   <span>{currentStatusLabel}</span>
                   <ChevronDown
                     size={15}
-                    className={`status-arrow ${
-                      statusDropdownOpen ? "open" : ""
-                    }`}
+                    className={`status-arrow ${statusDropdownOpen ? "open" : ""}`}
                   />
                 </button>
 
@@ -507,9 +546,7 @@ export default function FinancialPaymentsPage() {
                       <button
                         key={opt.id}
                         type="button"
-                        className={`status-menu-item ${
-                          statusFilter === opt.id ? "active" : ""
-                        }`}
+                        className={`status-menu-item ${statusFilter === opt.id ? "active" : ""}`}
                         onClick={() => {
                           setStatusFilter(opt.id);
                           setStatusDropdownOpen(false);
@@ -536,19 +573,20 @@ export default function FinancialPaymentsPage() {
                 <thead>
                   <tr>
                     <th>اسم العميل</th>
+                    <th>رقم السند / العقد</th>
                     <th>طريقة / نوع الدفع</th>
                     <th>رقم التواصل</th>
                     <th>المبلغ</th>
                     <th>تاريخ الدفع</th>
                     <th>الحالة</th>
-                    <th>إجراءات</th>
+                    <th>إجراءات والتتبع</th>
                   </tr>
                 </thead>
 
                 <tbody>
                   {filteredPayments.length === 0 ? (
                     <tr>
-                      <td colSpan="7">
+                      <td colSpan="8">
                         <div className="project-empty-state">
                           لا توجد سجلات دفع مطابقة لخيارات البحث والحالة
                         </div>
@@ -557,7 +595,31 @@ export default function FinancialPaymentsPage() {
                   ) : (
                     filteredPayments.map((item) => {
                       const meta = getStatusMeta(item.status);
-                      const clientAccount = item.client?.account;
+                      const { fullName, phone } = getClientDetails(item);
+                     // 1️⃣ البحث عن رقم السند بمختلف مسميات الـ API المحتملة
+const voucherNum =
+  item.voucher_number ||
+  item.voucher_no ||
+  item.transaction_number ||
+  item.reference_number ||
+  item.code;
+
+// 2️⃣ البحث عن رقم أو مرجع العقد
+const contractRef =
+  item.contract?.reference_number ||
+  item.contract_id ||
+  item.contract?.id ||
+  item.transactionable?.contract_id ||
+  item.transactionable_id;
+
+// 3️⃣ تحديد القيمة المعروضة مع استخدام ID السجل كخيار أخير إذا لم يتوفر غيره
+const voucherOrContract = voucherNum
+  ? voucherNum
+  : contractRef
+  ? `${contractRef}`
+  : item.id
+  ? `${item.id}`
+  : "—";
 
                       return (
                         <tr key={item.id}>
@@ -566,22 +628,22 @@ export default function FinancialPaymentsPage() {
                               <div className="financial-payment-icon-box">
                                 <User size={18} />
                               </div>
-                              <span className="financial-payment-title">
-                                {clientAccount?.full_name || `دفعة #${item.id}`}
-                              </span>
+                              <span className="financial-payment-title">{fullName}</span>
                             </div>
+                          </td>
+
+                          <td>
+                            <span className="financial-account-num">{voucherOrContract}</span>
                           </td>
 
                           <td>
                             <span className="financial-type-chip">
                               {formatPaymentMethod(item.payment_method)} (
-                              {formatPaymentType(item.payment_type)})
+                              {formatPaymentType(item.payment_type || item.category)})
                             </span>
                           </td>
 
-                          <td className="financial-account-num">
-                            {clientAccount?.phone || "—"}
-                          </td>
+                          <td className="financial-account-num">{phone}</td>
 
                           <td className="financial-metric">
                             {formatCurrency(item.amount || item.amount_limit)}
@@ -597,6 +659,17 @@ export default function FinancialPaymentsPage() {
 
                           <td>
                             <div className="financial-row-actions">
+                              {/* 🆕 زر تتبع الدفعات بالأقساط */}
+                              <button
+                                type="button"
+                                className="financial-icon-btn tracking"
+                                onClick={() => handleOpenTracking(item)}
+                                title="تتبع دفعات وأقساط العقد"
+                                style={{ color: "var(--primary-color, #3b82f6)" }}
+                              >
+                                <History size={15} />
+                              </button>
+
                               <button
                                 type="button"
                                 className="financial-icon-btn"
@@ -615,14 +688,7 @@ export default function FinancialPaymentsPage() {
                                 <Pencil size={14} />
                               </button>
 
-                              <button
-                                type="button"
-                                className="financial-icon-btn danger"
-                                onClick={() => handleDelete(item.id)}
-                                title="حذف"
-                              >
-                                <Trash2 size={14} />
-                              </button>
+                             
                             </div>
                           </td>
                         </tr>
@@ -636,7 +702,109 @@ export default function FinancialPaymentsPage() {
         </article>
       </section>
 
-      {/* 3. مودال تسجيل / تعديل الدفعة الديناميكي */}
+      {/* 4. 🆕 مودال تتبع أقساط ودفعات العقد */}
+      <Modal
+        open={trackingOpen}
+        onClose={() => {
+          setTrackingOpen(false);
+          setContractPayments([]);
+        }}
+        title={`تتبع أقساط ودفعات العقد ${
+          trackingSummary.contractMeta?.reference_number
+            ? `(${trackingSummary.contractMeta.reference_number})`
+            : ""
+        }`}
+        size="lg"
+      >
+        <div className="financial-preview-modal">
+          {loadingTracking ? (
+            <div className="project-empty-state">جاري جلب جدول أقساط العقد...</div>
+          ) : contractPayments.length === 0 ? (
+            <div className="project-empty-state">لا توجد دفعات أو أقساط مسجلة لهذا العقد بعد.</div>
+          ) : (
+            <div>
+              {/* شريط الإحصائيات السريع للعقد */}
+              {trackingSummary.contractMeta && (
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+                    gap: "12px",
+                    marginBottom: "20px",
+                    padding: "12px",
+                    background: "var(--bg-secondary, rgba(255,255,255,0.05))",
+                    borderRadius: "8px",
+                  }}
+                >
+                  <div>
+                    <span style={{ fontSize: "12px", opacity: 0.7 }}>إجمالي العقد:</span>
+                    <div style={{ fontWeight: "bold" }}>
+                      {formatCurrency(trackingSummary.contractMeta.total_price)}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "12px", opacity: 0.7 }}>المقدم:</span>
+                    <div style={{ fontWeight: "bold" }}>
+                      {formatCurrency(trackingSummary.contractMeta.down_payment_amount)}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "12px", opacity: 0.7 }}>الأقساط المدفوعة:</span>
+                    <div style={{ fontWeight: "bold", color: "#10b981" }}>
+                      {trackingSummary.paidCount} / {trackingSummary.totalCount} أقساط
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: "12px", opacity: 0.7 }}>إجمالي المسدد:</span>
+                    <div style={{ fontWeight: "bold", color: "#3b82f6" }}>
+                      {formatCurrency(trackingSummary.totalPaidAmount)}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* جدول الدفعات والأقساط */}
+              <div className="financial-payments-table-wrap">
+                <table className="financial-payments-table">
+                  <thead>
+                    <tr>
+                      
+                      <th>نوع الدفعة</th>
+                      <th>طريقة الدفع</th>
+                      <th>المبلغ</th>
+                      <th>تاريخ الاستحقاق / الدفع</th>
+                      <th>الحالة</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {contractPayments.map((p, index) => {
+                      const pMeta = getStatusMeta(p.status);
+                      return (
+                        <tr key={p.id || index}>
+                          <td>{index + 1}</td>
+                          <td>
+                            <span className="financial-type-chip">
+                              {formatPaymentType(p.payment_type)}
+                            </span>
+                          </td>
+                          <td>{formatPaymentMethod(p.payment_method)}</td>
+                          <td className="financial-metric">{formatCurrency(p.amount)}</td>
+                          <td className="financial-date">{formatDate(p.payment_date)}</td>
+                          <td>
+                            <StatusBadge status={pMeta.label} type={pMeta.type} />
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      </Modal>
+
+      {/* 5. مودال تسجيل / تعديل الدفعة الديناميكي */}
       <Modal
         open={createOpen || editOpen}
         onClose={() => {
@@ -644,11 +812,10 @@ export default function FinancialPaymentsPage() {
           setEditOpen(false);
           resetForm();
         }}
-        title={editOpen ? `تعديل الدفعة #${selectedPayment?.id || ""}` : "تسجيل دفعة جديدة"}
+        title={editOpen ? `تعديل الدفعة ${selectedPayment?.id || ""}` : "تسجيل دفعة جديدة"}
         size="lg"
       >
         <form className="financial-modal-form" onSubmit={handleSubmit} noValidate>
-          {/* اختيار الزبون والعقد بشكل ديناميكي */}
           <div className="financial-modal-grid">
             <div className="custom-form-group">
               <label>
@@ -663,7 +830,7 @@ export default function FinancialPaymentsPage() {
                 <option value="">-- اختر الزبون --</option>
                 {clients.map((client) => {
                   const cId = client.additional_info?.client_id || client.account?.id;
-                  const name = client.account?.full_name || `زبون #${cId}`;
+                  const name = client.account?.full_name || `زبون ${cId}`;
                   const phone = client.account?.phone ? ` (${client.account.phone})` : "";
                   return (
                     <option key={cId} value={cId}>
@@ -696,7 +863,7 @@ export default function FinancialPaymentsPage() {
                 </option>
                 {clientContracts.map((contract) => (
                   <option key={contract.id} value={contract.id}>
-                    عقد #{contract.id} {contract.total_price ? `(${contract.total_price} ل.س)` : ""}
+                    عقد {contract.id} {contract.total_price ? `(${contract.total_price} $)` : ""}
                   </option>
                 ))}
               </select>
@@ -712,7 +879,7 @@ export default function FinancialPaymentsPage() {
               <input
                 type="number"
                 name="amount"
-                placeholder="مثال: 800"
+                placeholder="مثال: 50000"
                 value={formData.amount}
                 onChange={handleChange}
                 disabled={editOpen}
@@ -739,13 +906,10 @@ export default function FinancialPaymentsPage() {
               <label>
                 الحالة <span className="required-dot">•</span>
               </label>
-              <select
-                name="status"
-                value={formData.status}
-                onChange={handleChange}
-              >
+              <select name="status" value={formData.status} onChange={handleChange}>
                 <option value="pending">قيد الانتظار (pending)</option>
                 <option value="paid">مدفوع (paid)</option>
+                <option value="posted">مرحّل (posted)</option>
                 <option value="failed">فاشل (failed)</option>
                 <option value="refunded">مسترجع (refunded)</option>
               </select>
@@ -785,7 +949,6 @@ export default function FinancialPaymentsPage() {
             </div>
           </div>
 
-          {/* رفع المرفقات */}
           <div className="financial-modal-grid financial-modal-grid--single">
             <div className="custom-form-group">
               <label>مرفقات الدفعة (ملفات / صور)</label>
@@ -849,29 +1012,28 @@ export default function FinancialPaymentsPage() {
         </form>
       </Modal>
 
-      {/* 4. مودال معاينة التفاصيل */}
+      {/* 6. مودال المعاينة */}
       <Modal
         open={previewOpen}
         onClose={() => {
           setPreviewOpen(false);
           setSelectedPayment(null);
         }}
-        title={`تفاصيل دفعة #${selectedPayment?.id || ""}`}
+        title={`تفاصيل السند / الدفعة ${selectedPayment?.id || ""}`}
         size="lg"
       >
         <div className="financial-preview-modal">
           <div className="financial-preview-card">
             <div className="financial-preview-row">
               <span className="label">اسم العميل:</span>
-              <span className="value">
-                {selectedPayment?.client?.account?.full_name || "—"}
-              </span>
+              <span className="value">{getClientDetails(selectedPayment).fullName}</span>
             </div>
 
             <div className="financial-preview-row">
-              <span className="label">رقم العقد:</span>
+              <span className="label">رقم العقد / السند:</span>
               <span className="value">
-                #{selectedPayment?.contract_id || selectedPayment?.contract?.id || "—"}
+                {selectedPayment?.voucher_number ||
+                  `${selectedPayment?.contract_id || selectedPayment?.contract?.id || "—"}`}
               </span>
             </div>
 
@@ -883,9 +1045,9 @@ export default function FinancialPaymentsPage() {
             </div>
 
             <div className="financial-preview-row">
-              <span className="label">نوع الدفعة:</span>
+              <span className="label">نوع / فئة الدفعة:</span>
               <span className="value">
-                {formatPaymentType(selectedPayment?.payment_type)}
+                {formatPaymentType(selectedPayment?.payment_type || selectedPayment?.category)}
               </span>
             </div>
 
