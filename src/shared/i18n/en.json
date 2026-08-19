@@ -408,7 +408,8 @@
     "dashboard": "Legal Dashboard",
     "available_slots": "Available Slots",
     "sales": "Sales",
-    "contracts": "Contracts"
+    "contracts": "Contracts",
+    "incoming_orders": "Incoming Orders"
   },
   "legal_sales": {
     "title": "Sales Records",

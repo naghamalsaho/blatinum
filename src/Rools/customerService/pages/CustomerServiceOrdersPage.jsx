@@ -50,31 +50,33 @@ const ORDER_FILTERS = [
 ];
 
 const ORDER_STATUS_OPTIONS = [
-  { value: "pending", label: "Pending" },
   { value: "initially_accepted", label: "Initially Accepted" },
-  { value: "accepted", label: "Accepted" },
   { value: "rejected", label: "Rejected" },
 ];
 
+const LEGAL_TRANSFER_DEPARTMENT_ID = 5;
+
 const FALLBACK_TRANSFER_DEPARTMENTS = [
   {
-    id: 5,
+    id: LEGAL_TRANSFER_DEPARTMENT_ID,
     name: "Legal & Contracts",
     description:
       "Drafts and reviews property contracts, lease agreements, title deeds, and legal compliance.",
   },
-  {
-    id: 4,
-    name: "Finance & Accounting",
-    description:
-      "Manages financial reporting, invoicing, payroll, budgeting, and financial compliance.",
-  },
 ];
 
-const TRANSFER_DEPARTMENT_IDS = ["5", "4"];
+const TRANSFER_DEPARTMENT_IDS = [String(LEGAL_TRANSFER_DEPARTMENT_ID)];
 
 const isTransferDepartmentId = (departmentId) =>
   TRANSFER_DEPARTMENT_IDS.includes(String(departmentId));
+
+const getTransferStatusValue = (status) => {
+  const normalized = String(status || "").toLowerCase();
+  return normalized === "rejected" ? "rejected" : "initially_accepted";
+};
+
+const isEditableStatusValue = (status) =>
+  ["initially_accepted", "rejected"].includes(String(status || "").toLowerCase());
 
 const toDisplayText = (value) => {
   if (value === undefined || value === null) return "";
@@ -260,7 +262,14 @@ const getOrderNotes = (order) => {
 };
 
 const getOrderAttachments = (order) => {
-  const attachments = readNested(order, ["unit.attachments", "attachments", "files", "documents"]);
+  const attachments = readNested(order, [
+    "unit.attachments",
+    "solution.attachments",
+    "service.attachments",
+    "attachments",
+    "files",
+    "documents",
+  ]);
   return Array.isArray(attachments) ? attachments : [];
 };
 
@@ -300,6 +309,13 @@ const getUnitStatus = (order) =>
 
 const getUnitDescription = (order) =>
   readNested(order, ["unit.description"]) || "-";
+
+const getSolutionPrice = (order, key) => {
+  const value = readNested(order, [`solution.${key}`, `service.${key}`]);
+  return value === "" || value === null || value === undefined
+    ? "-"
+    : Number(value).toLocaleString("en-US");
+};
 
 const getOrderType = (order) => {
   if (readNested(order, ["unit.id", "unit.unit_number"])) return "unit";
@@ -563,6 +579,7 @@ function OrderDetailsDrawer({
   const status = getOrderStatus(order);
   const notes = getOrderNotes(order);
   const attachments = getOrderAttachments(order);
+  const orderType = getOrderType(order);
 
   if (!open) return null;
 
@@ -726,13 +743,14 @@ function OrderDetailsDrawer({
               </section>
 
               <div className="order-details-side">
-                <section className="order-details-card">
-                  <header>
-                    <Layers3 size={20} />
-                    <h3>Unit Information</h3>
-                  </header>
+                {orderType === "unit" ? (
+                  <section className="order-details-card">
+                    <header>
+                      <Layers3 size={20} />
+                      <h3>Unit Information</h3>
+                    </header>
 
-                  <dl className="order-details-unit-grid">
+                    <dl className="order-details-unit-grid">
                     <div>
                       <dt>Unit Number</dt>
                       <dd>{getUnitLabel(order)}</dd>
@@ -781,13 +799,77 @@ function OrderDetailsDrawer({
                       <dt>Created At</dt>
                       <dd>{readNested(order, ["unit.created_at"]) || "-"}</dd>
                     </div>
-                  </dl>
+                    </dl>
 
-                  <div className="order-details-description">
-                    <dt>Description</dt>
-                    <dd>{getUnitDescription(order)}</dd>
-                  </div>
-                </section>
+                    <div className="order-details-description">
+                      <dt>Description</dt>
+                      <dd>{getUnitDescription(order)}</dd>
+                    </div>
+                  </section>
+                ) : (
+                  <section className="order-details-card order-details-solution">
+                    <header>
+                      <Sparkles size={20} />
+                      <h3>Service Information</h3>
+                    </header>
+
+                    <dl className="order-details-unit-grid">
+                      <div>
+                        <dt>Service ID</dt>
+                        <dd>{readNested(order, ["solution.id", "service.id"]) || "-"}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Service Name</dt>
+                        <dd>{getOrderItemTitle(order)}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Original Price</dt>
+                        <dd>{getSolutionPrice(order, "original_price")}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Current Price</dt>
+                        <dd>{getSolutionPrice(order, "current_price")}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Active Offer</dt>
+                        <dd>
+                          {readNested(order, ["solution.has_active_offer", "service.has_active_offer"])
+                            ? "Yes"
+                            : "No"}
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>Discount</dt>
+                        <dd>
+                          {readNested(order, [
+                            "solution.discount_percentage",
+                            "service.discount_percentage",
+                          ]) ?? 0}%
+                        </dd>
+                      </div>
+
+                      <div>
+                        <dt>Created At</dt>
+                        <dd>{readNested(order, ["solution.created_at", "service.created_at"]) || "-"}</dd>
+                      </div>
+
+                      <div>
+                        <dt>Created</dt>
+                        <dd>{readNested(order, ["solution.created_from", "service.created_from"]) || "-"}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="order-details-description">
+                      <dt>Description</dt>
+                      <dd>{getOrderItemMeta(order)}</dd>
+                    </div>
+                  </section>
+                )}
 
                 <section className="order-details-card">
                   <header>
@@ -1110,8 +1192,8 @@ export default function CustomerServiceOrdersPage() {
   const openClientOrders = async (order) => {
     setSelectedOrder(order);
     setDetailsOpen(true);
-    setTransferDepartmentId(getDepartmentId(order) || "");
-    setStatusValue(getOrderStatus(order) || "initially_accepted");
+    setTransferDepartmentId(String(getDepartmentId(order) || LEGAL_TRANSFER_DEPARTMENT_ID));
+    setStatusValue(getTransferStatusValue(getOrderStatus(order)));
     setNoteText("");
     dispatch(clearCustomerServiceOrderActionState());
     dispatch(clearCustomerServiceSelectedOrder());
@@ -1162,20 +1244,22 @@ export default function CustomerServiceOrdersPage() {
 
   const openOrderAction = (type, order) => {
     const departmentId = getDepartmentId(order);
+    const nextTransferDepartment =
+      type === "transfer"
+        ? String(LEGAL_TRANSFER_DEPARTMENT_ID)
+        : isTransferDepartmentId(departmentId)
+          ? String(departmentId)
+          : "";
 
     setOpenActionMenuId("");
     setSelectedOrder(order);
     setActionType(type);
     setActionOpen(true);
-    setTransferDepartmentId(
-      type === "transfer" && !isTransferDepartmentId(departmentId)
-        ? ""
-        : departmentId || ""
-    );
+    setTransferDepartmentId(nextTransferDepartment);
     setNoteText("");
     setStatusValue(
       type === "status"
-        ? getOrderStatus(order) || "initially_accepted"
+        ? getTransferStatusValue(getOrderStatus(order))
         : "initially_accepted"
     );
     dispatch(clearCustomerServiceOrderActionState());
@@ -1197,6 +1281,8 @@ export default function CustomerServiceOrdersPage() {
     const orderId = getOrderId(selectedOrder);
     if (!orderId || orderId === "-") return;
 
+    if (actionType === "status" && !isEditableStatusValue(statusValue)) return;
+
     let result;
 
     if (actionType === "transfer") {
@@ -1206,7 +1292,7 @@ export default function CustomerServiceOrdersPage() {
         transferCustomerServiceOrder({
           orderId,
           departmentId: transferDepartmentId,
-          status: statusValue,
+          status: getTransferStatusValue(statusValue),
           note: noteText.trim(),
         })
       );
@@ -1227,7 +1313,7 @@ export default function CustomerServiceOrdersPage() {
       result = await dispatch(
         changeCustomerServiceOrderStatus({
           orderId,
-          status: statusValue,
+          status: getTransferStatusValue(statusValue),
         })
       );
     }
@@ -1275,11 +1361,12 @@ export default function CustomerServiceOrdersPage() {
 
     const orderId = getOrderId(currentOrderDetails);
     if (!orderId || orderId === "-") return;
+    if (!isEditableStatusValue(statusValue)) return;
 
     const result = await dispatch(
       changeCustomerServiceOrderStatus({
         orderId,
-        status: statusValue,
+        status: getTransferStatusValue(statusValue),
       })
     );
 
@@ -1299,7 +1386,7 @@ export default function CustomerServiceOrdersPage() {
       transferCustomerServiceOrder({
         orderId,
         departmentId: transferDepartmentId,
-        status: statusValue,
+        status: getTransferStatusValue(statusValue),
         note: noteText.trim(),
       })
     );

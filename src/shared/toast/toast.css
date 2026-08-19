@@ -1,0 +1,73 @@
+.app-toast-region {
+  position: fixed;
+  z-index: 10000;
+  inset-block-start: 22px;
+  inset-inline-end: 24px;
+  width: min(410px, calc(100vw - 32px));
+  display: grid;
+  gap: 11px;
+  pointer-events: none;
+}
+
+.app-toast {
+  --toast-color: #286b9e;
+  --toast-border: #aad0e9;
+  --toast-bg: rgba(244, 251, 255, .97);
+  position: relative;
+  overflow: hidden;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 14px 14px 15px;
+  color: var(--toast-color);
+  border: 1px solid var(--toast-border);
+  border-radius: 14px;
+  background: var(--toast-bg);
+  box-shadow: 0 20px 55px rgba(8, 30, 55, .22), inset 0 1px rgba(255,255,255,.58);
+  backdrop-filter: blur(18px);
+  pointer-events: auto;
+  animation: app-toast-in .28s cubic-bezier(.2,.8,.2,1) both;
+}
+
+.app-toast::after {
+  content: "";
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 4px;
+  background: currentColor;
+}
+
+.app-toast--success { --toast-color: #08745d; --toast-border: #8edbc7; --toast-bg: rgba(236,253,247,.97); }
+.app-toast--error { --toast-color: #b42318; --toast-border: #fecaca; --toast-bg: rgba(255,241,242,.98); }
+.app-toast--warning { --toast-color: #a05c00; --toast-border: #f5cf81; --toast-bg: rgba(255,249,230,.98); }
+.app-toast__icon { width: 38px; height: 38px; display: grid; place-items: center; border-radius: 11px; background: color-mix(in srgb, currentColor 11%, transparent); }
+.app-toast__copy { min-width: 0; }
+.app-toast__copy strong { display: block; margin-bottom: 2px; color: inherit; font-size: 13px; }
+.app-toast__copy p { margin: 0; color: inherit; font-size: 13px; font-weight: 700; line-height: 1.55; overflow-wrap: anywhere; }
+.app-toast > button { width: 30px; height: 30px; display: grid; place-items: center; padding: 0; border: 0; border-radius: 8px; color: inherit; background: transparent; cursor: pointer; opacity: .72; }
+.app-toast > button:hover { opacity: 1; background: color-mix(in srgb, currentColor 9%, transparent); }
+
+html[data-theme="dark"] .app-toast { --toast-bg: rgba(12,31,49,.97); --toast-border: #355169; --toast-color: #a8d7f4; box-shadow: 0 22px 60px rgba(0,0,0,.42); }
+html[data-theme="dark"] .app-toast--success { --toast-bg: rgba(11,48,42,.97); --toast-border: #176a59; --toast-color: #85f0cf; }
+html[data-theme="dark"] .app-toast--error { --toast-bg: rgba(53,25,30,.98); --toast-border: #7f2c31; --toast-color: #ffb4ad; }
+html[data-theme="dark"] .app-toast--warning { --toast-bg: rgba(54,39,13,.98); --toast-border: #805d1d; --toast-color: #ffd788; }
+
+/* Success is now communicated consistently through the global toast. */
+.employee-form-success,
+.roles-alert.success,
+.customer-service-form-success { display: none !important; }
+
+@keyframes app-toast-in {
+  from { opacity: 0; transform: translate3d(0,-12px,0) scale(.97); }
+  to { opacity: 1; transform: none; }
+}
+
+@media (max-width: 560px) {
+  .app-toast-region { inset-block-start: 14px; inset-inline: 16px; width: auto; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-toast { animation-duration: .01ms; }
+}

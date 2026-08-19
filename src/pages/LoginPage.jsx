@@ -13,20 +13,45 @@ import {
   SunMedium,
 } from "lucide-react";
 
-import { loginUser } from "@/Rools/admin/features/auth/model/auth.thunks";
-import { validateLogin, validatePassword } from "@/shared/utils/validation";
-import { getAssignedWorkspaces } from "@/shared/auth/workspaces";
+import {
+  loginUser,
+  selectRole,
+} from "@/Rools/admin/features/auth/model/auth.thunks";
+
+import { activateAssignedRole } from "@/Rools/admin/features/auth/model/auth.slice";
+
+import {
+  validateLogin,
+  validatePassword,
+} from "@/shared/utils/validation";
+
+import {
+  extractAvailableRoles,
+  getWorkspaceForRole,
+  getAssignedWorkspaces,
+} from "@/shared/auth/workspaces";
+
 import platinumLogo from "@/assets/platinum-logo-clean.png";
 import { getLanguage, setLanguage, t } from "@/shared/i18n";
 import { useTheme } from "@/shared/theme/useTheme";
 import "@/shared/ui/login.css";
 
-// --- منطق استخراج ومطابقة الأدوار والمسارات الذكي ---
-const normalizeText = (value) => String(value || "").trim().toLowerCase();
+
+// ======================================================
+// منطق استخراج ومطابقة الأدوار والمسارات
+// ======================================================
+
+const normalizeText = (value) =>
+  String(value || "").trim().toLowerCase();
+
 
 const collectUserText = (user = {}, availableRoles = []) => {
   const rolesText = availableRoles
-    .map((r) => (typeof r === "string" ? r : r.name || r.slug || r.role || ""))
+    .map((r) =>
+      typeof r === "string"
+        ? r
+        : r.name || r.slug || r.role || ""
+    )
     .join(" ");
 
   return [
@@ -52,35 +77,74 @@ const collectUserText = (user = {}, availableRoles = []) => {
     .join(" ");
 };
 
-const hasAnyMatch = (value, words) => words.some((word) => value.includes(word));
+
+const hasAnyMatch = (value, words) =>
+  words.some((word) => value.includes(word));
+
+
+// ======================================================
+// تحديد المسار المناسب بعد تسجيل الدخول
+// ======================================================
 
 const getLoginPath = (payload = {}) => {
-  const user = payload.user || payload.data?.user || {};
+  const user =
+    payload.user ||
+    payload.data?.user ||
+    {};
+
   const permissions =
     payload.permissions ||
     payload.user?.permissions ||
     payload.data?.permissions ||
     [];
-  const availableRoles =
-    payload.available_roles || payload.data?.available_roles || [];
 
-  // 1. إذا كان لدى المستخدم أكثر من مساحة عمل محددة في نظام Workspaces الجديد
+  const availableRoles =
+    payload.available_roles ||
+    payload.data?.available_roles ||
+    [];
+
+  // ------------------------------------------------------
+  // إذا كان لدى المستخدم أكثر من Workspace
+  // ------------------------------------------------------
+
   try {
     const assigned = getAssignedWorkspaces(user);
+
     if (assigned && assigned.length > 1) {
       return "/choose-workspace";
     }
-  } catch (e) {
-    console.warn("Workspaces resolution fallback:", e);
+  } catch (error) {
+    console.warn(
+      "Workspaces resolution fallback:",
+      error
+    );
   }
 
-  // 2. التحقق حسب بيانات الوظيفة والـ Roles المسجلة
-  const userText = collectUserText(user, availableRoles);
 
-  if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
+  // ------------------------------------------------------
+  // التحقق حسب بيانات المستخدم والـ Roles
+  // ------------------------------------------------------
+
+  const userText = collectUserText(
+    user,
+    availableRoles
+  );
+
+
+  // Engineering
+  if (
+    hasAnyMatch(userText, [
+      "engineering",
+      "engineer",
+      "engineering_staff",
+      "هندسة",
+    ])
+  ) {
     return "/engineering";
   }
 
+
+  // Finance
   if (
     hasAnyMatch(userText, [
       "finance_staff",
@@ -96,6 +160,8 @@ const getLoginPath = (payload = {}) => {
     return "/financial";
   }
 
+
+  // Customer Service
   if (
     hasAnyMatch(userText, [
       "customer_service_staff",
@@ -108,28 +174,75 @@ const getLoginPath = (payload = {}) => {
     return "/customer-service";
   }
 
-  if (hasAnyMatch(userText, ["marketing_staff", "marketing", "marketer", "تسويق"])) {
+
+  // Marketing
+  if (
+    hasAnyMatch(userText, [
+      "marketing_staff",
+      "marketing",
+      "marketer",
+      "تسويق",
+    ])
+  ) {
     return "/marketing";
   }
 
-  if (hasAnyMatch(userText, ["legal", "law", "قانون"])) {
+
+  // Legal
+  if (
+    hasAnyMatch(userText, [
+      "legal",
+      "law",
+      "قانون",
+    ])
+  ) {
     return "/legal/slots";
   }
 
-  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
+
+  // Admin
+  if (
+    hasAnyMatch(userText, [
+      "admin",
+      "administrator",
+      "مدير",
+    ])
+  ) {
     return "/admin";
   }
 
-  // 3. التحقق حسب الصلاحيات (Permissions)
+
+  // ------------------------------------------------------
+  // التحقق حسب Permissions
+  // ------------------------------------------------------
+
   const permissionsText = permissions
-    .map((p) => (typeof p === "string" ? p : p?.name || p?.key || p?.slug || ""))
+    .map((permission) =>
+      typeof permission === "string"
+        ? permission
+        : permission?.name ||
+          permission?.key ||
+          permission?.slug ||
+          ""
+    )
     .map(normalizeText)
     .join(" ");
 
-  if (hasAnyMatch(permissionsText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
+
+  // Engineering permissions
+  if (
+    hasAnyMatch(permissionsText, [
+      "engineering",
+      "engineer",
+      "engineering_staff",
+      "هندسة",
+    ])
+  ) {
     return "/engineering";
   }
 
+
+  // Finance permissions
   if (
     hasAnyMatch(permissionsText, [
       "payment",
@@ -142,6 +255,8 @@ const getLoginPath = (payload = {}) => {
     return "/financial";
   }
 
+
+  // Customer Service permissions
   if (
     hasAnyMatch(permissionsText, [
       "read.client",
@@ -158,105 +273,457 @@ const getLoginPath = (payload = {}) => {
     return "/customer-service";
   }
 
-  if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
+
+  // Legal permissions
+  if (
+    hasAnyMatch(permissionsText, [
+      "legal",
+      "law",
+      "قانون",
+    ])
+  ) {
     return "/legal/slots";
   }
 
+
+  // fallback
   return "/admin";
 };
 
-// --- المكون الرئيسي للمصادقة ---
+
+// ======================================================
+// Login Page
+// ======================================================
+
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { loading, error, token, user, verifiedByBackend } = useSelector(
-    (state) => state.auth
-  );
-  const { theme, toggleTheme } = useTheme();
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [formData, setFormData] = useState({ login: "", password: "" });
-  const [fieldErrors, setFieldErrors] = useState({ login: "", password: "" });
+  const {
+    loading,
+    error,
+    token,
+    user,
+    activeRole,
+    verifiedByBackend,
+  } = useSelector((state) => state.auth);
 
-  // إعادة التوجيه في حال كان المستخدم مكيّش ومفعل الجلسة سابقاً
+  const {
+    theme,
+    toggleTheme,
+  } = useTheme();
+
+
+  const [showPassword, setShowPassword] =
+    useState(false);
+
+  const [formData, setFormData] =
+    useState({
+      login: "",
+      password: "",
+    });
+
+  const [fieldErrors, setFieldErrors] =
+    useState({
+      login: "",
+      password: "",
+    });
+
+
+  // ======================================================
+  // إذا كان المستخدم مسجل دخول مسبقاً
+  // ======================================================
+
   if (token && verifiedByBackend) {
-    const targetPath = getLoginPath({ user });
-    return <Navigate to={targetPath} replace />;
+
+    // أولاً نحاول الاعتماد على activeRole
+    if (activeRole) {
+      const workspace =
+        getWorkspaceForRole(activeRole);
+
+      if (workspace?.path) {
+        return (
+          <Navigate
+            to={workspace.path}
+            replace
+          />
+        );
+      }
+    }
+
+    // fallback على المنطق القديم
+    const targetPath =
+      getLoginPath({ user });
+
+    return (
+      <Navigate
+        to={targetPath}
+        replace
+      />
+    );
   }
 
-  const handleChange = ({ target: { name, value } }) => {
-    setFormData((current) => ({ ...current, [name]: value }));
-    if (fieldErrors[name]) setFieldErrors((current) => ({ ...current, [name]: "" }));
+
+  // ======================================================
+  // تغيير الحقول
+  // ======================================================
+
+  const handleChange = ({
+    target: { name, value },
+  }) => {
+
+    setFormData((current) => ({
+      ...current,
+      [name]: value,
+    }));
+
+    if (fieldErrors[name]) {
+      setFieldErrors((current) => ({
+        ...current,
+        [name]: "",
+      }));
+    }
   };
+
+
+  // ======================================================
+  // تسجيل الدخول
+  // ======================================================
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
+
+    // ------------------------------
+    // Validation
+    // ------------------------------
+
     const nextErrors = {
-      login: validateLogin(formData.login),
-      password: validatePassword(formData.password),
+      login: validateLogin(
+        formData.login
+      ),
+      password: validatePassword(
+        formData.password
+      ),
     };
+
     setFieldErrors(nextErrors);
 
-    if (nextErrors.login || nextErrors.password) return;
 
-    const result = await dispatch(loginUser(formData));
-
-    if (loginUser.fulfilled.match(result)) {
-      // الحصول على المسار الصحيح بناءً على بيانات الـ Payload بالكامل
-      const targetPath = getLoginPath(result.payload);
-      navigate(targetPath, { replace: true });
+    if (
+      nextErrors.login ||
+      nextErrors.password
+    ) {
+      return;
     }
+
+
+    // ------------------------------
+    // Login API
+    // ------------------------------
+
+    const result =
+      await dispatch(
+        loginUser(formData)
+      );
+
+
+    // إذا فشل تسجيل الدخول
+    if (
+      !loginUser.fulfilled.match(result)
+    ) {
+      return;
+    }
+
+
+    // ------------------------------
+    // استخراج الـ Payload
+    // ------------------------------
+
+    const payload =
+      result.payload?.data ||
+      result.payload ||
+      {};
+
+
+    const roles =
+      extractAvailableRoles(payload);
+
+
+    // ====================================================
+    // أكثر من Role
+    // ====================================================
+
+    if (roles.length > 1) {
+      navigate(
+        "/choose-workspace",
+        { replace: true }
+      );
+
+      return;
+    }
+
+
+    // ====================================================
+    // Role واحدة فقط
+    // ====================================================
+
+    if (roles.length === 1) {
+      const selectedRole =
+        roles[0];
+
+      const workspace =
+        getWorkspaceForRole(
+          selectedRole
+        );
+
+
+      // ------------------------------------------
+      // Role ليس لها ID
+      // ------------------------------------------
+
+      if (selectedRole.id == null) {
+
+        dispatch(
+          activateAssignedRole(
+            selectedRole
+          )
+        );
+
+        const fallbackPath =
+          getLoginPath(
+            result.payload
+          );
+
+        navigate(
+          workspace?.path ||
+            fallbackPath,
+          { replace: true }
+        );
+
+        return;
+      }
+
+
+      // ------------------------------------------
+      // Role لها ID → Select Role API
+      // ------------------------------------------
+
+      const roleResult =
+        await dispatch(
+          selectRole(
+            selectedRole
+          )
+        );
+
+
+      if (
+        !selectRole.fulfilled.match(
+          roleResult
+        )
+      ) {
+        return;
+      }
+
+
+      const fallbackPath =
+        getLoginPath(
+          result.payload
+        );
+
+
+      navigate(
+        workspace?.path ||
+          fallbackPath,
+        { replace: true }
+      );
+
+      return;
+    }
+
+
+    // ====================================================
+    // إذا لم نستطع استخراج Roles
+    // نستخدم المنطق القديم
+    // ====================================================
+
+    const targetPath =
+      getLoginPath(
+        result.payload
+      );
+
+    navigate(
+      targetPath,
+      { replace: true }
+    );
   };
+
+
+  // ======================================================
+  // UI
+  // ======================================================
 
   return (
     <main className="platinum-login-page">
+
       <section className="platinum-login-shell">
+
+        {/* ============================= */}
+        {/* Language + Theme */}
+        {/* ============================= */}
+
         <div className="auth-page-controls">
+
           <button
             type="button"
             onClick={() => {
-              setLanguage(getLanguage() === "ar" ? "en" : "ar");
+              setLanguage(
+                getLanguage() === "ar"
+                  ? "en"
+                  : "ar"
+              );
+
               window.location.reload();
             }}
           >
             <Globe2 size={16} />
-            <span>{getLanguage() === "ar" ? "العربية" : "English"}</span>
+
+            <span>
+              {getLanguage() === "ar"
+                ? "العربية"
+                : "English"}
+            </span>
           </button>
-          <button type="button" onClick={toggleTheme}>
-            {theme === "dark" ? <SunMedium size={16} /> : <Moon size={16} />}
-            <span>{theme === "dark" ? t("light_mode") : t("dark_mode")}</span>
+
+
+          <button
+            type="button"
+            onClick={toggleTheme}
+          >
+            {theme === "dark"
+              ? (
+                <SunMedium size={16} />
+              )
+              : (
+                <Moon size={16} />
+              )
+            }
+
+            <span>
+              {theme === "dark"
+                ? t("light_mode")
+                : t("dark_mode")}
+            </span>
           </button>
+
         </div>
+
+
+        {/* ============================= */}
+        {/* Brand Panel */}
+        {/* ============================= */}
 
         <div className="login-brand-panel">
+
           <span className="login-orb login-orb-one" />
+
           <span className="login-orb login-orb-two" />
-          <img src={platinumLogo} alt="Platinum Contracting and Construction" />
+
+
+          <img
+            src={platinumLogo}
+            alt="Platinum Contracting and Construction"
+          />
+
+
           <div className="login-brand-copy">
-            <span className="login-eyebrow">PLATINUM PORTAL</span>
-            <h1>{t("login_brand_title")}</h1>
-            <p>{t("login_brand_desc")}</p>
+
+            <span className="login-eyebrow">
+              PLATINUM PORTAL
+            </span>
+
+            <h1>
+              {t("login_brand_title")}
+            </h1>
+
+            <p>
+              {t("login_brand_desc")}
+            </p>
+
           </div>
+
+
           <div className="login-trust">
+
             <ShieldCheck size={20} />
-            <span>{t("secure_access")}</span>
+
+            <span>
+              {t("secure_access")}
+            </span>
+
           </div>
+
         </div>
 
-        <div className="login-form-panel">
-          <div className="login-mobile-logo">
-            <img src={platinumLogo} alt="Platinum" />
-          </div>
-          <span className="login-eyebrow">{t("welcome_back")}</span>
-          <h2>{t("login_title")}</h2>
-          <p className="login-intro">{t("login_subtitle")}</p>
 
-          <form onSubmit={handleLogin} noValidate>
+        {/* ============================= */}
+        {/* Login Form */}
+        {/* ============================= */}
+
+        <div className="login-form-panel">
+
+          <div className="login-mobile-logo">
+
+            <img
+              src={platinumLogo}
+              alt="Platinum"
+            />
+
+          </div>
+
+
+          <span className="login-eyebrow">
+            {t("welcome_back")}
+          </span>
+
+
+          <h2>
+            {t("login_title")}
+          </h2>
+
+
+          <p className="login-intro">
+            {t("login_subtitle")}
+          </p>
+
+
+          <form
+            onSubmit={handleLogin}
+            noValidate
+          >
+
+            {/* ========================= */}
+            {/* Email */}
+            {/* ========================= */}
+
             <label className="modern-field">
-              <span>{t("email")}</span>
-              <div className={fieldErrors.login ? "has-error" : ""}>
+
+              <span>
+                {t("email")}
+              </span>
+
+
+              <div
+                className={
+                  fieldErrors.login
+                    ? "has-error"
+                    : ""
+                }
+              >
+
                 <Mail size={19} />
+
+
                 <input
                   type="email"
                   name="login"
@@ -265,47 +732,148 @@ export default function LoginPage() {
                   placeholder="name@company.com"
                   autoComplete="email"
                 />
+
               </div>
-              {fieldErrors.login && <small>{fieldErrors.login}</small>}
+
+
+              {fieldErrors.login && (
+                <small>
+                  {fieldErrors.login}
+                </small>
+              )}
+
             </label>
 
+
+            {/* ========================= */}
+            {/* Password */}
+            {/* ========================= */}
+
             <label className="modern-field">
-              <span>{t("password")}</span>
-              <div className={fieldErrors.password ? "has-error" : ""}>
+
+              <span>
+                {t("password")}
+              </span>
+
+
+              <div
+                className={
+                  fieldErrors.password
+                    ? "has-error"
+                    : ""
+                }
+              >
+
                 <LockKeyhole size={19} />
+
+
                 <input
-                  type={showPassword ? "text" : "password"}
+                  type={
+                    showPassword
+                      ? "text"
+                      : "password"
+                  }
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder={t("password_placeholder")}
+                  placeholder={
+                    t(
+                      "password_placeholder"
+                    )
+                  }
                   autoComplete="current-password"
                 />
+
+
                 <button
                   type="button"
-                  onClick={() => setShowPassword((value) => !value)}
-                  aria-label={t("toggle_password")}
+                  onClick={() =>
+                    setShowPassword(
+                      (value) =>
+                        !value
+                    )
+                  }
+                  aria-label={
+                    t(
+                      "toggle_password"
+                    )
+                  }
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+
+                  {showPassword
+                    ? (
+                      <EyeOff
+                        size={18}
+                      />
+                    )
+                    : (
+                      <Eye
+                        size={18}
+                      />
+                    )
+                  }
+
                 </button>
+
               </div>
-              {fieldErrors.password && <small>{fieldErrors.password}</small>}
+
+
+              {fieldErrors.password && (
+                <small>
+                  {
+                    fieldErrors.password
+                  }
+                </small>
+              )}
+
             </label>
 
+
+            {/* ========================= */}
+            {/* Backend Error */}
+            {/* ========================= */}
+
             {error && (
-              <div className="login-error" role="alert">
+              <div
+                className="login-error"
+                role="alert"
+              >
                 {error}
               </div>
             )}
 
-            <button className="platinum-login-button" type="submit" disabled={loading}>
-              <span>{loading ? t("loading") : t("login")}</span>
+
+            {/* ========================= */}
+            {/* Login Button */}
+            {/* ========================= */}
+
+            <button
+              className="platinum-login-button"
+              type="submit"
+              disabled={loading}
+            >
+
+              <span>
+                {loading
+                  ? t("loading")
+                  : t("login")}
+              </span>
+
               <ArrowLeft size={19} />
+
             </button>
+
           </form>
-          <p className="login-help">{t("login_help")}</p>
+
+
+          <p className="login-help">
+            {t("login_help")}
+          </p>
+
         </div>
+
       </section>
+
     </main>
   );
 }

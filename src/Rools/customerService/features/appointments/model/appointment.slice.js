@@ -15,6 +15,7 @@ const initialState = {
   loading: false,
   actionLoading: false,
   error: null,
+  actionError: null,
 };
 
 const STATUS_OVERRIDES_KEY = "customerServiceAppointmentStatusOverrides";
@@ -107,29 +108,29 @@ const appointmentSlice = createSlice({
       })
       .addCase(createCustomerServiceAppointment.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
+        state.actionError = null;
       })
       .addCase(createCustomerServiceAppointment.fulfilled, (state) => {
         state.actionLoading = false;
       })
       .addCase(createCustomerServiceAppointment.rejected, (state, action) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to create appointment";
+        state.actionError = action.payload || "Failed to create appointment";
       })
       .addCase(updateCustomerServiceAppointment.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
+        state.actionError = null;
       })
       .addCase(updateCustomerServiceAppointment.fulfilled, (state) => {
         state.actionLoading = false;
       })
       .addCase(updateCustomerServiceAppointment.rejected, (state, action) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to update appointment";
+        state.actionError = action.payload || "Failed to update appointment";
       })
       .addCase(cancelCustomerServiceAppointment.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
+        state.actionError = null;
       })
       .addCase(cancelCustomerServiceAppointment.fulfilled, (state, action) => {
         state.actionLoading = false;
@@ -137,11 +138,11 @@ const appointmentSlice = createSlice({
       })
       .addCase(cancelCustomerServiceAppointment.rejected, (state, action) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to cancel appointment";
+        state.actionError = action.payload || "Failed to cancel appointment";
       })
       .addCase(completeCustomerServiceAppointment.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
+        state.actionError = null;
       })
       .addCase(completeCustomerServiceAppointment.fulfilled, (state, action) => {
         state.actionLoading = false;
@@ -149,7 +150,7 @@ const appointmentSlice = createSlice({
       })
       .addCase(completeCustomerServiceAppointment.rejected, (state, action) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to complete appointment";
+        state.actionError = action.payload || "Failed to complete appointment";
       });
   },
 });

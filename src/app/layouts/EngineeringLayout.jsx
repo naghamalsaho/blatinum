@@ -14,18 +14,24 @@ export default function EngineeringLayout() {
   const handleLogout = async () => {
     try {
       const token = localStorage.getItem("fcmToken");
+
       if (token) {
         try {
           await deleteDeviceTokenApi(token);
-        } catch (e) {}
+        } catch (error) {
+          console.warn("Failed to delete device token:", error);
+        }
+
         localStorage.removeItem("fcmToken");
       }
+
       await logoutRequest();
     } finally {
       dispatch(logout());
       navigate("/", { replace: true });
     }
   };
+
   return (
     <DashboardLayout
       sidebarConfig={engineeringSidebar}
@@ -39,15 +45,29 @@ export default function EngineeringLayout() {
         subtitle: "إدارة المشاريع والإسنادات",
         searchPlaceholder: "بحث في القسم الهندسي...",
         actions: [
-          { key: "bell", label: "الإشعارات", icon: Bell, onClick: () => {} },
-          { key: "lang", label: "اللغة", icon: Globe, onClick: () => {} },
+          {
+            key: "bell",
+            label: "الإشعارات",
+            icon: Bell,
+            onClick: () => {},
+          },
+          {
+            key: "lang",
+            label: "اللغة",
+            icon: Globe,
+            onClick: () => {},
+          },
         ],
         user: {
           name: "المشرف الهندسي",
           avatar: "ه",
         },
       }}
-      footer={{ label: "تسجيل الخروج", icon: LogOut, onClick: handleLogout }}
+      footer={{
+        label: "تسجيل الخروج",
+        icon: LogOut,
+        onClick: handleLogout,
+      }}
     >
       <Outlet />
     </DashboardLayout>

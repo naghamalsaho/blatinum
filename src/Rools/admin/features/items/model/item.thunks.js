@@ -28,13 +28,28 @@ const normalizeErrorMessage = (message) => {
   return String(message);
 };
 
+const extractList = (payload) => {
+  const candidates = [payload, payload?.data, payload?.data?.data, payload?.result];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (!candidate || typeof candidate !== "object") continue;
+
+    for (const key of ["items", "records", "results", "data", "rows"]) {
+      if (Array.isArray(candidate[key])) return candidate[key];
+    }
+  }
+
+  return [];
+};
+
 export const fetchItems = createAsyncThunk(
   "items/fetchAll",
   async (_, thunkAPI) => {
     const result = await getItemsRequest();
 
     if (result.ok) {
-      return result.data?.data ?? [];
+      return extractList(result.data);
     }
 
     if (result.status === 401) {

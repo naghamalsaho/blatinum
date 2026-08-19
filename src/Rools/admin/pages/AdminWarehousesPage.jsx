@@ -263,7 +263,14 @@ export default function AdminWarehousesPage() {
       const result = await getLocationsRequest();
 
       if (!ignore && result.ok) {
-        setLocations(result.data?.data ?? []);
+        const locationPayload = result.data?.data;
+        setLocations(
+          Array.isArray(locationPayload)
+            ? locationPayload
+            : Array.isArray(locationPayload?.data)
+              ? locationPayload.data
+              : []
+        );
       }
 
       if (!ignore) {
@@ -679,7 +686,7 @@ export default function AdminWarehousesPage() {
         )}
       </TableCard>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={createOpen}
         onClose={() => {
           setCreateOpen(false);
@@ -758,7 +765,7 @@ export default function AdminWarehousesPage() {
         </form>
       </Modal>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={Boolean(activeItemsWarehouse)}
         onClose={() => setItemsWarehouse(null)}
         title={activeItemsWarehouse?.name || "Warehouse items"}
@@ -829,7 +836,7 @@ export default function AdminWarehousesPage() {
         </section>
       </Modal>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={itemDeleteOpen}
         onClose={closeItemDeleteModal}
         title="Delete item"
@@ -864,7 +871,7 @@ export default function AdminWarehousesPage() {
         </div>
       </Modal>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={Boolean(itemCreateWarehouse)}
         onClose={closeItemCreateModal}
         title="Create item"
@@ -975,7 +982,7 @@ export default function AdminWarehousesPage() {
         </form>
       </Modal>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={editOpen}
         onClose={closeEditModal}
         title="Update warehouse"
@@ -1038,7 +1045,7 @@ export default function AdminWarehousesPage() {
         </form>
       </Modal>
 
-      <Modal
+      <Modal className="warehouse-modal"
         open={deleteOpen}
         onClose={() => {
           setDeleteOpen(false);

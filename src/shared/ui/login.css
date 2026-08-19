@@ -353,3 +353,77 @@ html[data-theme="dark"] .modern-field input:-webkit-autofill:focus {
   .workspace-panel .workspace-grid { grid-template-columns: 1fr; }
   .workspace-panel .workspace-grid > button { min-height: 230px; }
 }
+
+/* Keep the authentication composition identical in RTL and LTR.
+   Only the content direction changes; the brand stays left and the form right. */
+.platinum-login-shell,
+.platinum-login-shell.workspace-shell {
+  direction: ltr;
+}
+
+.auth-page-controls {
+  inset-inline-end: auto;
+  right: 30px;
+  left: auto;
+}
+
+[dir="rtl"] .auth-page-controls,
+[dir="rtl"] .login-form-panel,
+[dir="rtl"] .login-brand-copy,
+[dir="rtl"] .workspace-panel {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .login-brand-panel > img {
+  object-position: left center;
+}
+
+[dir="rtl"] .login-brand-copy {
+  max-width: 440px;
+  align-self: flex-start;
+}
+
+[dir="rtl"] .login-brand-copy h1 {
+  font-size: clamp(35px, 3vw, 46px);
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+[dir="rtl"] .login-form-panel h2 {
+  line-height: 1.35;
+  letter-spacing: 0;
+}
+
+[dir="rtl"] .login-intro,
+[dir="rtl"] .modern-field,
+[dir="rtl"] .login-error {
+  text-align: right;
+}
+
+[dir="rtl"] .modern-field > div {
+  direction: rtl;
+}
+
+[dir="rtl"] .modern-field input {
+  direction: ltr;
+  text-align: left;
+}
+
+[dir="rtl"] .platinum-login-button,
+[dir="rtl"] .login-trust,
+[dir="rtl"] .workspace-choice-copy em {
+  direction: rtl;
+}
+
+@media (max-width: 850px) {
+  .auth-page-controls {
+    inset-inline-end: auto;
+    right: 18px;
+    left: auto;
+  }
+
+  [dir="rtl"] .login-form-panel {
+    padding-inline: 28px;
+  }
+}

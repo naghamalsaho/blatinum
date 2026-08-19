@@ -28,7 +28,7 @@ const cleanPayload = (payload = {}) => {
     }
 
     if (value !== undefined && value !== null && String(value).trim() !== "") {
-      result[key] = String(value).trim();
+      result[key] = key === "unit_id" ? Number(value) : String(value).trim();
     }
   });
 

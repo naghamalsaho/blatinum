@@ -1,13 +1,10 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import {
   assignRolesToUserRequest,
-  createPermissionRequest,
   createRoleRequest,
-  deletePermissionRequest,
   deleteRoleRequest,
   getPermissionsRequest,
   getRolesRequest,
-  updatePermissionRequest,
   updateRolePermissionsRequest,
   updateRoleRequest,
 } from "../api/role.api";
@@ -30,11 +27,29 @@ const normalizeErrorMessage = (message) => {
 };
 
 const extractList = (payload) => {
-  const data = payload?.data;
+  const candidates = [payload, payload?.data, payload?.data?.data, payload?.result, payload?.results];
 
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.data)) return data.data;
-  if (Array.isArray(payload)) return payload;
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+    if (!candidate || typeof candidate !== "object") continue;
+
+    for (const key of [
+      "roles",
+      "permissions",
+      "items",
+      "records",
+      "results",
+      "data",
+      "list",
+      "rows",
+    ]) {
+      if (Array.isArray(candidate[key])) return candidate[key];
+    }
+  }
+
+  if (payload && typeof payload === "object" && Array.isArray(payload.items)) {
+    return payload.items;
+  }
 
   return [];
 };
@@ -79,9 +94,10 @@ export const fetchPermissions = createAsyncThunk(
 export const saveRole = createAsyncThunk(
   "rolePermissions/saveRole",
   async ({ roleId, name }, thunkAPI) => {
+    const payload = { name, guard_name: "web" };
     const result = roleId
-      ? await updateRoleRequest(roleId, { name })
-      : await createRoleRequest({ name });
+      ? await updateRoleRequest(roleId, payload)
+      : await createRoleRequest(payload);
 
     if (result.ok) {
       await thunkAPI.dispatch(fetchRoles());
@@ -103,41 +119,6 @@ export const removeRole = createAsyncThunk(
     }
 
     return rejectApiError(result, thunkAPI, "Failed to delete role");
-  }
-);
-
-export const savePermission = createAsyncThunk(
-  "rolePermissions/savePermission",
-  async ({ permissionId, name, module }, thunkAPI) => {
-    const payload = {
-      name,
-      module,
-    };
-    const result = permissionId
-      ? await updatePermissionRequest(permissionId, payload)
-      : await createPermissionRequest(payload);
-
-    if (result.ok) {
-      await thunkAPI.dispatch(fetchPermissions());
-      return result.data?.data || result.data;
-    }
-
-    return rejectApiError(result, thunkAPI, "Failed to save permission");
-  }
-);
-
-export const removePermission = createAsyncThunk(
-  "rolePermissions/removePermission",
-  async (permissionId, thunkAPI) => {
-    const result = await deletePermissionRequest(permissionId);
-
-    if (result.ok) {
-      await thunkAPI.dispatch(fetchPermissions());
-      await thunkAPI.dispatch(fetchRoles());
-      return permissionId;
-    }
-
-    return rejectApiError(result, thunkAPI, "Failed to delete permission");
   }
 );
 

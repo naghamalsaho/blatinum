@@ -14,6 +14,7 @@ export default function Modal({
   children,
   footer,
   size = "md",
+  className = "",
 }) {
   const [mounted, setMounted] = useState(open);
   const [visible, setVisible] = useState(open);
@@ -60,7 +61,7 @@ export default function Modal({
 
   return createPortal(
     <div
-      className={`app-modal ${visible ? "is-open" : ""}`}
+      className={`app-modal ${visible ? "is-open" : ""} ${className}`.trim()}
       role="dialog"
       aria-modal="true"
       aria-labelledby={titleId}
@@ -110,4 +111,5 @@ Modal.propTypes = {
   children: PropTypes.node,
   footer: PropTypes.node,
   size: PropTypes.oneOf(["sm", "md", "lg", "xl"]),
+  className: PropTypes.string,
 };

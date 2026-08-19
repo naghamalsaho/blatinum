@@ -15,5 +15,7 @@ export const logoutRequest = () => {
 };
 
 export const selectRoleRequest = (roleId) => {
-  return api.post(AUTH_ENDPOINTS.selectRole, { role_id: roleId });
+  const formData = new FormData();
+  formData.append("role_id", roleId);
+  return api.postForm(AUTH_ENDPOINTS.selectRole, formData);
 };

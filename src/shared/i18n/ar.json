@@ -406,7 +406,8 @@
     "dashboard": "لوحة القسم القانوني",
     "available_slots": "المواعيد المتاحة",
     "sales": "المبيعات",
-    "contracts": "العقود"
+    "contracts": "العقود",
+    "incoming_orders": "الطلبات الواردة"
   },
   "legal_sales": {
     "title": "سجلات المبيعات",

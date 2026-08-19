@@ -19,9 +19,7 @@ import {
   assignRolesToUser,
   fetchPermissions,
   fetchRoles,
-  removePermission,
   removeRole,
-  savePermission,
   saveRole,
   saveRolePermissions,
 } from "../features/roles/model/role.thunks";
@@ -157,38 +155,6 @@ const RoleForm = ({ form, onChange, onSubmit, onCancel, saving }) => (
   </form>
 );
 
-const PermissionForm = ({ form, onChange, onSubmit, onCancel, saving }) => (
-  <form className="role-inline-form two" onSubmit={onSubmit}>
-    <label>
-      Permission name
-      <input
-        name="name"
-        value={form.name}
-        onChange={onChange}
-        placeholder="view_clients"
-      />
-    </label>
-    <label>
-      Module
-      <input
-        name="module"
-        value={form.module}
-        onChange={onChange}
-        placeholder="Clients"
-      />
-    </label>
-    <div className="role-form-actions">
-      <button type="button" className="role-btn ghost" onClick={onCancel}>
-        Cancel
-      </button>
-      <button type="submit" className="role-btn primary" disabled={saving}>
-        <Save size={15} />
-        {saving ? "Saving..." : "Save"}
-      </button>
-    </div>
-  </form>
-);
-
 RoleForm.propTypes = {
   form: PropTypes.shape({
     name: PropTypes.string.isRequired,
@@ -203,21 +169,6 @@ RoleForm.defaultProps = {
   saving: false,
 };
 
-PermissionForm.propTypes = {
-  form: PropTypes.shape({
-    name: PropTypes.string.isRequired,
-    module: PropTypes.string.isRequired,
-  }).isRequired,
-  onChange: PropTypes.func.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  saving: PropTypes.bool,
-};
-
-PermissionForm.defaultProps = {
-  saving: false,
-};
-
 export default function AdminRolesPermissionsPage() {
   const dispatch = useDispatch();
   const {
@@ -226,15 +177,14 @@ export default function AdminRolesPermissionsPage() {
     actionLoading,
     actionError,
     actionMessage,
-  } = useSelector((state) => state.rolePermissions || {});
+  } = useSelector((state) => state.rolePermission || {});
   const { items: employeeRows = [] } = useSelector((state) => state.employees || {});
 
   const [activeTab, setActiveTab] = useState("roles");
   const [searchTerm, setSearchTerm] = useState("");
+  const [roleFormOpen, setRoleFormOpen] = useState(false);
   const [editingRole, setEditingRole] = useState(null);
   const [roleForm, setRoleForm] = useState({ name: "" });
-  const [editingPermission, setEditingPermission] = useState(null);
-  const [permissionForm, setPermissionForm] = useState({ name: "", module: "" });
   const [selectedRoleId, setSelectedRoleId] = useState("");
   const [selectedPermissionIds, setSelectedPermissionIds] = useState([]);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -283,26 +233,15 @@ export default function AdminRolesPermissionsPage() {
   }, [permissionItems, searchTerm]);
 
   const openRoleForm = (role = null) => {
+    setRoleFormOpen(true);
     setEditingRole(role);
     setRoleForm({ name: role ? getName(role) : "" });
   };
 
   const closeRoleForm = () => {
+    setRoleFormOpen(false);
     setEditingRole(null);
     setRoleForm({ name: "" });
-  };
-
-  const openPermissionForm = (permission = null) => {
-    setEditingPermission(permission);
-    setPermissionForm({
-      name: permission ? getName(permission) : "",
-      module: permission ? getPermissionModule(permission) : "",
-    });
-  };
-
-  const closePermissionForm = () => {
-    setEditingPermission(null);
-    setPermissionForm({ name: "", module: "" });
   };
 
   const manageRolePermissions = (role) => {
@@ -340,22 +279,6 @@ export default function AdminRolesPermissionsPage() {
     );
 
     if (saveRole.fulfilled.match(result)) closeRoleForm();
-  };
-
-  const submitPermission = async (event) => {
-    event.preventDefault();
-
-    if (!permissionForm.name.trim()) return;
-
-    const result = await dispatch(
-      savePermission({
-        permissionId: editingPermission ? getId(editingPermission) : null,
-        name: permissionForm.name.trim(),
-        module: permissionForm.module.trim(),
-      })
-    );
-
-    if (savePermission.fulfilled.match(result)) closePermissionForm();
   };
 
   const togglePermission = (permissionId) => {
@@ -468,7 +391,7 @@ export default function AdminRolesPermissionsPage() {
             </div>
           </div>
 
-          {editingRole !== null || roleForm.name ? (
+          {roleFormOpen ? (
             <RoleForm
               form={roleForm}
               onChange={(event) => setRoleForm({ name: event.target.value })}
