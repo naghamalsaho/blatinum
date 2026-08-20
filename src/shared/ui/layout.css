@@ -1309,6 +1309,120 @@ body,
   box-shadow: 0 9px 20px var(--dash-brand-glow);
 }
 
+/* One toolbar language across every dashboard page using the shared Toolbar. */
+.dashboard-shell .dashboard-content .legal-toolbar.dashboard-toolbar-standard {
+  position: relative;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 14px;
+  overflow: visible;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: var(--dash-card-bg);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.05);
+  backdrop-filter: blur(18px);
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-search {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 48px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-input-bg);
+  color: var(--dash-accent);
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-search:focus-within {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--dash-text);
+  font-size: 14px;
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filter-label,
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .status-dropdown-trigger {
+  height: 48px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filter-label {
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .status-dropdown-trigger {
+  min-width: 190px;
+  padding: 0 16px;
+}
+
+.dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-action .primary-action-btn {
+  min-height: 48px;
+  height: 48px;
+  padding-inline: 20px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: #fff;
+  white-space: nowrap;
+}
+
+@media (max-width: 860px) {
+  .dashboard-shell .dashboard-content .legal-toolbar.dashboard-toolbar-standard {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filters {
+    flex-wrap: wrap;
+  }
+
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-status-dropdown,
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .status-dropdown-trigger {
+    flex: 1 1 170px;
+  }
+}
+
+@media (max-width: 560px) {
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filters,
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-action,
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-action .primary-action-btn {
+    width: 100%;
+  }
+
+  .dashboard-shell .dashboard-content .dashboard-toolbar-standard .toolbar-filter-label {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+}
+
 .sidebar-footer {
   display: grid;
   gap: 8px;

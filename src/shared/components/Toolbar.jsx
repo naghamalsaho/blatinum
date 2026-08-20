@@ -14,7 +14,7 @@ export default function Toolbar({
   action = null,
 }) {
   return (
-    <div className="legal-toolbar">
+    <div className="legal-toolbar dashboard-toolbar-standard">
       <div className="toolbar-search">
         <Search size={18} />
 

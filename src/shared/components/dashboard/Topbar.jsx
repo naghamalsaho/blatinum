@@ -1,5 +1,4 @@
 import PropTypes from "prop-types";
-<<<<<<< HEAD
 import {
   Bell,
   ChevronDown,
@@ -9,9 +8,6 @@ import {
   PanelsTopLeft,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-=======
-import { ChevronDown, Search, SunMedium, Moon, PanelsTopLeft } from "lucide-react";
->>>>>>> 7bad699 (save local work before pulling latest changes)
 import { useTheme } from "../../theme/useTheme";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -67,15 +63,12 @@ export default function Topbar({
   const navigate = useNavigate();
   const ThemeIcon = theme === "dark" ? SunMedium : Moon;
   const user = useSelector((state) => state.auth?.user);
-<<<<<<< HEAD
   const account = user?.account || user || {};
   const notificationRef = useRef(null);
   const accountName =
     account.full_name ||
     [account.first_name, account.last_name].filter(Boolean).join(" ") ||
     "Administrator";
-=======
->>>>>>> 7bad699 (save local work before pulling latest changes)
   const canSwitchWorkspace = getAssignedWorkspaces(user).length > 1;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -372,9 +365,6 @@ useEffect(() => {
       </div>
     </header>
   );
-<<<<<<< HEAD
-}
-=======
 }
 
 Topbar.propTypes = {
@@ -390,4 +380,3 @@ Topbar.propTypes = {
     })
   ),
 };
->>>>>>> 7bad699 (save local work before pulling latest changes)

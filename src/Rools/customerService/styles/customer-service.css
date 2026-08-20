@@ -6582,8 +6582,732 @@ details[open] > summary.customer-service-detail-head::after {
 .customer-service-chat-page .chat-message-list {
   position: relative;
   isolation: isolate;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+.customer-service-chat-page .chat-message-avatar {
   overflow: hidden;
 }
+
+.customer-service-chat-page .chat-message-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.chat-side-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 8px;
+  border-bottom: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+}
+
+.chat-side-tabs button {
+  min-height: 40px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--dash-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  font-weight: 750;
+}
+
+.chat-side-tabs button.active {
+  color: var(--dash-accent-strong);
+  background: var(--dash-accent-soft);
+}
+
+.faq-tree-toolbar {
+  padding: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 36px auto;
+  gap: 8px;
+  align-items: center;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.faq-tree-toolbar > div { display: grid; gap: 2px; min-width: 0; }
+.faq-tree-toolbar strong { color: var(--dash-text); font-size: 13px; }
+.faq-tree-toolbar small { color: var(--dash-muted); font-size: 11px; }
+.faq-tree-toolbar button,
+.faq-node-actions button {
+  min-height: 34px;
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  cursor: pointer;
+}
+
+.faq-tree-toolbar .faq-add-root {
+  padding-inline: 10px;
+  border-color: transparent;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: #fff;
+  font-weight: 750;
+}
+
+.faq-tree-scroll {
+  max-height: calc(100vh - 285px);
+  min-height: 300px;
+  padding: 10px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.faq-tree-node {
+  margin-inline-start: calc(var(--faq-depth) * 12px);
+  margin-bottom: 7px;
+  min-height: 58px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto;
+  gap: 6px;
+  align-items: start;
+  border: 1px solid var(--dash-line);
+  border-radius: 10px;
+  background: var(--dash-surface-2);
+}
+
+.faq-tree-node.type-answer { border-inline-start: 3px solid #22c55e; }
+.faq-tree-node.type-action_human { border-inline-start: 3px solid #f59e0b; }
+.faq-tree-node.type-category { border-inline-start: 3px solid var(--dash-accent); }
+.faq-tree-toggle,
+.faq-tree-copy { border: 0; background: transparent; color: var(--dash-text); cursor: pointer; }
+.faq-tree-toggle { width: 28px; height: 28px; display: grid; place-items: center; color: var(--dash-accent); }
+.faq-tree-copy { padding: 1px 0; display: grid; gap: 3px; text-align: start; min-width: 0; }
+.faq-tree-copy strong { font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
+.faq-tree-copy span { color: var(--dash-accent-strong); font-size: 10px; font-weight: 750; text-transform: uppercase; }
+.faq-tree-copy small { color: var(--dash-muted); font-size: 11px; line-height: 1.45; }
+.faq-node-actions { display: flex; gap: 4px; opacity: .45; transition: opacity .18s ease; }
+.faq-tree-node:hover .faq-node-actions { opacity: 1; }
+.faq-node-actions button { width: 28px; min-height: 28px; padding: 0; }
+.faq-node-actions button.danger { color: #ef4444; }
+.faq-tree-error { margin: 8px; padding: 9px 10px; border: 1px solid rgba(239,68,68,.25); border-radius: 8px; background: rgba(239,68,68,.08); color: #ef4444; font-size: 12px; }
+
+.faq-editor-form { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.faq-editor-form label { display: grid; gap: 7px; color: var(--dash-text); font-size: 13px; font-weight: 700; }
+.faq-editor-form .wide { grid-column: 1 / -1; }
+.faq-editor-form :is(input, select, textarea) { width: 100%; border: 1px solid var(--dash-line); border-radius: 9px; background: var(--dash-input-bg); color: var(--dash-text); padding: 11px 12px; outline: 0; font: inherit; }
+.faq-editor-form :is(input, select, textarea):focus { border-color: var(--dash-accent); box-shadow: 0 0 0 3px var(--dash-accent-soft); }
+.faq-editor-form textarea { resize: vertical; min-height: 110px; }
+
+/* Premium, task-focused chat information rail. */
+.customer-service-chat-page .chat-workspace {
+  grid-template-columns: 320px minmax(520px, 1fr) 380px;
+  gap: 14px;
+}
+
+.customer-service-chat-page .chat-info-panel,
+.customer-service-chat-page .chat-side-card {
+  min-height: 0;
+}
+
+.customer-service-chat-page .chat-side-card {
+  height: 100%;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.customer-service-chat-page .chat-side-tabs {
+  padding: 7px;
+  gap: 5px;
+  background: var(--dash-surface-2);
+}
+
+.customer-service-chat-page .chat-side-tabs button {
+  position: relative;
+  min-height: 42px;
+  border: 1px solid transparent;
+}
+
+.customer-service-chat-page .chat-side-tabs button.active {
+  border-color: var(--dash-line);
+  background: var(--dash-surface);
+  box-shadow: 0 7px 18px rgba(15, 23, 42, .06);
+}
+
+.chat-room-overview {
+  height: calc(100% - 57px);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+}
+
+.chat-client-profile {
+  position: relative;
+  padding: 16px;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  overflow: hidden;
+  border: 1px solid rgba(14, 165, 233, .2);
+  border-radius: 13px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(34, 211, 238, .15), transparent 42%),
+    linear-gradient(135deg, var(--dash-accent-soft), var(--dash-surface));
+}
+
+.chat-client-profile::after {
+  content: "";
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  inset-inline-end: -42px;
+  bottom: -52px;
+  border: 18px solid rgba(14, 165, 233, .07);
+  border-radius: 50%;
+}
+
+.customer-service-chat-page .chat-message-avatar.profile {
+  width: 52px;
+  height: 52px;
+  font-size: 14px;
+  box-shadow: 0 8px 22px rgba(14, 165, 233, .22);
+}
+
+.chat-client-profile > div { min-width: 0; }
+.chat-client-profile > div > span,
+.chat-overview-grid small {
+  display: block;
+  color: var(--dash-muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.chat-client-profile h3 {
+  margin: 3px 0;
+  color: var(--dash-text);
+  font-size: 16px;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.chat-client-profile small { color: var(--dash-muted); font-size: 11px; }
+.chat-client-profile > .chat-room-status { position: absolute; top: 10px; inset-inline-end: 10px; z-index: 1; }
+
+.chat-overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 9px;
+}
+
+.chat-overview-grid article {
+  min-height: 92px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 9px;
+  border: 1px solid var(--dash-line);
+  border-radius: 11px;
+  background: var(--dash-surface-2);
+}
+
+.chat-overview-icon {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+}
+
+.chat-overview-icon.success { background: rgba(16, 185, 129, .11); color: #10b981; }
+.chat-overview-grid strong { display: block; margin-top: 4px; color: var(--dash-text); font-size: 12px; line-height: 1.35; }
+
+.chat-latest-card {
+  padding: 14px;
+  border: 1px solid var(--dash-line);
+  border-radius: 11px;
+  background: var(--dash-surface);
+}
+
+.chat-latest-card header { display: flex; align-items: center; gap: 8px; color: var(--dash-accent-strong); font-size: 12px; font-weight: 800; }
+.chat-latest-card p { margin: 10px 0 0; color: var(--dash-text); font-size: 13px; line-height: 1.65; overflow-wrap: anywhere; }
+
+.chat-technical-details {
+  margin-top: auto;
+  border: 1px solid var(--dash-line);
+  border-radius: 11px;
+  background: var(--dash-surface-2);
+}
+
+.chat-technical-details summary {
+  padding: 12px 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--dash-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+  list-style: none;
+}
+
+.chat-technical-details summary::-webkit-details-marker { display: none; }
+.chat-technical-details dl { margin: 0; padding: 0 13px 12px; display: grid; gap: 8px; }
+.chat-technical-details dl div { display: flex; justify-content: space-between; gap: 12px; }
+.chat-technical-details dt { color: var(--dash-muted); font-size: 11px; }
+.chat-technical-details dd { margin: 0; color: var(--dash-text); font-size: 11px; font-weight: 750; }
+
+.chat-info-empty {
+  min-height: 360px;
+  padding: 34px 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.chat-info-empty > span { width: 54px; height: 54px; display: grid; place-items: center; border-radius: 16px; background: var(--dash-accent-soft); color: var(--dash-accent); }
+.chat-info-empty strong { margin-top: 14px; color: var(--dash-text); font-size: 14px; }
+.chat-info-empty p { max-width: 250px; margin: 7px 0 0; color: var(--dash-muted); font-size: 12px; line-height: 1.55; }
+
+.customer-service-chat-page .faq-tree-scroll {
+  max-height: calc(100vh - 310px);
+  padding: 9px;
+}
+
+.customer-service-chat-page .faq-tree-node {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  padding: 9px 7px;
+  background: var(--dash-surface);
+  box-shadow: 0 5px 14px rgba(15, 23, 42, .035);
+}
+
+@media (max-width: 1380px) {
+  .customer-service-chat-page .chat-workspace { grid-template-columns: 290px minmax(440px, 1fr) 330px; }
+  .chat-overview-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 1100px) {
+  .customer-service-chat-page .chat-workspace { grid-template-columns: 300px minmax(0, 1fr); }
+  .customer-service-chat-page .chat-info-panel { grid-column: 1 / -1; }
+  .chat-overview-grid { grid-template-columns: 1fr 1fr; }
+}
+
+/* Unified conversation list inspired by a focused support inbox. */
+.customer-service-chat-page .chat-sidebar,
+.customer-service-chat-page .conversations-panel {
+  min-height: 0;
+  height: 100%;
+}
+
+.customer-service-chat-page .conversations-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 14px;
+}
+
+.customer-service-chat-page .conversations-head h2 > span {
+  min-width: 21px;
+  height: 21px;
+  margin-inline-start: 3px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--dash-accent);
+  color: #fff;
+  font-size: 10px;
+}
+
+.conversation-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.conversation-tabs button {
+  position: relative;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  color: var(--dash-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 750;
+}
+
+.conversation-tabs button::after {
+  content: "";
+  position: absolute;
+  inset-inline: 12px;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: transparent;
+}
+
+.conversation-tabs button.active { color: var(--dash-accent-strong); }
+.conversation-tabs button.active::after { background: var(--dash-accent); }
+.conversation-tabs button span { margin-inline-start: 3px; opacity: .75; }
+
+.conversation-search {
+  min-height: 40px;
+  margin: 11px 12px 5px;
+  padding: 0 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--dash-line);
+  border-radius: 10px;
+  background: var(--dash-input-bg);
+  color: var(--dash-muted);
+}
+
+.conversation-search:focus-within { border-color: var(--dash-accent); box-shadow: 0 0 0 3px var(--dash-accent-soft); }
+.conversation-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--dash-text); font-size: 12px; }
+
+.customer-service-chat-page .chat-room-list.unified-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 7px 10px;
+}
+
+.customer-service-chat-page .unified-list .chat-room-card {
+  margin-bottom: 7px;
+  border-radius: 11px;
+}
+
+.customer-service-chat-page .unified-list .chat-room-card:not(.active) {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.customer-service-chat-page .unified-list .chat-room-card:not(.active):hover {
+  border-color: var(--dash-line);
+  background: var(--dash-surface-2);
+}
+
+.conversation-footer {
+  padding: 10px 13px;
+  border-top: 1px solid var(--dash-line);
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.chat-info-empty.compact { min-height: 200px; padding: 24px 16px; }
+
+/* Compact Quick FAQ accordion: branches lead, answers stay lightweight. */
+.customer-service-chat-page .faq-tree-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding: 11px 12px;
+  background: var(--dash-surface);
+}
+
+.faq-tree-intro {
+  padding: 15px 13px 12px;
+  display: grid;
+  gap: 12px;
+  border-bottom: 1px solid var(--dash-line);
+  background:
+    radial-gradient(circle at 100% 0, rgba(14, 165, 233, .13), transparent 38%),
+    var(--dash-surface);
+}
+
+.faq-intro-copy {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.faq-intro-icon {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 auto;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: linear-gradient(135deg, var(--dash-accent), var(--dash-accent-strong));
+  color: #fff;
+  box-shadow: 0 9px 20px var(--dash-brand-glow);
+}
+
+.faq-intro-copy div { min-width: 0; display: grid; gap: 3px; }
+.faq-intro-copy strong { color: var(--dash-text); font-size: 14px; line-height: 1.25; }
+.faq-intro-copy small { color: var(--dash-muted); font-size: 10.5px; line-height: 1.4; }
+
+.faq-search {
+  min-height: 39px;
+  padding: 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--dash-line);
+  border-radius: 10px;
+  background: var(--dash-input-bg);
+  color: var(--dash-muted);
+}
+
+.faq-search:focus-within { border-color: var(--dash-accent); box-shadow: 0 0 0 3px var(--dash-accent-soft); }
+.faq-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: var(--dash-text); font-size: 11px; }
+
+.customer-service-chat-page .faq-tree-scroll {
+  max-height: none;
+  height: calc(100% - 232px);
+  padding: 7px 9px 72px;
+}
+
+.customer-service-chat-page .faq-tree-node {
+  min-height: 0;
+  margin-bottom: 5px;
+  margin-inline-start: calc(var(--faq-depth) * 10px);
+  padding: 8px 7px;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  gap: 5px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.customer-service-chat-page .faq-tree-node.type-category {
+  min-height: 46px;
+  background: var(--dash-surface-2);
+  border-inline-start-width: 2px;
+}
+
+.customer-service-chat-page .faq-tree-node.type-category > .faq-tree-copy strong {
+  font-size: 12px;
+  font-weight: 820;
+}
+
+.customer-service-chat-page .faq-tree-node.type-category > .faq-tree-copy span {
+  width: fit-content;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+}
+
+.customer-service-chat-page .faq-tree-node.type-answer,
+.customer-service-chat-page .faq-tree-node.type-action_human {
+  margin-inline-start: calc(var(--faq-depth) * 10px + 8px);
+  border-color: transparent;
+  border-inline-start: 2px solid rgba(16, 185, 129, .55);
+  background: transparent;
+}
+
+.customer-service-chat-page .faq-tree-node.type-action_human { border-inline-start-color: rgba(245, 158, 11, .65); }
+.customer-service-chat-page .faq-tree-node.type-answer .faq-tree-copy,
+.customer-service-chat-page .faq-tree-node.type-action_human .faq-tree-copy { padding-inline-end: 5px; }
+.customer-service-chat-page .faq-tree-node.type-answer .faq-tree-copy::after,
+.customer-service-chat-page .faq-tree-node.type-action_human .faq-tree-copy::after {
+  content: "›";
+  position: absolute;
+  inset-inline-end: 7px;
+  top: 10px;
+  color: var(--dash-accent);
+  font-size: 17px;
+  line-height: 1;
+  transition: transform .18s ease;
+}
+.customer-service-chat-page .faq-tree-node.type-answer.selected .faq-tree-copy::after { transform: rotate(90deg); }
+.customer-service-chat-page .faq-tree-copy { position: relative; padding-inline-end: 18px; }
+.customer-service-chat-page .faq-tree-node.selected {
+  border-color: rgba(14, 165, 233, .28);
+  background: linear-gradient(135deg, var(--dash-accent-soft), var(--dash-surface));
+}
+.customer-service-chat-page .faq-tree-node.selected .faq-tree-copy small {
+  margin: 7px -4px -2px;
+  padding: 9px;
+  border-inline-start: 2px solid var(--dash-accent);
+  border-radius: 7px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  font-size: 11px;
+}
+.customer-service-chat-page .faq-tree-copy strong { font-size: 11.5px; }
+.customer-service-chat-page .faq-tree-copy span { font-size: 9px; }
+.customer-service-chat-page .faq-tree-copy small { margin-top: 2px; font-size: 10.5px; line-height: 1.45; }
+.customer-service-chat-page .faq-node-actions { opacity: 0; }
+.customer-service-chat-page .faq-tree-node:hover .faq-node-actions,
+.customer-service-chat-page .faq-tree-node:focus-within .faq-node-actions { opacity: 1; }
+.customer-service-chat-page .faq-node-actions button { width: 26px; min-height: 26px; border-radius: 7px; }
+
+@media (max-width: 700px) {
+  .customer-service-chat-page .chat-workspace { grid-template-columns: 1fr; }
+  .customer-service-chat-page .chat-sidebar,
+  .customer-service-chat-page .conversations-panel { height: 430px; }
+  .chat-overview-grid { grid-template-columns: 1fr; }
+}
+
+/* FAQ panel matching the compact reference: one card per category. */
+.customer-service-chat-page .faq-tree-scroll {
+  height: calc(100% - 288px);
+  padding: 8px 10px;
+}
+
+.faq-category-card {
+  margin: 0 0 9px calc(var(--faq-depth) * 8px);
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  border-radius: 10px;
+  background: var(--dash-surface);
+  box-shadow: 0 5px 15px rgba(15, 23, 42, .035);
+}
+
+.faq-category-head {
+  min-height: 47px;
+  padding: 0 8px 0 11px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.faq-category-main {
+  min-width: 0;
+  flex: 1;
+  min-height: 46px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--dash-text);
+  display: grid;
+  grid-template-columns: 19px minmax(0, 1fr) auto 16px;
+  align-items: center;
+  gap: 7px;
+  text-align: start;
+  cursor: pointer;
+}
+
+.faq-category-main > svg:first-child { color: var(--dash-accent-strong); }
+.faq-category-main strong { font-size: 11.5px; line-height: 1.3; overflow-wrap: anywhere; }
+.faq-category-main > svg:last-child { color: var(--dash-accent); }
+
+.faq-category-count {
+  min-width: 22px;
+  height: 22px;
+  padding: 0 6px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  font-size: 10px;
+  font-weight: 850;
+}
+
+.faq-category-head > .faq-node-actions { flex: 0 0 auto; }
+.faq-category-card:hover > .faq-category-head > .faq-node-actions,
+.faq-category-card:focus-within > .faq-category-head > .faq-node-actions { opacity: 1; }
+
+.faq-category-questions {
+  padding: 0 8px 8px;
+  border-top: 1px solid var(--dash-line);
+  background: var(--dash-surface-2);
+}
+
+.faq-category-questions > p {
+  margin: 0;
+  padding: 12px 8px 4px;
+  color: var(--dash-muted);
+  font-size: 10px;
+}
+
+.faq-question-row {
+  position: relative;
+  min-height: 39px;
+  display: flex;
+  align-items: flex-start;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.faq-question-row:last-child { border-bottom: 0; }
+.faq-question-main {
+  min-width: 0;
+  flex: 1;
+  min-height: 39px;
+  padding: 8px 4px;
+  border: 0;
+  background: transparent;
+  color: var(--dash-text);
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr) 15px;
+  gap: 6px;
+  align-items: start;
+  text-align: start;
+  cursor: pointer;
+}
+
+.faq-question-main > svg:first-child { margin-top: 1px; color: var(--dash-accent); }
+.faq-question-main > svg:last-child { margin-top: 1px; color: var(--dash-accent); transition: transform .18s ease; }
+.faq-question-row.selected .faq-question-main > svg:last-child { transform: rotate(90deg); }
+.faq-question-main span { min-width: 0; display: grid; gap: 7px; }
+.faq-question-main strong { font-size: 10.5px; line-height: 1.45; font-weight: 720; overflow-wrap: anywhere; }
+.faq-question-main small {
+  padding: 9px 10px;
+  border-inline-start: 2px solid var(--dash-accent);
+  border-radius: 7px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  font-size: 10.5px;
+  line-height: 1.55;
+}
+
+.faq-question-row > .faq-node-actions {
+  position: absolute;
+  inset-inline-end: 20px;
+  top: 6px;
+  z-index: 2;
+  padding-inline-start: 5px;
+  background: var(--dash-surface-2);
+}
+
+.faq-question-row:hover > .faq-node-actions,
+.faq-question-row:focus-within > .faq-node-actions { opacity: 1; }
+
+.faq-tree-footer {
+  padding: 9px 11px 11px;
+  border-top: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+}
+
+.faq-tree-footer button {
+  width: 100%;
+  min-height: 42px;
+  border: 1px solid var(--dash-accent);
+  border-radius: 9px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.faq-tree-footer button:hover { background: var(--dash-accent); color: #fff; }
 
 .customer-service-chat-page .chat-message-list::before {
   content: "";
