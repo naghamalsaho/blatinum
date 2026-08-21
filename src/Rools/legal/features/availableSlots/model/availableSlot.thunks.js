@@ -5,6 +5,7 @@ import {
   updateAvailableSlotRequest,
   deleteAvailableSlotRequest,
   getAppointmentsRequest,
+  getDepartmentOrdersRequest
 } from "../api/availableSlot";
 
 export const fetchAvailableSlots = createAsyncThunk(
@@ -94,6 +95,22 @@ export const fetchAppointments = createAsyncThunk(
     }
 
     console.error("[fetchAppointments] error:", result.message);
+    return thunkAPI.rejectWithValue(result.message);
+  }
+);
+export const fetchDepartmentOrders = createAsyncThunk(
+  "departmentOrders/fetchByDept",
+  async (departmentId = 2, thunkAPI) => {
+    const result = await getDepartmentOrdersRequest(departmentId);
+
+    console.log("[fetchDepartmentOrders] response:", result);
+
+    if (result.ok) {
+      // إرجاع مصفوفة الطلبات الموجودة داخل data
+      return result.data?.data ?? [];
+    }
+
+    console.error("[fetchDepartmentOrders] error:", result.message);
     return thunkAPI.rejectWithValue(result.message);
   }
 );

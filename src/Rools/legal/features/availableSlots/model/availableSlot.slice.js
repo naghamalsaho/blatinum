@@ -4,13 +4,15 @@ import {
   createAvailableSlot,
   updateAvailableSlot,
   deleteAvailableSlot,
+  fetchAppointments,
+  fetchDepartmentOrders,
 } from "./availableSlot.thunks";
 
 const initialState = {
-  items: [],
-  loading: false,
+  slots: { items: [], loading: false, error: null },
+  appointments: { items: [], loading: false, error: null },
+  departmentOrders: { items: [], loading: false, error: null },
   actionLoading: false,
-  error: null,
 };
 
 const availableSlotSlice = createSlice({
@@ -19,53 +21,79 @@ const availableSlotSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
+      // 🎯 جلب الفترات المتاحة (Slots)
       .addCase(fetchAvailableSlots.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.slots.loading = true;
+        state.slots.error = null;
       })
       .addCase(fetchAvailableSlots.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload;
+        state.slots.loading = false;
+        state.slots.items = action.payload;
       })
       .addCase(fetchAvailableSlots.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Failed to load available slots";
+        state.slots.loading = false;
+        state.slots.error = action.payload || "Failed to load available slots";
       })
 
+      // 🎯 جلب الحجوزات (Appointments)
+      .addCase(fetchAppointments.pending, (state) => {
+        state.appointments.loading = true;
+        state.appointments.error = null;
+      })
+      .addCase(fetchAppointments.fulfilled, (state, action) => {
+        state.appointments.loading = false;
+        state.appointments.items = action.payload;
+      })
+      .addCase(fetchAppointments.rejected, (state, action) => {
+        state.appointments.loading = false;
+        state.appointments.error = action.payload || "Failed to load appointments";
+      })
+
+      // 🎯 إضافة فترة متاحة
       .addCase(createAvailableSlot.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
       })
       .addCase(createAvailableSlot.fulfilled, (state) => {
         state.actionLoading = false;
       })
-      .addCase(createAvailableSlot.rejected, (state, action) => {
+      .addCase(createAvailableSlot.rejected, (state) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to create available slot";
       })
 
+      // 🎯 تحديث فترة متاحة
       .addCase(updateAvailableSlot.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
       })
       .addCase(updateAvailableSlot.fulfilled, (state) => {
         state.actionLoading = false;
       })
-      .addCase(updateAvailableSlot.rejected, (state, action) => {
+      .addCase(updateAvailableSlot.rejected, (state) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to update available slot";
       })
 
+      // 🎯 حذف فترة متاحة
       .addCase(deleteAvailableSlot.pending, (state) => {
         state.actionLoading = true;
-        state.error = null;
       })
       .addCase(deleteAvailableSlot.fulfilled, (state) => {
         state.actionLoading = false;
       })
-      .addCase(deleteAvailableSlot.rejected, (state, action) => {
+      .addCase(deleteAvailableSlot.rejected, (state) => {
         state.actionLoading = false;
-        state.error = action.payload || "Failed to delete available slot";
+      })
+
+      // 🎯 جلب طلبات القسم
+      .addCase(fetchDepartmentOrders.pending, (state) => {
+        state.departmentOrders.loading = true;
+        state.departmentOrders.error = null;
+      })
+      .addCase(fetchDepartmentOrders.fulfilled, (state, action) => {
+        state.departmentOrders.loading = false;
+        state.departmentOrders.items = action.payload;
+      })
+      .addCase(fetchDepartmentOrders.rejected, (state, action) => {
+        state.departmentOrders.loading = false;
+        state.departmentOrders.error = action.payload || "فشل في جلب طلبات القسم";
       });
   },
 });

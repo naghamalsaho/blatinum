@@ -1,8 +1,14 @@
 @import "@/shared/constants/colors.css";
 
+/* الحاوية الرئيسية للوحة التحكم */
 .marketing-dashboard-page {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: 22px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .marketing-header-actions {
@@ -51,109 +57,27 @@
   justify-content: center;
 }
 
-.marketing-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-card-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.marketing-hero-card {
-  min-width: 280px;
-  max-width: 320px;
-  width: 100%;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid var(--dash-line);
-  background: linear-gradient(180deg, var(--dash-card-bg), var(--dash-panel-bg));
-  box-shadow: var(--dash-shadow);
-  display: grid;
-  gap: 18px;
-}
-
-.marketing-hero-card-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.marketing-hero-card-head p {
-  margin: 0 0 6px;
-  color: var(--dash-muted);
-  font-size: 12px;
-}
-
-.marketing-hero-card-head h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 34px;
-  font-weight: 900;
-  line-height: 1;
-}
-
-.marketing-hero-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-text);
-}
-
-.marketing-hero-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.marketing-hero-metrics div {
-  padding: 12px;
-  border-radius: 16px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-blank-bg);
-}
-
-.marketing-hero-metrics strong {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--dash-muted);
-  font-size: 11px;
-}
-
-.marketing-hero-metrics span {
-  color: var(--dash-text);
-  font-size: 17px;
-  font-weight: 800;
-}
-
+/* ==========================================
+   1. شبكة الإحصائيات العلوية (StatCards)
+   ========================================== */
 .marketing-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
+/* ==========================================
+   2. قسم التحليلات والرسوم البيانية
+   ========================================== */
 .marketing-analytics-grid {
   display: grid;
-  grid-template-columns: 1.45fr 0.75fr;
+  grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr);
   gap: 18px;
-}
-
-.marketing-main-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 0.7fr;
-  gap: 18px;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
 }
 
 .marketing-panel {
@@ -162,6 +86,10 @@
   border: 1px solid var(--dash-line);
   background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
   box-shadow: var(--dash-shadow);
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
 }
 
 .marketing-panel-head {
@@ -188,19 +116,36 @@
 .marketing-chart-panel,
 .marketing-donut-panel {
   min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
 }
 
 .marketing-chart-wrap {
   width: 100%;
+  height: 320px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 .marketing-donut-chart {
   width: 100%;
+  height: 220px;
+  min-width: 0;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  overflow: hidden;
 }
 
 .marketing-donut-legend {
   display: grid;
-  gap: 12px;
+  gap: 10px;
   margin-top: 14px;
 }
 
@@ -209,8 +154,8 @@
   grid-template-columns: auto 1fr auto;
   align-items: center;
   gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
+  padding: 10px 14px;
+  border-radius: 14px;
   border: 1px solid var(--dash-line);
   background: var(--dash-card-bg);
   color: var(--dash-text);
@@ -233,145 +178,90 @@
   font-size: 13px;
 }
 
-.marketing-toolbar {
+/* ==========================================
+   3. قسم أحدث العروض والخصومات
+   ========================================== */
+.marketing-portfolio-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+
+.marketing-section-head {
+  margin-bottom: 2px;
+}
+
+.marketing-portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.marketing-portfolio-card {
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid var(--dash-line);
+  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  box-shadow: var(--dash-shadow);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.marketing-portfolio-hero {
+  height: 110px;
+  display: grid;
+  place-items: center;
+  font-size: 36px;
+  background: linear-gradient(
+    135deg,
+    var(--dash-shell-glow-1),
+    var(--dash-shell-glow-2)
+  );
+  color: var(--dash-accent);
+}
+
+.marketing-portfolio-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  justify-content: space-between;
+}
+
+.marketing-portfolio-body h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1.4;
+}
+
+.marketing-portfolio-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-  flex-wrap: wrap;
+  gap: 10px;
+  border-top: 1px solid var(--dash-line);
+  padding-top: 10px;
+  margin-top: 4px;
 }
 
-.marketing-search {
-  flex: 1;
-  min-width: 240px;
-  height: 44px;
-  display: flex;
-  align-items: center;
-  padding: 0 14px;
-  border-radius: 14px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-input-bg);
-}
-
-.marketing-search input {
-  width: 100%;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--dash-text);
-  font-size: 14px;
-}
-
-.marketing-search input::placeholder {
-  color: var(--dash-muted);
-}
-
-.marketing-select {
-  height: 44px;
-  min-width: 170px;
-  padding: 0 14px;
-  border-radius: 14px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  font-size: 14px;
-  font-weight: 600;
-  outline: none;
-}
-
-.marketing-table-wrap {
-  overflow-x: auto;
-}
-
-.marketing-table {
-  width: 100%;
-  border-collapse: collapse;
-  min-width: 860px;
-}
-
-.marketing-table th,
-.marketing-table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid var(--dash-line);
-  text-align: right;
-  vertical-align: middle;
-}
-
-.marketing-table th {
-  color: var(--dash-muted);
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.marketing-table td {
-  color: var(--dash-text);
-  font-size: 13px;
-}
-
-.marketing-table tbody tr:hover {
-  background: var(--dash-hover-bg);
-}
-
-.marketing-primary-td {
-  font-weight: 800;
-}
-
-.marketing-type-chip {
+.marketing-unit-chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
+  padding: 6px 10px;
   border-radius: 999px;
+  border: 1px solid var(--dash-line);
   background: var(--dash-pill-bg);
-  border: 1px solid var(--dash-line);
   color: var(--dash-text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
-}
-
-.marketing-status-pill {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 84px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-.marketing-status-pill.active {
-  background: var(--dash-accent-soft);
-  color: var(--dash-text);
-}
-
-.marketing-status-pill.draft {
-  background: var(--dash-blank-bg);
-  color: var(--dash-muted);
-}
-
-.marketing-status-pill.scheduled {
-  background: var(--dash-hover-bg);
-  color: var(--dash-text);
-}
-
-.marketing-metric--views {
-  color: var(--dash-text);
-  font-weight: 800;
-}
-
-.marketing-metric--clicks {
-  color: var(--dash-accent);
-  font-weight: 800;
-}
-
-.marketing-date {
-  color: var(--dash-muted);
-  font-size: 12px;
-  white-space: nowrap;
 }
 
 .marketing-row-actions {
@@ -381,9 +271,9 @@
 }
 
 .marketing-icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
   border: 1px solid var(--dash-line);
   background: var(--dash-icon-bg);
   color: var(--dash-accent);
@@ -398,583 +288,994 @@
   transform: translateY(-1px);
 }
 
-.marketing-side-column {
-  display: grid;
-  gap: 18px;
+.project-empty-state {
+  width: 100%;
+  padding: 30px;
+  text-align: center;
+  border: 1px dashed var(--dash-line);
+  border-radius: 16px;
+  color: var(--dash-muted);
+  background: var(--dash-blank-bg);
+  font-size: 14px;
 }
 
-.marketing-activity-list {
-  display: grid;
-  gap: 12px;
+/* ==========================================
+   ملخص المودال (Modal Summary Card)
+   ========================================== */
+.marketing-offers-summary-card {
+  padding: 4px;
+  box-sizing: border-box;
 }
 
-.marketing-activity-item {
+.marketing-offers-summary-head {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 12px 14px;
-  border-radius: 16px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-card-bg);
+  justify-content: space-between;
+  gap: 14px;
 }
 
-.activity-dot {
-  width: 10px;
-  height: 10px;
-  border-radius: 999px;
-  background: var(--dash-accent);
-  box-shadow: 0 0 14px var(--dash-accent);
+.marketing-offers-summary-head p {
+  margin: 0 0 4px;
+  color: var(--dash-muted);
+  font-size: 12px;
+}
+
+.marketing-offers-summary-head h3 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.marketing-summary-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
   flex-shrink: 0;
 }
 
-.marketing-activity-item p {
+.marketing-offers-summary-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.marketing-offers-summary-metrics div {
+  padding: 12px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-blank-bg);
+}
+
+.marketing-offers-summary-metrics strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dash-muted);
+  font-size: 11px;
+}
+
+.marketing-offers-summary-metrics span {
+  color: var(--dash-text);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+/* ==========================================
+   تجاوب الشاشات (Media Queries)
+   ========================================== */
+@media (max-width: 1180px) {
+  .marketing-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketing-portfolio-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .marketing-analytics-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .marketing-stats-grid,
+  .marketing-portfolio-grid,
+  .marketing-offers-summary-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-panel {
+    padding: 16px;
+  }@import "@/shared/constants/colors.css";
+
+/* =========================================================
+   MARKETING DASHBOARD
+   ========================================================= */
+
+.marketing-dashboard-page {
+  --marketing-radius-lg: 24px;
+  --marketing-radius-md: 18px;
+  --marketing-radius-sm: 12px;
+  --marketing-gap: 18px;
+
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  padding-bottom: 8px;
+}
+
+/* =========================================================
+   HEADER / ACTIONS
+   ========================================================= */
+
+.marketing-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.marketing-primary-btn,
+.marketing-secondary-btn {
+  height: 44px;
+  min-width: 120px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  font-size: 13px;
+  font-weight: 800;
+  cursor: pointer;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.2s ease;
+  box-sizing: border-box;
+}
+
+.marketing-primary-btn {
+  background:
+    linear-gradient(
+      135deg,
+      var(--dash-shell-glow-1),
+      var(--dash-shell-glow-2)
+    );
+  color: var(--dash-text);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+}
+
+.marketing-secondary-btn {
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.marketing-primary-btn:hover,
+.marketing-secondary-btn:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-accent);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+}
+
+.marketing-primary-btn:active,
+.marketing-secondary-btn:active {
+  transform: translateY(0);
+}
+
+.marketing-full-btn {
+  width: 100%;
+  justify-content: center;
+}
+
+/* =========================================================
+   STAT CARDS
+   ========================================================= */
+
+.marketing-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--marketing-gap);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* يعطي مساحة متناغمة لأي StatCard داخلي */
+.marketing-stats-grid > * {
+  min-width: 0;
+  width: 100%;
+  height: 100%;
+}
+
+/* =========================================================
+   ANALYTICS
+   ========================================================= */
+
+.marketing-analytics-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.95fr);
+  gap: var(--marketing-gap);
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
+}
+
+.marketing-panel {
+  position: relative;
+  padding: 22px;
+  border-radius: var(--marketing-radius-lg);
+  border: 1px solid var(--dash-line);
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--dash-surface),
+      var(--dash-surface-2)
+    );
+
+  box-shadow: var(--dash-shadow);
+  box-sizing: border-box;
+  overflow: hidden;
+  min-width: 0;
+  width: 100%;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.marketing-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      circle at top right,
+      var(--dash-accent-soft),
+      transparent 38%
+    );
+  opacity: 0.45;
+}
+
+.marketing-panel:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(
+    in srgb,
+    var(--dash-accent) 25%,
+    var(--dash-line)
+  );
+  box-shadow:
+    var(--dash-shadow),
+    0 12px 30px rgba(0, 0, 0, 0.04);
+}
+
+.marketing-chart-panel,
+.marketing-donut-panel {
+  min-width: 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* =========================================================
+   PANEL HEADER
+   ========================================================= */
+
+.marketing-panel-head {
+  position: relative;
+  z-index: 1;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.marketing-panel-head > div {
+  min-width: 0;
+}
+
+.marketing-panel-head h2 {
   margin: 0;
   color: var(--dash-text);
+  font-size: 19px;
+  line-height: 1.4;
+  font-weight: 900;
+  letter-spacing: -0.2px;
+}
+
+.marketing-panel-head p {
+  margin: 6px 0 0;
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   LINE / AREA CHART
+   ========================================================= */
+
+.marketing-chart-wrap {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  border-radius: 16px;
+}
+
+.marketing-chart-wrap .recharts-responsive-container {
+  overflow: visible !important;
+}
+
+.marketing-chart-wrap .recharts-cartesian-grid-horizontal line,
+.marketing-chart-wrap .recharts-cartesian-grid-vertical line {
+  opacity: 0.45;
+}
+
+.marketing-chart-wrap .recharts-text {
+  fill: var(--dash-muted);
+  font-size: 11px;
+}
+
+.marketing-chart-wrap .recharts-tooltip-wrapper {
+  outline: none;
+}
+
+.marketing-chart-wrap .recharts-default-tooltip {
+  border-radius: 14px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+/* =========================================================
+   DONUT CHART
+   ========================================================= */
+
+.marketing-donut-chart {
+  width: 100%;
+  height: 220px;
+  min-width: 0;
+  max-width: 100%;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  position: relative;
+  overflow: visible;
+}
+
+.marketing-donut-chart .recharts-wrapper {
+  max-width: 100%;
+}
+
+.marketing-donut-chart .recharts-tooltip-wrapper {
+  outline: none;
+}
+
+/* =========================================================
+   DONUT LEGEND
+   ========================================================= */
+
+.marketing-donut-legend {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.marketing-legend-item {
+  min-width: 0;
+
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+
+  gap: 10px;
+  padding: 11px 13px;
+
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+
+  background: var(--dash-card-bg);
+  color: var(--dash-text);
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.marketing-legend-item:hover {
+  background: var(--dash-pill-bg);
+  border-color: color-mix(
+    in srgb,
+    var(--dash-accent) 30%,
+    var(--dash-line)
+  );
+  transform: translateX(-2px);
+}
+
+.marketing-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+
+  box-shadow: 0 0 0 4px var(--dash-accent-soft);
+}
+
+.marketing-legend-item span {
+  color: var(--dash-text);
   font-size: 13px;
-  line-height: 1.6;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.marketing-settings-panel {
-  display: grid;
-  gap: 14px;
+.marketing-legend-item strong {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
-.marketing-quick-actions {
-  display: grid;
-  gap: 12px;
-}
+/* =========================================================
+   OFFERS SECTION
+   ========================================================= */
 
 .marketing-portfolio-section {
-  display: grid;
-  gap: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
 }
 
 .marketing-section-head {
   margin-bottom: 2px;
 }
 
+.marketing-section-head h2 {
+  font-size: 19px;
+}
+
+/* =========================================================
+   OFFERS GRID
+   ========================================================= */
+
 .marketing-portfolio-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
+  gap: var(--marketing-gap);
+  width: 100%;
+  box-sizing: border-box;
+  align-items: stretch;
 }
 
 .marketing-portfolio-card {
+  position: relative;
   overflow: hidden;
-  border-radius: 22px;
+
+  border-radius: 20px;
   border: 1px solid var(--dash-line);
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+
+  background:
+    linear-gradient(
+      180deg,
+      var(--dash-surface),
+      var(--dash-surface-2)
+    );
+
   box-shadow: var(--dash-shadow);
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+
+  min-width: 0;
+
+  transition:
+    transform 0.22s ease,
+    border-color 0.22s ease,
+    box-shadow 0.22s ease;
 }
+
+.marketing-portfolio-card:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(
+    in srgb,
+    var(--dash-accent) 30%,
+    var(--dash-line)
+  );
+
+  box-shadow:
+    var(--dash-shadow),
+    0 18px 34px rgba(0, 0, 0, 0.07);
+}
+
+/* =========================================================
+   OFFER HERO
+   ========================================================= */
 
 .marketing-portfolio-hero {
-  height: 120px;
+  height: 112px;
+  min-height: 112px;
+
   display: grid;
   place-items: center;
-  font-size: 48px;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
+
+  font-size: 34px;
+  color: var(--dash-accent);
+
+  position: relative;
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--dash-shell-glow-1),
+      var(--dash-shell-glow-2)
+    );
 }
 
+.marketing-portfolio-hero::after {
+  content: "";
+  position: absolute;
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+
+  background: var(--dash-accent-soft);
+
+  top: -55px;
+  right: -35px;
+}
+
+.marketing-portfolio-hero svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 5px 10px rgba(0, 0, 0, 0.08));
+}
+
+/* =========================================================
+   OFFER BODY
+   ========================================================= */
+
 .marketing-portfolio-body {
-  padding: 16px;
-  display: grid;
+  padding: 17px;
+  display: flex;
+  flex-direction: column;
   gap: 12px;
+  flex: 1;
+  min-width: 0;
+  justify-content: space-between;
+}
+
+.marketing-portfolio-body > div:first-child {
+  min-width: 0;
 }
 
 .marketing-portfolio-body h3 {
   margin: 0;
   color: var(--dash-text);
-  font-size: 16px;
-  font-weight: 800;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.5;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .marketing-portfolio-body p {
-  margin: 6px 0 0;
+  margin-bottom: 0;
   color: var(--dash-muted);
   font-size: 12px;
+  line-height: 1.6;
 }
+
+/* نسبة الخصم الموجودة داخل JS */
+.marketing-portfolio-body span[style*="borderRadius"] {
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* =========================================================
+   PRICE
+   ========================================================= */
+
+.marketing-portfolio-body > div[style*="alignItems: baseline"] {
+  padding-top: 2px;
+}
+
+.marketing-portfolio-body strong {
+  font-weight: 900;
+}
+
+/* =========================================================
+   OFFER FOOTER
+   ========================================================= */
 
 .marketing-portfolio-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
+
   gap: 10px;
+
+  border-top: 1px solid var(--dash-line);
+
+  padding-top: 12px;
+  margin-top: 4px;
 }
 
 .marketing-unit-chip {
+  min-width: 0;
+
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
+
+  padding: 6px 10px;
+
   border-radius: 999px;
   border: 1px solid var(--dash-line);
+
   background: var(--dash-pill-bg);
+  color: var(--dash-muted);
+
+  font-size: 11px;
+  font-weight: 700;
+
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marketing-unit-chip svg {
+  flex-shrink: 0;
+  color: var(--dash-accent);
+}
+
+/* =========================================================
+   ACTION BUTTON
+   ========================================================= */
+
+.marketing-row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.marketing-icon-btn {
+  width: 36px;
+  height: 36px;
+
+  border-radius: 11px;
+  border: 1px solid var(--dash-line);
+
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+
+  display: grid;
+  place-items: center;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.marketing-icon-btn:hover {
+  background: var(--dash-icon-hover-bg);
+  border-color: var(--dash-accent);
+  transform: translateY(-2px);
+  box-shadow: 0 7px 15px rgba(0, 0, 0, 0.07);
+}
+
+.marketing-icon-btn:active {
+  transform: translateY(0);
+}
+
+/* =========================================================
+   EMPTY STATE
+   ========================================================= */
+
+.project-empty-state {
+  width: 100%;
+  min-height: 150px;
+
+  padding: 30px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  box-sizing: border-box;
+
+  text-align: center;
+
+  border: 1px dashed var(--dash-line);
+  border-radius: 18px;
+
+  color: var(--dash-muted);
+  background: var(--dash-blank-bg);
+
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* =========================================================
+   MODAL SUMMARY
+   ========================================================= */
+
+.marketing-offers-summary-card {
+  padding: 2px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.marketing-offers-summary-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--dash-line);
+}
+
+.marketing-offers-summary-head > div:first-child {
+  min-width: 0;
+}
+
+.marketing-offers-summary-head p {
+  margin: 0 0 5px;
+  color: var(--dash-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.marketing-offers-summary-head h3 {
+  margin: 0;
   color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 900;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.marketing-modal-form {
+.marketing-summary-icon {
+  width: 46px;
+  height: 46px;
+
+  border-radius: 13px;
+
   display: grid;
-  gap: 16px;
+  place-items: center;
+
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+
+  flex-shrink: 0;
 }
 
-.marketing-modal-grid {
+.marketing-offers-summary-card > p {
+  background: var(--dash-blank-bg);
+  border-radius: 14px;
+  padding: 12px 14px;
+}
+
+.marketing-offers-summary-metrics {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 11px;
 }
 
-.marketing-modal-grid--single {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+.marketing-offers-summary-metrics div {
+  min-width: 0;
+
+  padding: 13px;
+
+  border-radius: 15px;
+  border: 1px solid var(--dash-line);
+
+  background: var(--dash-blank-bg);
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
 }
+
+.marketing-offers-summary-metrics div:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--dash-accent) 25%,
+    var(--dash-line)
+  );
+  transform: translateY(-1px);
+}
+
+.marketing-offers-summary-metrics strong {
+  display: block;
+  margin-bottom: 5px;
+
+  color: var(--dash-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.marketing-offers-summary-metrics span,
+.marketing-offers-summary-metrics div:not(:has(strong)) {
+  color: var(--dash-text);
+  font-size: 15px;
+  font-weight: 900;
+}
+
+/* =========================================================
+   TABLET
+   ========================================================= */
 
 @media (max-width: 1180px) {
-  .marketing-stats-grid,
+  .marketing-dashboard-page {
+    gap: 20px;
+  }
+
+  .marketing-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .marketing-portfolio-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .marketing-analytics-grid,
-  .marketing-main-grid {
+  .marketing-analytics-grid {
     grid-template-columns: 1fr;
+  }
+
+  .marketing-panel {
+    padding: 20px;
   }
 }
 
-@media (max-width: 768px) {
-  .marketing-hero {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 20px;
-  }
+/* =========================================================
+   MOBILE
+   ========================================================= */
 
-  .marketing-hero-card {
-    min-width: 0;
-    max-width: none;
+@media (max-width: 768px) {
+  .marketing-dashboard-page {
+    gap: 17px;
   }
 
   .marketing-stats-grid,
   .marketing-portfolio-grid,
-  .marketing-modal-grid,
-  .marketing-modal-grid--single {
+  .marketing-offers-summary-metrics {
     grid-template-columns: 1fr;
   }
 
-  .marketing-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .marketing-search,
-  .marketing-select {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .marketing-table {
-    min-width: 760px;
-  }
-
-  .marketing-panel,
-  .marketing-portfolio-body {
+  .marketing-panel {
     padding: 16px;
+    border-radius: 18px;
   }
 
   .marketing-panel-head {
-    flex-direction: column;
-    align-items: stretch;
+    margin-bottom: 14px;
   }
 
-  .marketing-header-actions {
-    width: 100%;
+  .marketing-panel-head h2,
+  .marketing-section-head h2 {
+    font-size: 17px;
   }
 
-  .marketing-header-actions > * {
-    flex: 1;
-  }
-  @media (max-width: 768px) {
-  .marketing-hero {
-    flex-direction: column;
-    align-items: stretch;
-    padding: 16px;
-  }
-
-  .marketing-hero-card {
-    width: 100%;
-    min-width: 0;
-    max-width: none;
-  }
-
-  .marketing-hero-metrics {
-    grid-template-columns: 1fr;
-  }
-}
-}
-.marketing-hero {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 28px;
-  border-radius: 28px;
-  border: 1px solid var(--dash-line);
-  background:
-    radial-gradient(
-      circle at top right,
-      var(--dash-shell-glow-1),
-      transparent 32%
-    ),
-    linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-  width: 100%;
-}
-
-.marketing-hero-copy {
-  min-width: 0;
-  display: grid;
-  gap: 10px;
-  flex: 1;
-}
-
-.marketing-hero-kicker {
-  margin: 0;
-  color: var(--dash-accent);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.marketing-hero h1 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: clamp(20px, 3vw, 36px);
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.marketing-hero-text {
-  margin: 0;
-  max-width: 720px;
-  color: var(--dash-muted);
-  line-height: 1.8;
-  font-size: 14px;
-}
-
-.marketing-hero-chips {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.marketing-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-card-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.marketing-hero-card {
-  min-width: 280px;
-  max-width: 320px;
-  width: 100%;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid var(--dash-line);
-  background: linear-gradient(
-    180deg,
-    var(--dash-card-bg),
-    var(--dash-panel-bg)
-  );
-  box-shadow: var(--dash-shadow);
-  display: grid;
-  gap: 18px;
-  flex-shrink: 0;
-}
-
-.marketing-hero-card-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.marketing-hero-card-head p {
-  margin: 0 0 6px;
-  color: var(--dash-muted);
-  font-size: 12px;
-}
-
-.marketing-hero-card-head h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 16px;
-  font-weight: 800;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.marketing-hero-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-text);
-  flex-shrink: 0;
-}
-
-.marketing-summary-action-area {
-  display: flex;
-  justify-content: center;
-}
-
-.marketing-view-dialog-btn {
-  width: 100%;
-  height: 40px;
-  border: 1px solid var(--dash-line);
-  border-radius: 12px;
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 13px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.marketing-view-dialog-btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--dash-accent);
-}
-
-.marketing-hero-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.marketing-hero-metrics div {
-  padding: 10px;
-  border-radius: 12px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-blank-bg);
-}
-
-.marketing-hero-metrics strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--dash-muted);
-  font-size: 10px;
-}
-
-.marketing-hero-metrics span {
-  color: var(--dash-text);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-.marketing-summary-preview-empty {
-  width: 100%;
-  min-height: 90px;
-  border-radius: 16px;
-  border: 1px dashed var(--dash-line);
-  background: var(--dash-blank-bg);
-  display: grid;
-  place-items: center;
-  color: var(--dash-muted);
-}
-
-@media (max-width: 991px) {
-  .marketing-hero {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .marketing-hero-card {
-    max-width: 100%;
-    min-width: 0;
-  }
-}
-
-@media (max-width: 768px) {
-  .marketing-hero {
-    padding: 20px;
-    border-radius: 20px;
-  }
-
-  .marketing-hero-card {
-    width: 100%;
-    padding: 16px;
-  }
-
-  .marketing-hero-metrics {
-    grid-template-columns: 1fr;
-  }
-
-  .marketing-hero-card-head h3 {
-    font-size: 15px;
-  }
-}
-
-@media (max-width: 480px) {
-  .marketing-hero {
-    padding: 16px;
-  }
-
-  .marketing-chip {
-    width: 100%;
-    justify-content: center;
-  }
-}
-.marketing-chart-wrap {
-  width: 100%;
-  overflow: hidden;
-}
-
-.marketing-donut-chart {
-  width: 100%;
-  overflow: hidden;
-}
-
-@media (max-width: 768px) {
   .marketing-chart-wrap {
-    overflow-x: auto;
+    height: 260px;
   }
 
-  .marketing-donut-legend {
-    gap: 10px;
+  .marketing-donut-chart {
+    height: 200px;
+  }
+
+  .marketing-portfolio-hero {
+    height: 100px;
+    min-height: 100px;
+  }
+
+  .marketing-portfolio-body {
+    padding: 15px;
+  }
+
+  .marketing-offers-summary-head h3 {
+    font-size: 16px;
   }
 }
-/* ==========================================
-   كاردات الإحصائيات/الحالات - الداش بورد
-   ========================================== */
-.marketing-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
-  width: 100%;
-}
 
-.marketing-stats-grid > * {
-  background: var(--dash-surface);
-  border: 1px solid var(--dash-line);
-  border-radius: 16px;
-  padding: 14px 20px;
-  box-shadow: var(--dash-shadow);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  min-height: 80px;
-  transition: all 0.2s ease;
-}
-
-.marketing-stats-grid > *:hover {
-  border-color: var(--dash-accent);
-  transform: translateY(-2px);
-}
-
-/* تجاوب الشاشات */
-@media (max-width: 1180px) {
-  .marketing-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
 
 @media (max-width: 480px) {
+  .marketing-dashboard-page {
+    gap: 14px;
+  }
+
   .marketing-stats-grid {
-    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .marketing-analytics-grid,
+  .marketing-portfolio-grid {
+    gap: 12px;
+  }
+
+  .marketing-panel {
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .marketing-chart-wrap {
+    height: 230px;
+  }
+
+  .marketing-chart-wrap .recharts-text {
+    font-size: 9px;
+  }
+
+  .marketing-donut-chart {
+    height: 185px;
+  }
+
+  .marketing-legend-item {
+    padding: 10px;
+  }
+
+  .marketing-portfolio-card {
+    border-radius: 17px;
+  }
+
+  .marketing-portfolio-footer {
+    align-items: flex-end;
+  }
+
+  .marketing-unit-chip {
+    max-width: 75%;
+  }
+
+  .marketing-primary-btn,
+  .marketing-secondary-btn {
+    width: 100%;
   }
 }
-/* ==========================================
-   إصلاح ألوان الأرقام والقيم (حل مشكلة اللون الأبيض في المود النهاري)
-   ========================================== */
 
-/* 1. تجبير جميع النصوص والقيم داخل كاردات الإحصائيات لتأخذ لون النص الخاص بالثيم */
-.marketing-stats-grid * {
-  color: var(--dash-text);
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+.marketing-primary-btn:focus-visible,
+.marketing-secondary-btn:focus-visible,
+.marketing-icon-btn:focus-visible {
+  outline: 2px solid var(--dash-accent);
+  outline-offset: 2px;
 }
-
-/* 2. استهداف الأرقام والقيم بخصوصية عالية جداً لكسر اللون الأبيض الثابت */
-.marketing-stats-grid h1,
-.marketing-stats-grid h2,
-.marketing-stats-grid h3,
-.marketing-stats-grid h4,
-.marketing-stats-grid .stat-card-value,
-.marketing-stats-grid .stat-value,
-.marketing-stats-grid .value,
-.marketing-stats-grid strong,
-.marketing-stats-grid span {
-  color: var(--dash-text) !important;
-}
-
-/* 3. العناوين والملاحظات الفرعية داخل الكارد لتظهر بلون هادئ ومقروء */
-.marketing-stats-grid p,
-.marketing-stats-grid .stat-card-title,
-.marketing-stats-grid .stat-title,
-.marketing-stats-grid .stat-card-note {
-  color: var(--dash-muted) !important;
-}
-
-/* 4. إعطاء الأيقونات داخل الكاردات لون التمييز */
-.marketing-stats-grid svg {
-  color: var(--dash-accent) !important;
-}
-
-/* 5. أرقام الحالات والنسب في الـ Donut Legend */
-.marketing-legend-item strong {
-  color: var(--dash-accent) !important;
-}
-
-.marketing-legend-item span {
-  color: var(--dash-text) !important;
-}
-
-/* 6. الأرقام داخل الهيرو/المعاينة */
-.marketing-hero-metrics span,
-.marketing-offers-summary-metrics span,
-.marketing-offers-summary-metrics div {
-  color: var(--dash-text) !important;
-}
-
-/* 7. ألوان الحالات (Pills) */
-.marketing-status-pill.active {
-  background: var(--dash-accent-soft);
-  color: var(--dash-accent) !important;
-}
-
-.marketing-status-pill.draft {
-  background: var(--dash-blank-bg);
-  color: var(--dash-muted) !important;
-}
-
-.marketing-status-pill.scheduled {
-  background: var(--dash-hover-bg);
-  color: var(--dash-accent-strong) !important;
 }

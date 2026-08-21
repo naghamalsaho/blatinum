@@ -1,13 +1,12 @@
-import React, { useEffect, useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   FileText,
   Plus,
   Eye,
-
   Trash2,
   Search,
-  Filter,
+  SlidersHorizontal,
   ChevronDown,
   DollarSign,
   CheckCircle2,
@@ -22,6 +21,8 @@ import {
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
+import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
 import ErrorMessage from "@/shared/ui/ErrorMessage";
 
@@ -39,9 +40,7 @@ import { fetchClientContracts } from "../../legal/features/contracts/model/contr
 
 import "../styles/financial-exceptions.css";
 
-// تحديث قاموس الحالات ليشمل جميع حالات العقد والاستثناء
 const STATUS_META = {
-  // حالات الاستثناء والعقد
   pending: { label: "قيد المراجعة", type: "busy" },
   pending_approval: { label: "بانتظار موافقة المالي", type: "busy" },
   approved: { label: "معتمد", type: "ok" },
@@ -63,7 +62,7 @@ function getStatusMeta(status) {
 }
 
 function formatDate(value) {
-  return value || "—";
+  return value ? new Date(value).toLocaleDateString("ar-SY") : "—";
 }
 
 function formatCurrency(amount) {
@@ -73,13 +72,13 @@ function formatCurrency(amount) {
 
 export default function FinancialContractExceptionsPage() {
   const dispatch = useDispatch();
-  const statusDropdownRef = useRef(null);
 
-  // Selector للاستثناءات من الـ Redux Store
+  // Selector للاستثناءات
   const {
     items: exceptions = [],
     loading = false,
     error = null,
+    actionLoading = false,
   } = useSelector((state) => state.contractExceptions || {});
 
   // Selector للعملاء
@@ -102,7 +101,6 @@ export default function FinancialContractExceptionsPage() {
   // حالات الفلترة والبحث
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
 
   // نموذج إنشاء/تعديل طلب الاستثناء
   const [formData, setFormData] = useState({
@@ -116,7 +114,7 @@ export default function FinancialContractExceptionsPage() {
 
   // نموذج المراجعة واتخاذ القرار
   const [reviewData, setReviewData] = useState({
-    status: "approved", // approved | rejected
+    status: "approved",
     review_notes: "",
   });
 
@@ -127,20 +125,6 @@ export default function FinancialContractExceptionsPage() {
     dispatch(fetchContractExceptions());
     dispatch(fetchCustomerServiceClients());
   }, [dispatch]);
-
-  // إغلاق قوائم الفلترة عند النقر خارجها
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (
-        statusDropdownRef.current &&
-        !statusDropdownRef.current.contains(event.target)
-      ) {
-        setStatusDropdownOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
 
   // 2. معالجة تغيير العميل وجلب عقوده
   const handleClientChange = async (e) => {
@@ -198,18 +182,12 @@ export default function FinancialContractExceptionsPage() {
     setSelectedException(null);
   };
 
-  // فتح مودال التعديل
-  
-
-  // فتح مودال المعاينة (جلب البيانات التفصيلية للراوت /1)
   const openPreviewModal = async (item) => {
     setSelectedException(item);
     setPreviewOpen(true);
-    // يمكنك جلب التفاصيل الكاملة من الراوت إذا كانت تحتوي معلومات أعمق
     dispatch(fetchContractExceptionById(item.id));
   };
 
-  // فتح مودال المراجعة واتخاذ القرار
   const openReviewModal = (item) => {
     setSelectedException(item);
     setReviewData({
@@ -219,7 +197,6 @@ export default function FinancialContractExceptionsPage() {
     setReviewOpen(true);
   };
 
-  // تقديم النموذج (إنشاء / تعديل)
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -251,42 +228,37 @@ export default function FinancialContractExceptionsPage() {
     }
   };
 
-  // حفظ المراجعة والاعتماد
- // داخل FinancialContractExceptionsPage.jsx
+  const handleReviewSubmit = async (e) => {
+    e.preventDefault();
+    if (!selectedException) return;
 
-// حفظ المراجعة والاعتماد أو الرفض
-const handleReviewSubmit = async (e) => {
-  e.preventDefault();
-  if (!selectedException) return;
+    if (reviewData.status === "rejected" && !reviewData.review_notes.trim()) {
+      setFormErrors({ review_notes: "يرجى كتابة سبب الرفض" });
+      return;
+    }
 
-  // التحقق من وجود سبب الرفض في حال تم اختيار الرفض
-  if (reviewData.status === "rejected" && !reviewData.review_notes.trim()) {
-    setFormErrors({ review_notes: "يرجى كتابة سبب الرفض" });
-    return;
-  }
+    const result = await dispatch(
+      reviewContractException({
+        id: selectedException.id,
+        status: reviewData.status,
+        rejection_reason: reviewData.review_notes,
+        review_notes: reviewData.review_notes,
+      })
+    );
 
-  const result = await dispatch(
-    reviewContractException({
-      id: selectedException.id,
-      status: reviewData.status, // "approved" أو "rejected"
-      rejection_reason: reviewData.review_notes, // إرسال السبب باسم rejection_reason
-      review_notes: reviewData.review_notes,
-    })
-  );
-
-  if (reviewContractException.fulfilled.match(result)) {
-    setReviewOpen(false);
-    resetForm();
-  }
-};
+    if (reviewContractException.fulfilled.match(result)) {
+      setReviewOpen(false);
+      resetForm();
+    }
+  };
 
   const handleDelete = async (id) => {
-    if (window.confirm(`هل أنت تأكد من رغبتك في حذف الاستثناء ${id}؟`)) {
+    if (window.confirm(`هل أنت تأكد من رغبتك في حذف الاستثناء #${id}؟`)) {
       dispatch(deleteContractException(id));
     }
   };
 
-  // إحصائيات الصفحة
+  // الإحصائيات
   const stats = useMemo(() => {
     const totalCount = exceptions.length;
     const pendingCount = exceptions.filter(
@@ -296,7 +268,6 @@ const handleReviewSubmit = async (e) => {
       (item) => item.status === "approved"
     ).length;
 
-    // مجموع الخصومات المطلوبة
     const totalDiscountValue = exceptions.reduce((sum, item) => {
       const discount = item.comparison?.total_price?.discount_amount || 0;
       return sum + Math.abs(Number(discount));
@@ -326,7 +297,7 @@ const handleReviewSubmit = async (e) => {
     ];
   }, [exceptions]);
 
-  // فلترة السجلات والبحث
+  // الفلترة والبحث
   const filteredExceptions = useMemo(() => {
     const q = String(searchTerm || "").trim().toLowerCase();
 
@@ -361,13 +332,10 @@ const handleReviewSubmit = async (e) => {
     });
   }, [exceptions, searchTerm, statusFilter]);
 
-  const currentStatusLabel =
-    STATUS_OPTIONS.find((opt) => opt.id === statusFilter)?.label || "الحالة";
-
   return (
     <div className="financial-exceptions-page" dir="rtl">
-      {/* 1. قسم الإحصائيات */}
-      <section className="financial-exceptions-stats-grid">
+      {/* 1. شبكة الإحصائيات الموحدة */}
+      <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard
             key={item.title}
@@ -378,213 +346,189 @@ const handleReviewSubmit = async (e) => {
         ))}
       </section>
 
-      {/* 2. اللوحة الرئيسية للجدول والفلترة */}
-      <section className="financial-exceptions-main-grid">
-        <article className="financial-panel">
-          <div className="financial-panel-head">
-            <div>
-              <h2>إدارة واستثناءات العقود المالية</h2>
-              <p>مراجعة، تقديم، واعتماد الاستثناءات للشروط المالية للعقود</p>
-            </div>
+      {/* 2. شريط الأدوات الموحد تماماً مطاط لصفحة المواعيد والخدمات */}
+      <div className="exact-toolbar-card" dir="rtl">
+        {/* زر تقديم طلب استثناء جديد */}
+        <button
+          type="button"
+          className="exact-primary-btn"
+          onClick={() => {
+            resetForm();
+            setCreateOpen(true);
+          }}
+        >
+          <Plus size={18} />
+          <span>تقديم طلب استثناء جديد</span>
+        </button>
 
-            <Button
-              type="button"
-              className="financial-secondary-btn"
-              onClick={() => {
-                resetForm();
-                setCreateOpen(true);
-              }}
-            >
-              <Plus size={16} />
-              <span>تقديم طلب استثناء جديد</span>
-            </Button>
+        {/* القائمة المنسدلة للتصفية بالحالة */}
+        <div className="exact-select-wrapper">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            {STATUS_OPTIONS.map((opt) => (
+              <option key={opt.id} value={opt.id}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+          <ChevronDown size={16} className="exact-select-chevron" />
+        </div>
+
+        {/* عنوان وأيقونة التصفية */}
+        <div className="exact-filter-label">
+          <SlidersHorizontal size={16} />
+          <span>تصفية</span>
+        </div>
+
+        {/* حقل البحث المماد يساراً */}
+        <div className="exact-search-field">
+          <input
+            type="text"
+            placeholder="ابحث باسم العميل، رقم العقد، مقدم الطلب..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search size={18} className="exact-search-icon" />
+        </div>
+      </div>
+
+      {/* 3. بطاقة الجدول باستخدام مكون TableCard الموحد */}
+      <TableCard
+        title="إدارة واستثناءات العقود المالية"
+        count={filteredExceptions.length}
+      >
+        {loading ? (
+          <div className="table-state">جاري تحميل بيانات الاستثناءات...</div>
+        ) : error ? (
+          <div className="table-state is-error">
+            {typeof error === "string" ? error : "حدث خطأ أثناء تحميل البيانات"}
           </div>
+        ) : (
+          <div className="table-scroll">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>اسم العميل</th>
+                  <th>مُقدم الطلب</th>
+                  <th>رقم العقد</th>
+                  <th>مقارنة السعر (الأصلي / المطلوب)</th>
+                  <th>تاريخ الطلب</th>
+                  <th>الحالة</th>
+                  <th>إجراءات</th>
+                </tr>
+              </thead>
 
-          <div className="financial-exceptions-toolbar">
-            <div className="financial-search-wrapper">
-              <div className="financial-search">
-                <Search size={18} />
-                <input
-                  type="text"
-                  placeholder="ابحث باسم العميل، رقم العقد، مقدم الطلب..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-
-              <div
-                className="financial-status-dropdown"
-                ref={statusDropdownRef}
-              >
-                <button
-                  type="button"
-                  className="financial-status-trigger"
-                  onClick={() => setStatusDropdownOpen((prev) => !prev)}
-                >
-                  <Filter size={16} />
-                  <span>{currentStatusLabel}</span>
-                  <ChevronDown
-                    size={15}
-                    className={`status-arrow ${
-                      statusDropdownOpen ? "open" : ""
-                    }`}
-                  />
-                </button>
-
-                {statusDropdownOpen && (
-                  <div className="financial-status-menu">
-                    {STATUS_OPTIONS.map((opt) => (
-                      <button
-                        key={opt.id}
-                        type="button"
-                        className={`status-menu-item ${
-                          statusFilter === opt.id ? "active" : ""
-                        }`}
-                        onClick={() => {
-                          setStatusFilter(opt.id);
-                          setStatusDropdownOpen(false);
-                        }}
-                      >
-                        {opt.label}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-
-          {loading ? (
-            <div className="project-empty-state">
-              جاري تحميل بيانات الاستثناءات...
-            </div>
-          ) : error ? (
-            <div className="project-empty-state">
-              {typeof error === "string"
-                ? error
-                : "حدث خطأ أثناء تحميل البيانات"}
-            </div>
-          ) : (
-            <div className="financial-exceptions-table-wrap">
-              <table className="financial-exceptions-table">
-                <thead>
+              <tbody>
+                {filteredExceptions.length === 0 ? (
                   <tr>
-                    <th>اسم العميل</th>
-                    <th>مُقدم الطلب</th>
-                    <th>رقم العقد</th>
-                    <th>مقارنة السعر (الأصلي / المطلوب)</th>
-                    <th>تاريخ الطلب</th>
-                    <th>الحالة</th>
-                    <th>إجراءات</th>
+                    <td colSpan="7" className="empty-cell">
+                      لا توجد استثناءات عقود مطابقة لخيارات البحث والحالة
+                    </td>
                   </tr>
-                </thead>
+                ) : (
+                  filteredExceptions.map((item) => {
+                    const meta = getStatusMeta(item.status);
+                    const clientAccount = item.contract?.client?.account;
+                    const priceComp = item.comparison?.total_price;
 
-                <tbody>
-                  {filteredExceptions.length === 0 ? (
-                    <tr>
-                      <td colSpan="7">
-                        <div className="project-empty-state">
-                          لا توجد استثناءات عقود مطابقة لخيارات البحث والحالة
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredExceptions.map((item) => {
-                      const meta = getStatusMeta(item.status);
-                      const clientAccount = item.contract?.client?.account;
-                      const priceComp = item.comparison?.total_price;
-
-                      return (
-                        <tr key={item.id}>
-                          <td className="financial-primary-td">
-                            <div className="financial-exception-title-cell">
-                              <div className="financial-exception-icon-box">
-                                <User size={18} />
-                              </div>
-                              <span className="financial-exception-title">
+                    return (
+                      <tr key={item.id}>
+                        <td>
+                          <div className="services-item-cell">
+                            <div className="services-thumb-placeholder">
+                              <User size={16} />
+                            </div>
+                            <div className="services-item-info">
+                              <strong>
                                 {clientAccount?.full_name ||
-                                  `عميل لعقد ${item.contract_id}`}
+                                  `عميل لعقد #${item.contract_id}`}
+                              </strong>
+                            </div>
+                          </div>
+                        </td>
+
+                        <td>
+                          <span className="services-date">
+                            {item.requested_by?.name || "—"}
+                          </span>
+                        </td>
+
+                        <td>
+                          <strong>عقد #{item.contract_id || "—"}</strong>
+                        </td>
+
+                        <td>
+                          {priceComp ? (
+                            <div>
+                              <span
+                                style={{
+                                  textDecoration: "line-through",
+                                  color: "var(--dash-muted)",
+                                  marginLeft: "6px",
+                                }}
+                              >
+                                {formatCurrency(priceComp.original)}
                               </span>
+                              <strong style={{ color: "var(--dash-accent)" }}>
+                                {formatCurrency(priceComp.requested)}
+                              </strong>
                             </div>
-                          </td>
+                          ) : (
+                            "—"
+                          )}
+                        </td>
 
-                          <td>
-                            <span className="financial-type-chip">
-                              {item.requested_by?.name || "—"}
-                            </span>
-                          </td>
+                        <td className="services-date">
+                          {formatDate(item.created_at)}
+                        </td>
 
-                          <td className="financial-account-num">
-                            عقد {item.contract_id || "—"}
-                          </td>
+                        <td>
+                          <StatusBadge status={meta.label} type={meta.type} />
+                        </td>
 
-                          <td className="financial-metric">
-                            {priceComp ? (
-                              <div>
-                                <span style={{ textDecoration: "line-through", color: "#888", marginLeft: "6px" }}>
-                                  {formatCurrency(priceComp.original)}
-                                </span>
-                                <strong style={{ color: "#2563eb" }}>
-                                  {formatCurrency(priceComp.requested)}
-                                </strong>
-                              </div>
-                            ) : (
-                              "—"
-                            )}
-                          </td>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="icon-action-btn"
+                              onClick={() => openPreviewModal(item)}
+                              title="عرض التفاصيل والمقارنة"
+                            >
+                              <Eye size={16} />
+                            </button>
 
-                          <td className="financial-date">
-                            {formatDate(item.created_at)}
-                          </td>
+                            <button
+                              type="button"
+                              className="icon-action-btn review"
+                              onClick={() => openReviewModal(item)}
+                              title="مراجعة واعتماد الطلب"
+                            >
+                              <FileCheck size={16} />
+                            </button>
 
-                          <td>
-                            <StatusBadge status={meta.label} type={meta.type} />
-                          </td>
+                            <button
+                              type="button"
+                              className="icon-action-btn danger"
+                              onClick={() => handleDelete(item.id)}
+                              title="حذف"
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </TableCard>
 
-                          <td>
-                            <div className="financial-row-actions">
-                              <button
-                                type="button"
-                                className="financial-icon-btn"
-                                onClick={() => openPreviewModal(item)}
-                                title="عرض التفاصيل والمقارنة"
-                              >
-                                <Eye size={14} />
-                              </button>
-
-                              <button
-                                type="button"
-                                className="financial-icon-btn review"
-                                onClick={() => openReviewModal(item)}
-                                title="مراجعة واعتماد الطلب"
-                              >
-                                <FileCheck size={14} />
-                              </button>
-
-                              
-
-                              <button
-                                type="button"
-                                className="financial-icon-btn danger"
-                                onClick={() => handleDelete(item.id)}
-                                title="حذف"
-                              >
-                                <Trash2 size={14} />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-        </article>
-      </section>
-
-      {/* 3. مودال تسجيل / تعديل طلب الاستثناء */}
+      {/* 4. مودال إضافة / تعديل طلب استثناء */}
       <Modal
         open={createOpen || editOpen}
         onClose={() => {
@@ -594,16 +538,17 @@ const handleReviewSubmit = async (e) => {
         }}
         title={
           editOpen
-            ? `تعديل الاستثناء ${selectedException?.id || ""}`
+            ? `تعديل الاستثناء #${selectedException?.id || ""}`
             : "تقديم طلب استثناء عقد جديد"
         }
-        size="lg"
+        size="md"
       >
-        <form className="financial-modal-form" onSubmit={handleSubmit} noValidate>
-          <div className="financial-modal-grid">
-            <div className="custom-form-group">
-              <label>اختيار العميل</label>
+        <form className="modal-form" onSubmit={handleSubmit} noValidate>
+          <div className="field-group">
+            <label className="field-label">اختيار العميل</label>
+            <div className="exact-select-wrapper" style={{ width: "100%" }}>
               <select
+                style={{ width: "100%" }}
                 name="client_id"
                 value={formData.client_id}
                 onChange={handleClientChange}
@@ -613,8 +558,7 @@ const handleReviewSubmit = async (e) => {
                 {clients.map((client) => {
                   const cId =
                     client.additional_info?.client_id || client.account?.id;
-                  const name =
-                    client.account?.full_name || `عميل ${cId}`;
+                  const name = client.account?.full_name || `عميل #${cId}`;
                   return (
                     <option key={cId} value={cId}>
                       {name}
@@ -622,13 +566,17 @@ const handleReviewSubmit = async (e) => {
                   );
                 })}
               </select>
+              <ChevronDown size={16} className="exact-select-chevron" />
             </div>
+          </div>
 
-            <div className="custom-form-group">
-              <label>
-                اختيار العقد <span className="required-dot">•</span>
-              </label>
+          <div className="field-group">
+            <label className="field-label">
+              اختيار العقد <span style={{ color: "var(--danger)" }}>*</span>
+            </label>
+            <div className="exact-select-wrapper" style={{ width: "100%" }}>
               <select
+                style={{ width: "100%" }}
                 name="contract_id"
                 value={formData.contract_id}
                 onChange={handleChange}
@@ -645,96 +593,99 @@ const handleReviewSubmit = async (e) => {
                 </option>
                 {clientContracts.map((contract) => (
                   <option key={contract.id} value={contract.id}>
-                    عقد {contract.id}{" "}
+                    عقد #{contract.id}{" "}
                     {contract.total_price ? `(${contract.total_price} $)` : ""}
                   </option>
                 ))}
               </select>
-              <ErrorMessage message={formErrors.contract_id} />
+              <ChevronDown size={16} className="exact-select-chevron" />
             </div>
+            <ErrorMessage message={formErrors.contract_id} />
           </div>
 
-          <div className="financial-modal-grid">
-            <div className="custom-form-group">
-              <label>السعر الإجمالي المطلوب</label>
-              <input
-                type="number"
-                name="requested_total_price"
-                placeholder="السعر الجديد المطلوب..."
-                value={formData.requested_total_price}
-                onChange={handleChange}
-              />
-            </div>
+          <div className="modal-grid">
+            <Field
+              type="number"
+              name="requested_total_price"
+              label="السعر الإجمالي المطلوب"
+              placeholder="السعر الجديد المطلوب..."
+              value={formData.requested_total_price}
+              onChange={handleChange}
+            />
 
-            <div className="custom-form-group">
-              <label>الدفعة الأولى المطلوبة</label>
-              <input
-                type="number"
-                name="requested_down_payment"
-                placeholder="قيمة الدفعة الأولى جديدة..."
-                value={formData.requested_down_payment}
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="custom-form-group">
-              <label>عدد الأقساط المطلوب</label>
-              <input
-                type="number"
-                name="requested_installments_count"
-                placeholder="عدد الأقساط المعدل..."
-                value={formData.requested_installments_count}
-                onChange={handleChange}
-              />
-            </div>
+            <Field
+              type="number"
+              name="requested_down_payment"
+              label="الدفعة الأولى المطلوبة"
+              placeholder="قيمة الدفعة الأولى جديدة..."
+              value={formData.requested_down_payment}
+              onChange={handleChange}
+            />
           </div>
 
-          <div className="financial-modal-grid financial-modal-grid--single">
-            <div className="custom-form-group">
-            </div>
+          <Field
+            type="number"
+            name="requested_installments_count"
+            label="عدد الأقساط المطلوب"
+            placeholder="عدد الأقساط المعدل..."
+            value={formData.requested_installments_count}
+            onChange={handleChange}
+          />
+
+          <div className="field-group">
+            <label className="field-label">سبب تقديم الاستثناء</label>
+            <textarea
+              name="exception_reason"
+              className="financial-textarea"
+              placeholder="اكتب أسباب طلب الاستثناء بالتفصيل..."
+              value={formData.exception_reason}
+              onChange={handleChange}
+            />
           </div>
 
-          <div className="financial-modal-actions">
-            <button
-              type="submit"
-              className="btn-save-primary"
-              disabled={loading}
-            >
-              <span>
-                {loading
-                  ? "جاري الحفظ..."
-                  : editOpen
-                  ? "تحديث الاستثناء"
-                  : "حفظ الطلب"}
-              </span>
-            </button>
-
-            <button
+          <div className="modal-actions">
+            <Button
               type="button"
-              className="btn-cancel-secondary"
+              className="ghost-filter-btn"
               onClick={() => {
                 setCreateOpen(false);
                 setEditOpen(false);
                 resetForm();
               }}
+              disabled={actionLoading}
             >
               إلغاء
-            </button>
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={actionLoading}
+            >
+              <Plus size={16} />
+              <span>
+                {actionLoading
+                  ? "جاري الحفظ..."
+                  : editOpen
+                  ? "تحديث الاستثناء"
+                  : "حفظ الطلب"}
+              </span>
+            </Button>
           </div>
         </form>
       </Modal>
 
-      {/* 4. مودال مراجعة واعتماد الاستثناء */}
+      {/* 5. مودال مراجعة واعتماد الاستثناء */}
       <Modal
         open={reviewOpen}
         onClose={() => {
           setReviewOpen(false);
           resetForm();
         }}
-        title={`مراجعة وتأكيد الاستثناء ${selectedException?.id || ""}`}
-        size="lg"
+        title={`مراجعة وتأكيد الاستثناء #${selectedException?.id || ""}`}
+        size="md"
       >
-        <form className="financial-modal-form" onSubmit={handleReviewSubmit}>
+        <form className="modal-form" onSubmit={handleReviewSubmit}>
           <div className="financial-review-context">
             <div className="financial-preview-row">
               <span className="label">العميل:</span>
@@ -744,7 +695,7 @@ const handleReviewSubmit = async (e) => {
             </div>
             <div className="financial-preview-row">
               <span className="label">رقم العقد:</span>
-              <span className="value">{selectedException?.contract_id || "—"}</span>
+              <span className="value">#{selectedException?.contract_id || "—"}</span>
             </div>
             <div className="financial-preview-row">
               <span className="label">سبب الاستثناء:</span>
@@ -754,8 +705,8 @@ const handleReviewSubmit = async (e) => {
             </div>
           </div>
 
-          <div className="custom-form-group">
-            <label>قرار المراجعة والاعتماد</label>
+          <div className="field-group">
+            <label className="field-label">قرار المراجعة والاعتماد</label>
             <div className="financial-review-options">
               <label
                 className={`review-option ${
@@ -795,10 +746,11 @@ const handleReviewSubmit = async (e) => {
             </div>
           </div>
 
-          <div className="custom-form-group">
-            <label>ملاحظات توجيهات المراجعة</label>
+          <div className="field-group">
+            <label className="field-label">ملاحظات وتوجيهات المراجعة</label>
             <textarea
               name="review_notes"
+              className="financial-textarea"
               placeholder="اكتب ملاحظات الإدارة بخصوص هذا القرار..."
               value={reviewData.review_notes}
               onChange={(e) =>
@@ -808,40 +760,45 @@ const handleReviewSubmit = async (e) => {
                 }))
               }
             />
+            <ErrorMessage message={formErrors.review_notes} />
           </div>
 
-          <div className="financial-modal-actions">
-            <button
-              type="submit"
-              className="btn-save-primary"
-              disabled={loading}
-            >
-              <span>{loading ? "جاري الحفظ..." : "حفظ القرار والاعتماد"}</span>
-            </button>
-
-            <button
+          <div className="modal-actions">
+            <Button
               type="button"
-              className="btn-cancel-secondary"
+              className="ghost-filter-btn"
               onClick={() => {
                 setReviewOpen(false);
                 resetForm();
               }}
+              disabled={actionLoading}
             >
               إلغاء
-            </button>
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={actionLoading}
+            >
+              <FileCheck size={16} />
+              <span>
+                {actionLoading ? "جاري الحفظ..." : "حفظ القرار والاعتماد"}
+              </span>
+            </Button>
           </div>
         </form>
       </Modal>
 
-      {/* 5. مودال معاينة تفاصيل الاستثناء والمقارنة (Comparison Details) */}
+      {/* 6. مودال معاينة تفاصيل الاستثناء والمقارنة */}
       <Modal
         open={previewOpen}
         onClose={() => {
           setPreviewOpen(false);
           setSelectedException(null);
         }}
-        title={`عرض تفاصيل استثناء العقد ${selectedException?.id || ""}`}
-        size="lg"
+        title={`تفاصيل استثناء العقد #${selectedException?.id || ""}`}
+        size="md"
       >
         <div className="financial-preview-modal">
           <div className="financial-preview-card">
@@ -862,7 +819,7 @@ const handleReviewSubmit = async (e) => {
             <div className="financial-preview-row">
               <span className="label">رقم العقد:</span>
               <span className="value">
-                {selectedException?.contract_id || "—"}
+                #{selectedException?.contract_id || "—"}
               </span>
             </div>
 
@@ -884,78 +841,138 @@ const handleReviewSubmit = async (e) => {
             </div>
           </div>
 
-          {/* جدول المقارنة التفصيلي (Comparison Table) */}
+          {/* جدول المقارنة التفصيلي */}
           {selectedException?.comparison && (
-            <div className="financial-preview-details" style={{ marginTop: "16px" }}>
-              <h4 className="financial-preview-title" style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <ArrowRightLeft size={18} />
+            <div className="financial-preview-details">
+              <h4 className="financial-preview-title">
+                <ArrowRightLeft size={16} />
                 <span>جدول مقارنة التغييرات المطلوبة في العقد:</span>
               </h4>
 
-              <table className="financial-exceptions-table" style={{ marginTop: "10px" }}>
-                <thead>
-                  <tr>
-                    <th>البند</th>
-                    <th>القيمة الأصلية</th>
-                    <th>القيمة المطلوبة</th>
-                    <th>حالة التغيير</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {/* السعر الكلي */}
-                  {selectedException.comparison.total_price && (
+              <div className="table-scroll">
+                <table className="legal-table" style={{ minWidth: "100%" }}>
+                  <thead>
                     <tr>
-                      <td><strong>السعر الإجمالي</strong></td>
-                      <td>{formatCurrency(selectedException.comparison.total_price.original)}</td>
-                      <td>{formatCurrency(selectedException.comparison.total_price.requested)}</td>
-                      <td>
-                        {selectedException.comparison.total_price.is_changed ? (
-                          <span style={{ color: "#e11d48", fontWeight: "bold" }}>مُعدَّل</span>
-                        ) : (
-                          "غير متغير"
-                        )}
-                      </td>
+                      <th>البند</th>
+                      <th>القيمة الأصلية</th>
+                      <th>القيمة المطلوبة</th>
+                      <th>حالة التغيير</th>
                     </tr>
-                  )}
+                  </thead>
+                  <tbody>
+                    {selectedException.comparison.total_price && (
+                      <tr>
+                        <td>
+                          <strong>السعر الإجمالي</strong>
+                        </td>
+                        <td>
+                          {formatCurrency(
+                            selectedException.comparison.total_price.original
+                          )}
+                        </td>
+                        <td>
+                          {formatCurrency(
+                            selectedException.comparison.total_price.requested
+                          )}
+                        </td>
+                        <td>
+                          {selectedException.comparison.total_price
+                            .is_changed ? (
+                            <span
+                              style={{
+                                color: "var(--danger)",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              مُعدَّل
+                            </span>
+                          ) : (
+                            "غير متغير"
+                          )}
+                        </td>
+                      </tr>
+                    )}
 
-                  {/* الدفعة الأولى */}
-                  {selectedException.comparison.down_payment && (
-                    <tr>
-                      <td><strong>الدفعة الأولى</strong></td>
-                      <td>{formatCurrency(selectedException.comparison.down_payment.original)}</td>
-                      <td>{formatCurrency(selectedException.comparison.down_payment.requested)}</td>
-                      <td>
-                        {selectedException.comparison.down_payment.is_changed ? (
-                          <span style={{ color: "#e11d48", fontWeight: "bold" }}>مُعدَّل</span>
-                        ) : (
-                          "غير متغير"
-                        )}
-                      </td>
-                    </tr>
-                  )}
+                    {selectedException.comparison.down_payment && (
+                      <tr>
+                        <td>
+                          <strong>الدفعة الأولى</strong>
+                        </td>
+                        <td>
+                          {formatCurrency(
+                            selectedException.comparison.down_payment.original
+                          )}
+                        </td>
+                        <td>
+                          {formatCurrency(
+                            selectedException.comparison.down_payment
+                              .requested
+                          )}
+                        </td>
+                        <td>
+                          {selectedException.comparison.down_payment
+                            .is_changed ? (
+                            <span
+                              style={{
+                                color: "var(--danger)",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              مُعدَّل
+                            </span>
+                          ) : (
+                            "غير متغير"
+                          )}
+                        </td>
+                      </tr>
+                    )}
 
-                  {/* عدد الأقساط */}
-                  {selectedException.comparison.installments_count && (
-                    <tr>
-                      <td><strong>عدد الأقساط</strong></td>
-                      <td>{selectedException.comparison.installments_count.original} أقساط</td>
-                      <td>{selectedException.comparison.installments_count.requested} أقساط</td>
-                      <td>
-                        {selectedException.comparison.installments_count.is_changed ? (
-                          <span style={{ color: "#e11d48", fontWeight: "bold" }}>مُعدَّل</span>
-                        ) : (
-                          "غير متغير"
-                        )}
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                    {selectedException.comparison.installments_count && (
+                      <tr>
+                        <td>
+                          <strong>عدد الأقساط</strong>
+                        </td>
+                        <td>
+                          {
+                            selectedException.comparison.installments_count
+                              .original
+                          }{" "}
+                          أقساط
+                        </td>
+                        <td>
+                          {
+                            selectedException.comparison.installments_count
+                              .requested
+                          }{" "}
+                          أقساط
+                        </td>
+                        <td>
+                          {selectedException.comparison.installments_count
+                            .is_changed ? (
+                            <span
+                              style={{
+                                color: "var(--danger)",
+                                fontWeight: "bold",
+                              }}
+                            >
+                              مُعدَّل
+                            </span>
+                          ) : (
+                            "غير متغير"
+                          )}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           )}
 
-          <div className="financial-preview-details" style={{ marginTop: "16px" }}>
-            <h4 className="financial-preview-title">سبب تقديم طلب الاستثناء:</h4>
+          <div className="financial-preview-details">
+            <h4 className="financial-preview-title">
+              سبب تقديم طلب الاستثناء:
+            </h4>
             <p className="financial-preview-desc">
               {selectedException?.exception_reason || "لا يوجد سبب مدون"}
             </p>

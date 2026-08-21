@@ -4,12 +4,10 @@ import {
   Eye,
   TrendingUp,
   Activity,
- 
-  Percent,
+
   Home,
   Briefcase,
- 
-  CalendarDays,
+  
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -28,6 +26,7 @@ import { useDispatch, useSelector } from "react-redux";
 
 import StatCard from "@/shared/components/StatCard";
 import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
 
 import {
   fetchAdvertisements,
@@ -35,6 +34,8 @@ import {
 } from "../features/advertisements/model/advertisement.thunks";
 
 import { fetchOffers } from "../features/offer/model/offer.thunks";
+
+/* استخدام نفس ملف التنسيقات الموحد للخدمات والإعلانات */
 
 import "../styles/marketing.css";
 
@@ -101,12 +102,10 @@ function isAdvertisementActive(advertisement) {
 
 function getAdStatus(ad) {
   const raw = ad?.status;
-
   if (raw === true || raw === 1 || raw === "1" || raw === "active") return "active";
   if (raw === false || raw === 0 || raw === "0" || raw === "draft") return "draft";
   if (raw === "scheduled") return "scheduled";
   if (raw === "review" || raw === "pending") return "pending";
-
   return "draft";
 }
 
@@ -123,16 +122,8 @@ function getAdMonthKey(ad) {
     getSafeDate(ad?.date);
 
   if (!date) return null;
-
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
-
-// function getFirstImage(advertisement) {
-//   return (
-//     advertisement?.attachments?.find((item) => item.type === "image")?.url ||
-//     null
-//   );
-// }
 
 function formatDate(value) {
   return value ? String(value).split(" ")[0] : "—";
@@ -146,7 +137,6 @@ function formatPrice(amount) {
 export default function MarketingDashboardPage() {
   const dispatch = useDispatch();
 
-  // جلب الإعلانات
   const adsState = useSelector((state) => state.advertisements || {});
   const liveAdvertisements =
     adsState.advertisements ||
@@ -167,12 +157,10 @@ export default function MarketingDashboardPage() {
       ? activeAdvertisementsFromStore
       : advertisements.filter(isAdvertisementActive);
 
-  // جلب العروض
   const offersState = useSelector((state) => state.offers || state.offer || {});
   const offersList = offersState?.items || offersState?.offers || [];
   const offersLoading = offersState?.loading || false;
 
-  // أحدث 3 عروض فقط
   const latestOffers = useMemo(() => {
     return [...offersList].reverse().slice(0, 3);
   }, [offersList]);
@@ -188,7 +176,6 @@ export default function MarketingDashboardPage() {
 
   const performanceData = useMemo(() => {
     const result = [];
-
     for (let i = 5; i >= 0; i -= 1) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
@@ -209,7 +196,6 @@ export default function MarketingDashboardPage() {
         ads: adsInMonth.filter((ad) => getAdStatus(ad) === "active").length,
       });
     }
-
     return result;
   }, [advertisements]);
 
@@ -228,12 +214,10 @@ export default function MarketingDashboardPage() {
       (sum, ad) => sum + Number(ad.views || ad.view_count || 0),
       0
     );
-
     const totalClicks = advertisements.reduce(
       (sum, ad) => sum + Number(ad.clicks || ad.click_count || 0),
       0
     );
-
     const conversionRate =
       totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
 
@@ -267,19 +251,20 @@ export default function MarketingDashboardPage() {
   };
 
   return (
-    <div className="marketing-dashboard-page" dir="rtl">
-      <section className="marketing-stats-grid">
+    <div className="marketing-services-page" dir="rtl">
+      {/* 1. شبكة الإحصائيات العلوية بأسلوب واجهة الإعلانات */}
+      <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard
             key={item.title}
             title={item.title}
             value={item.value}
-            note={item.note}
             icon={item.icon}
           />
         ))}
       </section>
 
+      {/* 2. قسم التحليلات والرسوم البيانية */}
       <section className="marketing-analytics-grid">
         <article className="marketing-panel marketing-chart-panel">
           <div className="marketing-panel-head">
@@ -290,7 +275,7 @@ export default function MarketingDashboardPage() {
           </div>
 
           <div className="marketing-chart-wrap">
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="99%" height={320}>
               <AreaChart
                 data={performanceData}
                 margin={{ top: 10, right: 18, left: 0, bottom: 24 }}
@@ -370,7 +355,7 @@ export default function MarketingDashboardPage() {
           </div>
 
           <div className="marketing-donut-chart">
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="99%" height={220}>
               <PieChart>
                 <Tooltip
                   contentStyle={{
@@ -416,112 +401,104 @@ export default function MarketingDashboardPage() {
         </article>
       </section>
 
-      {/* قسم أحدث العروض والخصومات بدلاً من المعرض القديم */}
-      <section className="marketing-portfolio-section">
-        <div className="marketing-panel-head marketing-section-head">
-          <div>
-            <h2>أحدث العروض والخصومات</h2>
-            
-          </div>
-        </div>
-
+      {/* 3. قسم أحدث العروض مصمم كجدول كروت متطابق تماماً مع واجهة الإعلانات */}
+      <TableCard title="أحدث العروض والخصومات">
         {offersLoading ? (
-          <div className="project-empty-state">جاري تحميل العروض...</div>
+          <div className="table-state">جاري تحميل العروض...</div>
         ) : latestOffers.length === 0 ? (
-          <div className="project-empty-state">لا توجد عروض متاحة حالياً</div>
+          <div className="table-state">لا توجد عروض متاحة حالياً</div>
         ) : (
-          <div className="marketing-portfolio-grid">
-            {latestOffers.map((item) => {
-              const isService = !!item.item?.name;
-              const title = isService
-                ? item.item?.name
-                : item.item?.unit_number
-                ? `شقة رقم ${item.item.unit_number}`
-                : "عرض خاص";
+          <div className="table-scroll">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>العرض / العنصر</th>
+                  <th>النوع</th>
+                  <th>نسبة الخصم</th>
+                  <th>السعر السابق</th>
+                  <th>السعر الحالي</th>
+                  <th>ينتهي في</th>
+                  <th>الإجراءات</th>
+                </tr>
+              </thead>
+              <tbody>
+                {latestOffers.map((item) => {
+                  const isService = !!item.item?.name;
+                  const title = isService
+                    ? item.item?.name
+                    : item.item?.unit_number
+                    ? `شقة رقم ${item.item.unit_number}`
+                    : "عرض خاص";
 
-              return (
-                <article key={item.id} className="marketing-portfolio-card">
-                  <div
-                    className="marketing-portfolio-hero"
-                    style={{
-                      background: "var(--dash-shell-glow-1)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "2rem",
-                    }}
-                  >
-                    {isService ? <Briefcase size={32} /> : <Home size={32} />}
-                  </div>
+                  const categoryLabel = isService
+                    ? "خدمة تخصصية"
+                    : item.item?.building_id
+                    ? `مبنى رقم ${item.item.building_id}`
+                    : "وحدة سكنية";
 
-                  <div className="marketing-portfolio-body">
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <h3>{title}</h3>
-                        <span
-                          style={{
-                            background: "var(--dash-accent-soft, rgba(230, 81, 0, 0.1))",
-                            color: "var(--dash-accent)",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px",
-                          }}
-                        >
-                          <Percent size={11} /> {item.discount_percentage}%خصم
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div className="services-item-cell">
+                          <button
+                            type="button"
+                            className="services-thumb-btn"
+                            onClick={() => openOfferPreview(item)}
+                            title="معاينة العرض"
+                          >
+                            <div className="services-thumb-placeholder">
+                              {isService ? <Briefcase size={16} /> : <Home size={16} />}
+                            </div>
+                          </button>
+                          <div className="services-item-info">
+                            <strong>{title}</strong>
+                            <span>{categoryLabel}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="services-date">
+                        {isService ? "خدمة" : "عقار"}
+                      </td>
+
+                      <td>
+                        <span className="marketing-offer-badge">
+                          🏷️ خصم {item.discount_percentage}%
                         </span>
-                      </div>
+                      </td>
 
-                      <p style={{ marginTop: "6px", fontSize: "13px" }}>
-                        {isService
-                          ? "خدمة تخصصية"
-                          : item.item?.building_id
-                          ? `مبنى رقم ${item.item.building_id}`
-                          : "وحدة سكنية"}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: "10px", display: "flex", gap: "10px", alignItems: "baseline" }}>
-                      <span style={{ textDecoration: "line-through", color: "var(--dash-muted)", fontSize: "12px" }}>
+                      <td className="services-date" style={{ textDecoration: "line-through" }}>
                         {formatPrice(item.old_price)}
-                      </span>
-                      <strong style={{ color: "var(--dash-accent)", fontSize: "15px" }}>
+                      </td>
+
+                      <td style={{ color: "var(--dash-accent)", fontWeight: "bold" }}>
                         {formatPrice(item.new_price)}
-                      </strong>
-                    </div>
+                      </td>
 
-                    <div className="marketing-portfolio-footer" style={{ marginTop: "12px" }}>
-                      <span className="marketing-unit-chip" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <CalendarDays size={12} /> ينتهي: {formatDate(item.end_date)}
-                      </span>
+                      <td className="services-date">
+                        {formatDate(item.end_date)}
+                      </td>
 
-                      <div className="marketing-row-actions">
-                        <button
-                          type="button"
-                          className="marketing-icon-btn"
-                          onClick={() => openOfferPreview(item)}
-                          title="معاينة العرض"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => openOfferPreview(item)}
+                            title="معاينة العرض"
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
-      </section>
+      </TableCard>
 
       {/* نافذة معاينة العرض */}
       <Modal

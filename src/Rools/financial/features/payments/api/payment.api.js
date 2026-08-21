@@ -24,3 +24,8 @@ export const deletePaymentRequest = async (id) => {
 export const createPaymentRequest = async (formData) => {
   return await api.postForm("/payment", formData);
 };
+
+// 🆕 دالة تسديد دفعة مخصصة/تلقائية لأشهر قادمة للعقد
+export const payCustomByContractRequest = async (contractId, formData) => {
+  return await api.postForm(`/payment/byContract/${contractId}/custom`, formData);
+};

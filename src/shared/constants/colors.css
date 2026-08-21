@@ -45,6 +45,15 @@
   --dash-brand-glow: rgba(8, 143, 184, 0.23);
   --dash-shell-glow-1: rgba(20, 185, 220, 0.10);
   --dash-shell-glow-2: rgba(8, 127, 168, 0.08);
+
+  /* Marketing role specific colors */
+  --marketing-accent: #b88a5a; /* warm beige */
+  --marketing-accent-soft: rgba(184, 138, 90, 0.10);
+  --marketing-accent-strong: #a56f3d;
+
+  /* Danger / destructive */
+  --danger: #f87171;
+  --danger-soft: rgba(248, 113, 113, 0.12);
 }
 
 :root[data-theme="dark"] {
@@ -94,4 +103,13 @@
   --dash-brand-glow: rgba(38, 194, 226, 0.27);
   --dash-shell-glow-1: rgba(38, 194, 226, 0.07);
   --dash-shell-glow-2: rgba(10, 145, 188, 0.08);
+
+  /* Marketing role specific colors (dark) */
+  --marketing-accent: #c39a73;
+  --marketing-accent-soft: rgba(195, 154, 115, 0.10);
+  --marketing-accent-strong: #9e6f45;
+
+  /* Danger / destructive (dark theme) */
+  --danger: #fb8b8b;
+  --danger-soft: rgba(251, 139, 139, 0.12);
 }

@@ -39,17 +39,17 @@ const advertisementSlice = createSlice({
       })
 
       .addCase(fetchActiveAdvertisements.pending, (state) => {
-        state.activeLoading = true;
-        state.error = null;
-      })
-      .addCase(fetchActiveAdvertisements.fulfilled, (state, action) => {
-        state.activeLoading = false;
-        state.activeAdvertisements = action.payload;
-      })
-      .addCase(fetchActiveAdvertisements.rejected, (state, action) => {
-        state.activeLoading = false;
-        state.error = action.payload || "حدث خطأ غير متوقع";
-      })
+  state.activeLoading = true;
+  state.error = null;
+})
+.addCase(fetchActiveAdvertisements.fulfilled, (state, action) => {
+  state.activeLoading = false;
+  state.activeAdvertisements = action.payload;
+})
+.addCase(fetchActiveAdvertisements.rejected, (state, action) => {
+  state.activeLoading = false;
+  state.error = action.payload || "فشل في جلب الإعلانات النشطة";
+})
 
       .addCase(deleteAdvertisement.pending, (state) => {
         state.loading = true;

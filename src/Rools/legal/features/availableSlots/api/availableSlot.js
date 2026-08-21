@@ -22,3 +22,8 @@ const APPOINTMENT_ENDPOINT = "/appointment";
 export const getAppointmentsRequest = (params) => {
   return api.get(APPOINTMENT_ENDPOINT, params);
 };
+
+const DEPARTMENT_ORDERS_ENDPOINT = "/order/departmentOrders";
+export const getDepartmentOrdersRequest = (departmentId) => {
+  return api.get(`${DEPARTMENT_ORDERS_ENDPOINT}/${departmentId}`);
+};

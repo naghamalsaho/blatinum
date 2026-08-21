@@ -1,779 +1,27 @@
 @import "@/shared/constants/colors.css";
 
-.marketing-ads-page {
-  --marketing-accent: var(--dash-accent);
-  --marketing-accent-strong: var(--dash-accent-strong);
-  --marketing-soft: var(--dash-shell-glow-1);
-
+/* ==========================================
+   LAYOUT & CONTAINERS
+   ========================================== */
+.marketing-page-container {
   display: grid;
   gap: 22px;
   width: 100%;
 }
 
-.marketing-ads-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.marketing-primary-btn,
-.marketing-secondary-btn {
-  height: 44px;
-  padding: 0 16px;
-  border-radius: 14px;
-  border: 1px solid var(--dash-line);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: 0.2s ease;
-}
-
-.marketing-primary-btn {
-  background: linear-gradient(
-    180deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-text);
-}
-
-.marketing-secondary-btn {
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-}
-
-.marketing-primary-btn:hover,
-.marketing-secondary-btn:hover {
-  transform: translateY(-1px);
-  border-color: var(--dash-accent);
-}
-
-.marketing-full-btn {
-  width: 100%;
-  justify-content: center;
-}
-
-.marketing-ads-hero {
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 20px;
-  padding: 28px;
-  border-radius: 28px;
-  border: 1px solid var(--dash-line);
-  background:
-    radial-gradient(circle at top right, var(--dash-shell-glow-1), transparent 32%),
-    linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-  width: 100%;
-}
-
-.marketing-ads-hero-copy {
-  min-width: 0;
-  display: grid;
-  gap: 10px;
-  flex: 1;
-}
-
-.marketing-ads-kicker {
-  margin: 0;
-  color: var(--dash-accent);
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.marketing-ads-hero h1 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: clamp(20px, 3vw, 36px);
-  font-weight: 900;
-  line-height: 1.2;
-}
-
-.marketing-ads-text {
-  margin: 0;
-  max-width: 720px;
-  color: var(--dash-muted);
-  line-height: 1.8;
-  font-size: 14px;
-}
-
-.marketing-ads-badges {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-top: 8px;
-}
-
-.marketing-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 9px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-card-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
 /* ==========================================
-   كارد أحدث إعلان نشط 
+   1. STAT CARDS (كروت الإحصائيات)
    ========================================== */
-.marketing-ads-summary-card {
-  min-width: 280px;
-  max-width: 340px;
-  width: 100%;
-  padding: 18px;
-  border-radius: 22px;
-  border: 1px solid var(--dash-line);
-  background: linear-gradient(180deg, var(--dash-card-bg), var(--dash-panel-bg));
-  box-shadow: var(--dash-shadow);
-  display: grid;
-  gap: 18px;
-  flex-shrink: 0;
-}
-
-.marketing-ads-summary-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-}
-
-.marketing-ads-summary-head p {
-  margin: 0 0 4px;
-  color: var(--dash-muted);
-  font-size: 12px;
-}
-
-.marketing-ads-summary-head h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 16px; 
-  font-weight: 800;
-  line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-}
-
-.marketing-summary-icon {
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-text);
-  flex-shrink: 0;
-}
-
-.marketing-ads-summary-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
-}
-
-.marketing-ads-summary-metrics div {
-  padding: 10px 6px;
-  border-radius: 16px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-blank-bg);
-  text-align: center;
-}
-
-.marketing-ads-summary-metrics strong {
-  display: block;
-  margin-bottom: 6px;
-  color: var(--dash-muted);
-  font-size: 11px;
-}
-
-.marketing-ads-summary-metrics span {
-  color: var(--dash-text);
-  font-size: 14px;
-  font-weight: 800;
-}
-
-/* ==========================================
-   عرض التفاصيل والأوفرلاي
-   ========================================== */
-.marketing-summary-preview-btn {
-  position: relative;
-  width: 62px;
-  height: 62px;
-  border: 1px solid var(--dash-line) !important;
-  border-radius: 16px;
-  overflow: hidden;
-  padding: 0;
-  cursor: pointer;
-  background: var(--dash-input-bg);
-  color: var(--dash-text) !important;
-  flex-shrink: 0;
-  outline: none;
-  transition: all 0.25s ease-in-out;
-}
-
-.marketing-summary-preview-btn:hover {
-  border-color: var(--dash-accent) !important;
-  box-shadow: 0 0 12px var(--dash-shell-glow-1);
-}
-
-.marketing-summary-preview-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-  transition: 0.25s ease;
-}
-
-.marketing-summary-preview-btn:hover .marketing-summary-preview-img {
-  transform: scale(1.08);
-}
-
-.marketing-summary-overlay {
-  position: absolute;
-  inset: 0;
-  background: var(--dash-surface);
-  backdrop-filter: blur(2px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  transition: opacity 0.2s ease;
-  color: var(--dash-text) !important;
-}
-
-.marketing-summary-overlay svg {
-  fill: currentColor;
-  stroke: currentColor;
-}
-
-.marketing-summary-preview-btn:hover .marketing-summary-overlay {
-  opacity: 0.9;
-}
-
-.marketing-summary-preview-empty {
-  width: 62px;
-  height: 62px;
-  border-radius: 16px;
-  border: 1px dashed var(--dash-line) !important;
-  background: var(--dash-blank-bg);
-  display: grid;
-  place-items: center;
-  color: var(--dash-muted) !important;
-  flex-shrink: 0;
-}
-
-/* ==========================================
-   اللوحة والجداول
-   ========================================== */
-.marketing-panel {
-  min-width: 0;
-  width: 100%;
-  overflow: hidden;
-}
-
-.marketing-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.marketing-panel-head h2 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.marketing-panel-head p {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.marketing-ads-table-wrap {
-  overflow-x: auto;
-  width: 100%;
-  max-height: 400px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-}
-
-.marketing-ads-table-wrap::-webkit-scrollbar {
-  display: none;
-}
-
-/* ==========================================
-   تحديث جدول الإعلانات وتوزيع الأعمدة لمنع الاقتصاص
-   ========================================== */
-.marketing-ads-table {
-  width: 100%;
-  min-width: 980px; /* رفع الحد الأدنى لضمان عدم تداخل الأعمدة الـ 8 */
-  table-layout: fixed;
-  border-collapse: collapse;
-}
-
-.marketing-ads-table th,
-.marketing-ads-table td {
-  padding: 12px 8px;
-  border-bottom: 1px solid var(--dash-line);
-  text-align: right;
-  vertical-align: middle;
-}
-
-.marketing-ads-table th {
-  color: var(--dash-muted);
-  font-size: 12px;
-  font-weight: 800;
-  white-space: nowrap;
-}
-
-.marketing-ads-table td {
-  color: var(--dash-text);
-  font-size: 11px;
-  line-height: 1.4;
-}
-
-/* 🔥 توزيع النسب المئوية الموزونة بدقة للأعمدة الـ 8 */
-.marketing-ads-table th:nth-child(1), .marketing-ads-table td:nth-child(1) { width: 20%; } /* العنوان */
-.marketing-ads-table th:nth-child(2), .marketing-ads-table td:nth-child(2) { width: 12%; } /* البداية */
-.marketing-ads-table th:nth-child(3), .marketing-ads-table td:nth-child(3) { width: 12%; } /* النهاية */
-.marketing-ads-table th:nth-child(4), .marketing-ads-table td:nth-child(4) { width: 8%;  } /* المدة */
-.marketing-ads-table th:nth-child(5), .marketing-ads-table td:nth-child(5) { width: 15%; } /* العرض المرفق */
-.marketing-ads-table th:nth-child(6), .marketing-ads-table td:nth-child(6) { width: 9%;  } /* المرفقات */
-.marketing-ads-table th:nth-child(7), .marketing-ads-table td:nth-child(7) { width: 10%; } /* الحالة */
-
-/* 🔥 عمود الإجراءات: مساحة ممتازة ومستحيل تقطش فيه أي أيقونة */
-.marketing-ads-table th:nth-child(8), .marketing-ads-table td:nth-child(8) { 
-  width: 14%; 
-  min-width: 120px; 
-  overflow: visible;
-}
-.marketing-primary-td {
-  font-weight: 800;
-}
-
-.marketing-ad-title-cell {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-}
-
-.marketing-ad-title-cell span {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--dash-text);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.marketing-ad-thumb-btn {
-  width: 40px;
-  height: 40px;
-  padding: 0;
-  border: 1px solid var(--dash-line);
-  border-radius: 12px;
-  background: var(--dash-card-bg);
-  overflow: hidden;
-  flex-shrink: 0;
-  cursor: pointer;
-}
-
-.marketing-ad-thumb-btn:disabled {
-  cursor: default;
-  opacity: 0.9;
-}
-
-.marketing-ad-thumb {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-.marketing-ad-thumb-placeholder {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  color: var(--dash-muted);
-  background: var(--dash-blank-bg);
-}
-
-.marketing-date {
-  color: var(--dash-muted);
-  font-size: 11px;
-  white-space: nowrap;
-  line-height: 1.4;
-}
-
-.marketing-metric--duration {
-  color: var(--dash-text);
-  font-weight: 700;
-  font-size: 11px;
-  white-space: nowrap;
-}
-
-.marketing-type-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 8px;
-  border-radius: 999px;
-  background: var(--dash-pill-bg);
-  border: 1px solid var(--dash-line);
-  color: var(--dash-text);
-  font-size: 10px;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.marketing-type-chip svg {
-  width: 10px;
-  height: 10px;
-}
-
-.marketing-row-actions {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.marketing-icon-btn {
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-icon-bg);
-  color: var(--dash-accent);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  transition: 0.2s ease;
-  flex-shrink: 0;
-}
-
-.marketing-icon-btn:hover {
-  background: var(--dash-icon-hover-bg);
-  transform: translateY(-1px);
-}
-
-.marketing-icon-btn.danger {
-  color: var(--dash-accent-strong);
-}
-
-.marketing-ads-table tbody tr {
-  height: 84px;
-}
-
-.marketing-ads-table tbody tr:hover {
-  background: var(--dash-hover-bg);
-}
-
-/* ==========================================
-   معرض الأعمال
-   ========================================== */
-.marketing-portfolio-section {
-  display: grid;
-  gap: 14px;
-  width: 100%;
-}
-
-.marketing-portfolio-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 16px;
-  width: 100%;
-}
-
-.marketing-portfolio-card {
-  overflow: hidden;
-  border-radius: 22px;
-  border: 1px solid var(--dash-line);
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.marketing-portfolio-hero {
-  height: 120px;
-  display: grid;
-  place-items: center;
-  font-size: 48px;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-}
-
-.marketing-portfolio-body {
-  padding: 16px;
-  display: grid;
-  gap: 12px;
-}
-
-.marketing-portfolio-body h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.marketing-portfolio-body p {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 12px;
-}
-
-.marketing-portfolio-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.marketing-unit-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 10px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 800;
-}
-
-/* ==========================================================================
-   تصميم ديالوغ الإضافة - الاعتماد الكامل على متغيرات الثيم (colors.css)
-   ========================================================================== */
-
-.marketing-modal-form {
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-  padding: 4px;
-}
-
-.marketing-modal-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.marketing-modal-grid--single {
-  grid-template-columns: 1fr;
-}
-
-.marketing-modal-form .custom-form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  min-width: 0;
-}
-
-.marketing-modal-form label,
-.marketing-modal-form .marketing-field-label {
-  color: var(--dash-text);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.required-dot {
-  color: var(--dash-accent-strong);
-  font-weight: bold;
-}
-
-/* تنسيق حقول الإدخال */
-.marketing-modal-form input[type="text"],
-.marketing-modal-form input[type="number"],
-.marketing-modal-form input[type="date"],
-.marketing-modal-form select,
-.marketing-modal-form textarea {
-  width: 100%;
-  border: 1px solid var(--dash-line) !important;
-  border-radius: 14px !important;
-  background: var(--dash-input-bg) !important;
-  color: var(--dash-text) !important;
-  font-size: 13.5px !important;
-  outline: none !important;
-  box-shadow: none !important;
-  transition: all 0.2s ease;
-  box-sizing: border-box;
-}
-
-.marketing-modal-form input[type="text"],
-.marketing-modal-form input[type="number"],
-.marketing-modal-form input[type="date"],
-.marketing-modal-form select {
-  height: 48px !important;
-  padding: 0 14px !important;
-}
-
-.marketing-modal-form textarea {
-  min-height: 110px !important;
-  padding: 12px 14px !important;
-  resize: vertical;
-  line-height: 1.6;
-}
-
-.marketing-modal-form input:focus,
-.marketing-modal-form select:focus,
-.marketing-modal-form textarea:focus {
-  border-color: var(--dash-accent) !important;
-  box-shadow: 0 0 0 3px var(--dash-shell-glow-1) !important;
-}
-
-.marketing-modal-form input::placeholder,
-.marketing-modal-form textarea::placeholder {
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-/* منطقة رفع الصور والملفات المرفقة (Dropzone) */
-.marketing-upload-dropzone {
-  width: 100%;
-  height: 72px;
-  border: 1px dashed var(--dash-line);
-  border-radius: 14px;
-  background: var(--dash-blank-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  cursor: pointer;
-  color: var(--dash-muted);
-  font-size: 13px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-}
-
-.marketing-upload-dropzone:hover {
-  border-color: var(--dash-accent);
-  background: var(--dash-hover-bg);
-  color: var(--dash-text);
-}
-
-.marketing-upload-dropzone svg {
-  color: var(--dash-muted);
-  transition: transform 0.2s ease, color 0.2s ease;
-}
-
-.marketing-upload-dropzone:hover svg {
-  transform: translateY(-2px);
-  color: var(--dash-accent);
-}
-
-/* أزرار الإجراءات بالأسفل */
-.marketing-modal-actions {
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 10px;
-  margin-top: 10px;
-  padding-top: 10px;
-}
-
-/* زر حفظ الإعلان التفاعلي (باستخدام متغيرات الثيم بالكامل) */
-.btn-save-primary {
-  height: 44px;
-  padding: 0 20px;
-  border-radius: 12px;
-  border: 1px solid var(--dash-line);
-  background: linear-gradient(
-    180deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-accent);
-  font-size: 13.5px;
-  font-weight: 800;
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-save-primary:hover {
-  background: var(--dash-shell-glow-1);
-  border-color: var(--dash-accent);
-  color: var(--dash-text);
-  transform: translateY(-1px);
-}
-
-.btn-save-primary:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  transform: none;
-}
-
-/* زر الإلغاء */
-.btn-cancel-secondary {
-  height: 44px;
-  padding: 0 18px;
-  border-radius: 12px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  font-size: 13.5px;
-  font-weight: 700;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.btn-cancel-secondary:hover {
-  background: var(--dash-hover-bg);
-  border-color: var(--dash-line);
-}
-/* ==========================================
-   STAT CARDS (تعديل كامل للخطوط والألوان مطبق للإعلانات والداش بورد)
-   ========================================== */
-/* ==========================================
-   STAT CARDS (تنسيق البطاقات وحل تداخل ألوان الرقم والعنوان)
-   ========================================== */
-
-.marketing-ads-stats-grid,
 .marketing-stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
   width: 100%;
 }
 
-.marketing-ads-stats-grid > *,
 .marketing-stats-grid > * {
-  background: var(--dash-surface, #0b111e);
-  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
   border-radius: 16px;
   padding: 16px 20px;
   box-shadow: var(--dash-shadow);
@@ -785,16 +33,12 @@
   transition: all 0.2s ease;
 }
 
-.marketing-ads-stats-grid > *:hover,
 .marketing-stats-grid > *:hover {
   border-color: var(--dash-accent);
   transform: translateY(-2px);
 }
 
-/* 1. الحاوية الداخلية للنصوص */
-.marketing-ads-stats-grid > * > div:not(:has(svg)),
-.marketing-stats-grid > * > div:not(:has(svg)),
-.marketing-stat-card-body {
+.marketing-stats-grid > * > div:not(:has(svg)) {
   width: 100% !important;
   display: flex !important;
   flex-direction: column !important;
@@ -803,14 +47,8 @@
   text-align: center !important;
 }
 
-/* 2. عنوان البطاقة العلوي (السطر الأول - رمادي ناعم) */
-.marketing-ads-stats-grid > * > div > *:first-child,
-.marketing-stats-grid > * > div > *:first-child,
-.marketing-ads-stats-grid .stat-title,
-.marketing-stats-grid .stat-title,
-.marketing-stat-card-head,
-.marketing-stat-card-head * {
-  color: #94a3b8 !important; /* رمادي ناعم */
+.marketing-stats-grid > * > div > *:first-child {
+  color: var(--dash-muted) !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
   margin: 0 0 6px 0 !important;
@@ -818,20 +56,8 @@
   text-align: center !important;
 }
 
-/* 3. القيمة الرقمية السفلية (السطر الثاني - أبيض ناصع وخط عريض) */
-.marketing-ads-stats-grid > * > div > *:nth-child(2),
-.marketing-stats-grid > * > div > *:nth-child(2),
-.marketing-ads-stats-grid strong,
-.marketing-ads-stats-grid h2,
-.marketing-ads-stats-grid .stat-value,
-.marketing-ads-stats-grid .stat-value *,
-.marketing-stats-grid strong,
-.marketing-stats-grid h2,
-.marketing-stats-grid .stat-value,
-.marketing-stats-grid .stat-value *,
-.marketing-stat-card-value,
-.marketing-stat-card-value * {
-  color: var(--dash-text) !important; /* لون متكيف مع المودين */
+.marketing-stats-grid > * > div > *:nth-child(2) {
+  color: var(--dash-text) !important;
   font-size: 22px !important;
   font-weight: 800 !important;
   line-height: 1.2 !important;
@@ -840,36 +66,61 @@
   text-align: center !important;
 }
 
-/* 4. تثبيت الأيقونة على الطرف الأيمن */
-.marketing-ads-stats-grid > * > svg,
-.marketing-ads-stats-grid > * > div:has(svg),
 .marketing-stats-grid > * > svg,
-.marketing-stats-grid > * > div:has(svg),
-.marketing-stat-card-icon {
+.marketing-stats-grid > * > div:has(svg) {
   position: absolute !important;
   right: 20px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  color: #94a3b8 !important;
+  color: var(--dash-muted) !important;
   opacity: 0.85;
   margin: 0 !important;
 }
 
 /* ==========================================
-   TOOLBAR & FILTER SYSTEM (شريط البحث والفلترة)
+   2. PANEL & TOOLBAR (اللوحة وشريط البحث)
    ========================================== */
+.marketing-panel {
+  width: 100%;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: var(--dash-shadow);
+}
 
-.marketing-ads-toolbar {
+.marketing-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.marketing-panel-head h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.marketing-panel-head p {
+  margin: 4px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.marketing-toolbar {
   display: flex;
   justify-content: center;
-  margin-bottom: 18px;
+  margin-bottom: 20px;
   width: 100%;
 }
 
 .marketing-search-wrapper {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   width: min(100%, 640px);
 }
 
@@ -905,12 +156,12 @@
   color: var(--dash-muted);
 }
 
-.marketing-status-dropdown {
+.marketing-dropdown-container {
   position: relative;
   flex-shrink: 0;
 }
 
-.marketing-status-trigger {
+.marketing-dropdown-trigger {
   height: 46px;
   padding: 0 16px;
   border-radius: 16px;
@@ -921,34 +172,22 @@
   font-weight: 700;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   cursor: pointer;
   box-shadow: var(--dash-shadow);
   transition: all 0.2s ease;
-  white-space: nowrap;
 }
 
-.marketing-status-trigger:hover {
+.marketing-dropdown-trigger:hover {
   border-color: var(--dash-accent);
   background: var(--dash-hover-bg);
 }
 
-.marketing-status-trigger svg {
+.marketing-dropdown-trigger svg {
   color: var(--dash-accent);
-  flex-shrink: 0;
 }
 
-.marketing-status-trigger .status-arrow {
-  color: var(--dash-muted);
-  transition: transform 0.2s ease;
-}
-
-.marketing-status-trigger .status-arrow.open {
-  transform: rotate(180deg);
-}
-
-.marketing-status-menu {
+.marketing-dropdown-menu {
   position: absolute;
   top: calc(100% + 6px);
   right: 0;
@@ -962,10 +201,9 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  animation: fadeIn 0.15s ease;
 }
 
-.status-menu-item {
+.marketing-dropdown-item {
   width: 100%;
   padding: 10px 14px;
   border: 0;
@@ -974,82 +212,175 @@
   color: var(--dash-text);
   font-size: 13px;
   font-weight: 600;
-  text-align: right !important;
+  text-align: right;
   cursor: pointer;
   transition: all 0.15s ease;
-  display: block;
 }
 
-.status-menu-item:hover {
-  background: var(--dash-hover-bg);
-  color: var(--dash-accent);
-}
-
-.status-menu-item.active {
+.marketing-dropdown-item:hover,
+.marketing-dropdown-item.active {
   background: var(--dash-shell-glow-1);
   color: var(--dash-accent);
   font-weight: 800;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 /* ==========================================
-   تجاوب الشاشات
+   3. TABLE (الجدول)
    ========================================== */
-@media (max-width: 1180px) {
-  .marketing-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.marketing-table-wrap {
+  overflow-x: auto;
+  width: 100%;
+  max-height: 480px;
+  overflow-y: auto;
 }
 
-@media (max-width: 768px) {
-  .marketing-ads-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.marketing-table {
+  width: 100%;
+  min-width: 800px;
+  border-collapse: collapse;
 }
 
-@media (max-width: 480px) {
-  .marketing-ads-stats-grid,
-  .marketing-stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-/* ==========================================
-   OFFER BADGES & DETAILS (شارات وتفاصيل العروض)
-   ========================================== */
-
-.marketing-offer-cell {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 4px;
+.marketing-table th,
+.marketing-table td {
+  padding: 14px 12px;
+  border-bottom: 1px solid var(--dash-line);
+  text-align: right;
+  vertical-align: middle;
 }
 
-/* شارة وجود عرض / خصم */
-.marketing-offer-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: var(--dash-shell-glow-1);
-  border: 1px solid var(--dash-accent);
-  color: var(--dash-accent) !important;
-  font-size: 11px;
+.marketing-table th {
+  color: var(--dash-muted);
+  font-size: 12px;
   font-weight: 800;
   white-space: nowrap;
 }
 
-/* شارة عدم وجود عرض */
+.marketing-table td {
+  color: var(--dash-text);
+  font-size: 13px;
+}
+
+.marketing-table tbody tr {
+  height: 70px;
+  transition: background 0.15s ease;
+}
+
+.marketing-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
+.marketing-cell-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.marketing-thumb-btn {
+  width: 42px;
+  height: 42px;
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  background: var(--dash-card-bg);
+  overflow: hidden;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  padding: 0;
+}
+
+.marketing-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marketing-cell-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.marketing-cell-info strong {
+  color: var(--dash-text);
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marketing-cell-info span {
+  color: var(--dash-muted);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.marketing-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.marketing-icon-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: 0.2s ease;
+}
+
+.marketing-icon-btn:hover {
+  background: var(--dash-icon-hover-bg);
+  transform: translateY(-1px);
+}
+
+.marketing-icon-btn.danger {
+  color: var(--dash-accent-strong);
+}
+
+.marketing-secondary-btn {
+  height: 42px;
+  padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.marketing-secondary-btn:hover {
+  border-color: var(--dash-accent);
+  transform: translateY(-1px);
+}
+
+/* ==========================================
+   OFFER & MODAL STYLING
+   ========================================== */
+.marketing-offer-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--dash-shell-glow-1);
+  border: 1px solid var(--dash-accent);
+  color: var(--dash-accent);
+  font-size: 11px;
+  font-weight: 800;
+}
+
 .marketing-no-offer-badge {
   display: inline-flex;
   align-items: center;
@@ -1057,131 +388,94 @@
   border-radius: 999px;
   background: var(--dash-pill-bg);
   border: 1px solid var(--dash-line);
-  color: var(--dash-muted) !important;
+  color: var(--dash-muted);
   font-size: 11px;
-  font-weight: 600;
-  white-space: nowrap;
 }
 
-/* سعر العرض الجديد */
-.marketing-offer-price {
-  color: var(--dash-text) !important;
-  font-size: 11px;
-  font-weight: 700;
-  direction: ltr;
+.project-empty-state {
+  padding: 32px;
+  text-align: center;
+  color: var(--dash-muted);
+  font-size: 13.5px;
 }
-/* ==========================================
-   تنسيقات مودال معاينة الإعلان والتفاصيل
-   ========================================== */
-.marketing-preview-modal {
+
+.marketing-modal-form {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
 
-.marketing-preview-title {
-  font-size: 14px;
+.marketing-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.marketing-modal-grid--single {
+  grid-template-columns: 1fr;
+}
+
+.custom-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.custom-form-group label {
+  font-size: 12.5px;
   font-weight: 700;
-  margin-bottom: 10px;
   color: var(--dash-text);
 }
 
-.marketing-preview-grid {
-  display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-}
-
-.marketing-preview-img-link {
-  border-radius: 8px;
-  overflow: hidden;
-  display: block;
-}
-
-.marketing-preview-img {
+.custom-form-group input,
+.custom-form-group select,
+.custom-form-group textarea {
   width: 100%;
-  height: 120px;
-  object-fit: cover;
-  border-radius: 8px;
   border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  background: var(--dash-input-bg);
+  color: var(--dash-text);
+  padding: 10px 14px;
+  outline: none;
+  font-size: 13px;
 }
 
-.marketing-preview-file-link {
-  padding: 12px;
-  border-radius: 8px;
-  background: var(--dash-shell-glow-1);
-  border: 1px solid var(--dash-line);
+.marketing-modal-actions {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-size: 12px;
-  text-decoration: none;
-  color: var(--dash-text);
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
 }
 
-.marketing-preview-file-link .file-icon {
-  color: var(--dash-accent);
-}
-
-.marketing-preview-file-link .file-name {
-  text-align: center;
-  word-break: break-all;
-  color: var(--dash-text);
-}
-
-.marketing-preview-file-link .file-ext-icon {
-  color: var(--dash-muted);
-}
-
-.marketing-preview-empty {
-  font-size: 13px;
-  color: var(--dash-muted);
-  font-style: italic;
-}
-
-.marketing-preview-details {
-  display: grid;
-  gap: 12px;
-}
-
-.marketing-preview-desc {
-  color: var(--dash-text);
-  line-height: 1.6;
-}
-
-.marketing-preview-offer-card {
-  padding: 12px 16px;
-  border-radius: 14px;
+.btn-save-primary {
+  height: 42px;
+  padding: 0 20px;
+  border-radius: 12px;
   border: 1px solid var(--dash-line);
-  background: var(--dash-shell-glow-1);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.marketing-preview-offer-card .offer-card-title {
+  background: linear-gradient(180deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  color: var(--dash-accent);
   font-weight: 800;
-  color: var(--dash-accent);
+  cursor: pointer;
 }
 
-.marketing-preview-offer-card .offer-card-price.old {
-  font-size: 13px;
+.btn-cancel-secondary {
+  height: 42px;
+  padding: 0 18px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
   color: var(--dash-text);
-}
-
-.marketing-preview-offer-card .offer-card-price.old span {
-  text-decoration: line-through;
-  color: var(--dash-muted);
-}
-
-.marketing-preview-offer-card .offer-card-price.new {
-  font-size: 14px;
   font-weight: 700;
-  color: var(--dash-text);
+  cursor: pointer;
 }
 
-.marketing-preview-offer-card .offer-card-price.new span {
-  color: var(--dash-accent);
+@media (max-width: 1024px) {
+  .marketing-stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .marketing-stats-grid { grid-template-columns: 1fr; }
+  .marketing-search-wrapper { flex-direction: column; }
+  .marketing-dropdown-container, .marketing-dropdown-trigger { width: 100%; }
 }

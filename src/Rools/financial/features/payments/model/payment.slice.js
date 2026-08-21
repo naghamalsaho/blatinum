@@ -1,5 +1,7 @@
 import { createSlice } from "@reduxjs/toolkit";
-import { fetchPayments ,deletePayment,updatePayment,createPayment} from "./payment.thunks";
+import { fetchPayments ,deletePayment,updatePayment,createPayment
+  ,payCustomByContract
+} from "./payment.thunks";
 
 const initialState = {
   items: [],
@@ -72,7 +74,18 @@ const paymentSlice = createSlice({
       .addCase(deletePayment.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload || "فشل في حذف الدفعة";
-      });
+      })
+      .addCase(payCustomByContract.pending, (state) => {
+    state.loading = true;
+    state.error = null;
+  })
+  .addCase(payCustomByContract.fulfilled, (state) => {
+    state.loading = false;
+  })
+  .addCase(payCustomByContract.rejected, (state, action) => {
+    state.loading = false;
+    state.error = action.payload || "فشل في تسديد الدفعة المخصصة";
+  });
   },
 });
 
