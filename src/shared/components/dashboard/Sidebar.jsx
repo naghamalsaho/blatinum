@@ -9,7 +9,7 @@ import { t } from "@/shared/i18n";
 
 export default function Sidebar({
   open = true,
-  onClose = () => {},
+  onClose = () => { },
   sections = [],
   footer,
 }) {

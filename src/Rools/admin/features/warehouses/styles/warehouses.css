@@ -65,7 +65,7 @@
   line-height: 1.6;
 }
 
-.warehouse-page .primary-action-btn {
+:is(.warehouse-page, .warehouse-modal) .primary-action-btn {
   height: 42px;
   padding: 0 14px;
   border: 1px solid var(--dash-line);
@@ -83,7 +83,7 @@
   transition: transform 0.18s ease, filter 0.18s ease;
 }
 
-.warehouse-page .primary-action-btn::after {
+:is(.warehouse-page, .warehouse-modal) .primary-action-btn::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -92,19 +92,19 @@
   animation: button-sheen 3.2s ease-in-out infinite;
 }
 
-.warehouse-page .primary-action-btn > * {
+:is(.warehouse-page, .warehouse-modal) .primary-action-btn > * {
   position: relative;
   z-index: 1;
 }
 
-.warehouse-page .primary-action-btn:hover {
+:is(.warehouse-page, .warehouse-modal) .primary-action-btn:hover {
   transform: translateY(-1px);
   filter: saturate(1.05);
 }
 
-.warehouse-page .primary-action-btn:disabled,
-.warehouse-page .ghost-filter-btn:disabled,
-.warehouse-page .icon-action-btn:disabled {
+:is(.warehouse-page, .warehouse-modal) .primary-action-btn:disabled,
+:is(.warehouse-page, .warehouse-modal) .ghost-filter-btn:disabled,
+:is(.warehouse-page, .warehouse-modal) .icon-action-btn:disabled {
   cursor: not-allowed;
   opacity: 0.65;
 }
@@ -220,7 +220,7 @@
   gap: 10px;
 }
 
-.warehouse-page .ghost-filter-btn {
+:is(.warehouse-page, .warehouse-modal) .ghost-filter-btn {
   height: 40px;
   padding: 0 14px;
   border-radius: 8px;
@@ -450,7 +450,7 @@
   gap: 7px;
 }
 
-.warehouse-page .icon-action-btn {
+:is(.warehouse-page, .warehouse-modal) .icon-action-btn {
   width: 34px;
   height: 34px;
   border-radius: 8px;
@@ -462,21 +462,21 @@
   cursor: pointer;
 }
 
-.warehouse-page .icon-action-btn:hover {
+:is(.warehouse-page, .warehouse-modal) .icon-action-btn:hover {
   background: var(--dash-icon-hover-bg);
   transform: translateY(-1px);
 }
 
-.warehouse-page .icon-action-btn.danger {
+:is(.warehouse-page, .warehouse-modal) .icon-action-btn.danger {
   color: var(--dash-muted);
 }
 
-.warehouse-page .status-dropdown {
+:is(.warehouse-page, .warehouse-modal) .status-dropdown {
   position: relative;
   display: inline-flex;
 }
 
-.warehouse-page .status-dropdown-trigger {
+:is(.warehouse-page, .warehouse-modal) .status-dropdown-trigger {
   height: 40px;
   min-width: 132px;
   padding: 0 14px;
@@ -493,7 +493,7 @@
   font-weight: 600;
 }
 
-.warehouse-page .status-dropdown-menu {
+:is(.warehouse-page, .warehouse-modal) .status-dropdown-menu {
   position: absolute;
   top: calc(100% + 8px);
   left: 0;
@@ -508,7 +508,7 @@
   gap: 6px;
 }
 
-.warehouse-page .status-dropdown-item {
+:is(.warehouse-page, .warehouse-modal) .status-dropdown-item {
   width: 100%;
   border: 1px solid transparent;
   background: transparent;
@@ -523,13 +523,13 @@
   text-align: left;
 }
 
-.warehouse-page .status-dropdown-item:hover,
-.warehouse-page .status-dropdown-item.active {
+:is(.warehouse-page, .warehouse-modal) .status-dropdown-item:hover,
+:is(.warehouse-page, .warehouse-modal) .status-dropdown-item.active {
   background: var(--dash-accent-soft);
   border-color: var(--dash-line);
 }
 
-.warehouse-page .status-dot {
+:is(.warehouse-page, .warehouse-modal) .status-dot {
   width: 10px;
   height: 10px;
   border-radius: 999px;
@@ -537,11 +537,11 @@
   background: var(--dash-muted);
 }
 
-.warehouse-page .status-dot.ok {
+:is(.warehouse-page, .warehouse-modal) .status-dot.ok {
   background: var(--dash-accent);
 }
 
-.warehouse-page .status-dot.off {
+:is(.warehouse-page, .warehouse-modal) .status-dot.off {
   background: #ef4444;
 }
 

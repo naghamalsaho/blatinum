@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CalendarCheck,
@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   CircleSlash2,
+  PencilLine,
   Plus,
   XCircle,
 } from "lucide-react";
@@ -21,10 +22,16 @@ import {
   getAppointmentOrdersRequest,
 } from "../features/appointments/api/appointment.api";
 import {
+  getClientSolutionOrdersRequest,
+  getClientUnitOrdersRequest,
+  getCustomerServiceOrderRequest,
+} from "../features/orders/api/order.api";
+import {
   cancelCustomerServiceAppointment,
   completeCustomerServiceAppointment,
   createCustomerServiceAppointment,
   fetchCustomerServiceAppointments,
+  updateCustomerServiceAppointment,
 } from "../features/appointments/model/appointment.thunks";
 import { formatStatus } from "../constants/customerServiceData";
 
@@ -46,6 +53,30 @@ const INITIAL_CREATE_FORM = {
   order_id: "",
   av_slot_id: "",
   client_id: "",
+  type: "sales",
+  notes: "",
+};
+
+const APPOINTMENT_ORDER_CLIENTS_KEY = "customerServiceAppointmentOrderClients";
+
+const readSavedAppointmentClients = () => {
+  try {
+    return JSON.parse(localStorage.getItem(APPOINTMENT_ORDER_CLIENTS_KEY) || "{}");
+  } catch {
+    return {};
+  }
+};
+
+const saveAppointmentClient = (orderId, client) => {
+  try {
+    const savedClients = readSavedAppointmentClients();
+    localStorage.setItem(
+      APPOINTMENT_ORDER_CLIENTS_KEY,
+      JSON.stringify({ ...savedClients, [String(orderId)]: client })
+    );
+  } catch {
+    // The name remains available in state when storage is unavailable.
+  }
 };
 
 const readNested = (item, paths) => {
@@ -61,11 +92,25 @@ const readNested = (item, paths) => {
 };
 
 const extractApiList = (payload) => {
-  const data = payload?.data;
-
-  if (Array.isArray(data)) return data;
-  if (Array.isArray(data?.data)) return data.data;
+  if (!payload) return [];
   if (Array.isArray(payload)) return payload;
+
+  const candidates = [
+    payload?.data,
+    payload?.items,
+    payload?.results,
+    payload?.records,
+    payload?.slots,
+    payload?.data?.data,
+    payload?.data?.items,
+    payload?.data?.results,
+    payload?.data?.records,
+    payload?.data?.slots,
+  ];
+
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) return candidate;
+  }
 
   return [];
 };
@@ -104,6 +149,15 @@ const getClientContact = (appointment) =>
     "account.email",
     "email",
   ]) || "-";
+
+const getAppointmentClientId = (appointment) =>
+  readNested(appointment, [
+    "client.id",
+    "client.client_id",
+    "order.client.id",
+    "order.client.client_id",
+    "client_id",
+  ]);
 
 const getOrderId = (appointment) =>
   readNested(appointment, ["order.id", "order_id"]) || "-";
@@ -191,6 +245,9 @@ const getAppointmentType = (appointment) =>
     "description",
   ]) || "-";
 
+const getAppointmentNotes = (appointment) =>
+  readNested(appointment, ["notes.0.text", "notes_text", "note", "notes_text_value"]);
+
 const getAppointmentStatus = (appointment) =>
   String(readNested(appointment, ["status", "state"]) || "pending").toLowerCase();
 
@@ -229,16 +286,49 @@ const getOrderOptionId = (order) =>
   readNested(order, ["id", "order_id"]);
 
 const getSlotOptionId = (slot) =>
-  readNested(slot, ["id", "slot_id", "av_slot_id"]);
+  readNested(slot, ["id", "slot_id", "av_slot_id", "available_slot_id"]);
 
-const getSlotOptionStatus = (slot) =>
-  String(readNested(slot, ["status", "slot_status", "state"]) || "")
-    .trim()
-    .toLowerCase();
+const getSlotOptionStatus = (slot) => {
+  const directStatus = readNested(slot, [
+    "status",
+    "slot_status",
+    "state",
+    "availability",
+    "available_status",
+  ]);
 
-const isAvailableSlotStatus = (status) =>
-  !status ||
-  ["available", "free", "open", "active", "متاح"].includes(String(status).toLowerCase());
+  if (directStatus !== undefined && directStatus !== null && String(directStatus).trim() !== "") {
+    return String(directStatus).trim().toLowerCase();
+  }
+
+  if (slot?.is_available !== undefined) {
+    return slot.is_available ? "available" : "booked";
+  }
+
+  if (slot?.available !== undefined) {
+    return slot.available ? "available" : "booked";
+  }
+
+  return "";
+};
+
+const isAvailableSlotStatus = (status) => {
+  const normalized = String(status ?? "").trim().toLowerCase();
+
+  if (!normalized) return false;
+
+  return [
+    "available",
+    "free",
+    "open",
+    "active",
+    "متاح",
+    "متوفر",
+    "not_booked",
+    "unbooked",
+    "pending",
+  ].includes(normalized);
+};
 
 const getClientOptionLabel = (client) => {
   const accountName = readNested(client, [
@@ -304,6 +394,16 @@ const getSlotOptionLabelWithRange = (slot, durationMinutes) => {
 const isFinalStatus = (status) =>
   ["completed", "done", "cancelled", "canceled"].includes(status);
 
+const isFutureAppointment = (appointment) => {
+  const date = getAppointmentDate(appointment);
+  const time = String(getAppointmentTime(appointment) || "00:00").slice(0, 8);
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
+
+  const scheduledAt = new Date(`${date}T${time || "00:00"}`);
+  return !Number.isNaN(scheduledAt.getTime()) && scheduledAt.getTime() > Date.now();
+};
+
 export default function CustomerServiceAppointmentsPage() {
   const dispatch = useDispatch();
   const {
@@ -321,6 +421,7 @@ export default function CustomerServiceAppointmentsPage() {
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmActionError, setConfirmActionError] = useState("");
   const [createOpen, setCreateOpen] = useState(false);
+  const [editingAppointment, setEditingAppointment] = useState(null);
   const [createFormData, setCreateFormData] = useState(INITIAL_CREATE_FORM);
   const [createTouched, setCreateTouched] = useState({});
   const [createError, setCreateError] = useState("");
@@ -331,10 +432,135 @@ export default function CustomerServiceAppointmentsPage() {
   });
   const [createOptionsLoading, setCreateOptionsLoading] = useState(false);
   const [slotOptionsError, setSlotOptionsError] = useState("");
+  const [orderDetailsById, setOrderDetailsById] = useState({});
+  const [clientByOrderId, setClientByOrderId] = useState(readSavedAppointmentClients);
+  const requestedOrderIds = useRef(new Set());
+  const ownerResolutionKey = useRef("");
 
   useEffect(() => {
     dispatch(fetchCustomerServiceAppointments());
   }, [dispatch]);
+
+  useEffect(() => {
+    const orderIds = [
+      ...new Set(
+        appointments
+          .map((appointment) => getOrderId(appointment))
+          .filter((id) => id && id !== "-")
+          .map(String)
+      ),
+    ].filter((id) => !requestedOrderIds.current.has(id));
+
+    if (orderIds.length === 0) return;
+
+    let ignore = false;
+    orderIds.forEach((id) => requestedOrderIds.current.add(id));
+
+    Promise.all(
+      orderIds.map(async (id) => {
+        const result = await getCustomerServiceOrderRequest(id);
+        if (!result.ok) return null;
+
+        return [id, result.data?.data ?? result.data];
+      })
+    ).then((entries) => {
+      if (ignore) return;
+
+      const validEntries = entries.filter(Boolean);
+      if (validEntries.length === 0) return;
+
+      setOrderDetailsById((current) => ({
+        ...current,
+        ...Object.fromEntries(validEntries),
+      }));
+    });
+
+    return () => {
+      ignore = true;
+    };
+  }, [appointments]);
+
+  useEffect(() => {
+    if (appointments.length === 0) return;
+
+    const currentResolutionKey = appointments
+      .map((appointment) => String(getOrderId(appointment)))
+      .sort()
+      .join(",");
+
+    if (ownerResolutionKey.current === currentResolutionKey) return;
+    ownerResolutionKey.current = currentResolutionKey;
+
+    let ignore = false;
+
+    const resolveOrderOwners = async () => {
+      const clientsResult = await getAppointmentClientsRequest();
+      if (!clientsResult.ok || ignore) return;
+
+      const clients = extractApiList(clientsResult.data);
+      const appointmentOrderIds = new Set(
+        appointments.map((appointment) => String(getOrderId(appointment)))
+      );
+
+      const ownershipEntries = await Promise.all(
+        clients.map(async (client) => {
+          const clientId = getClientOptionId(client);
+          if (!clientId) return [];
+
+          const [unitOrdersResult, solutionOrdersResult] = await Promise.all([
+            getClientUnitOrdersRequest(clientId),
+            getClientSolutionOrdersRequest(clientId),
+          ]);
+          const clientOrders = [
+            ...(unitOrdersResult.ok ? extractApiList(unitOrdersResult.data) : []),
+            ...(solutionOrdersResult.ok ? extractApiList(solutionOrdersResult.data) : []),
+          ];
+
+          return clientOrders
+            .map((order) => String(getOrderOptionId(order)))
+            .filter((orderId) => appointmentOrderIds.has(orderId))
+            .map((orderId) => [orderId, client]);
+        })
+      );
+
+      if (ignore) return;
+
+      const owners = Object.fromEntries(ownershipEntries.flat());
+      if (Object.keys(owners).length > 0) {
+        setClientByOrderId((current) => ({ ...current, ...owners }));
+      }
+    };
+
+    resolveOrderOwners();
+
+    return () => {
+      ignore = true;
+    };
+  }, [appointments]);
+
+  const displayAppointments = useMemo(
+    () =>
+      appointments.map((appointment) => {
+        const orderId = getOrderId(appointment);
+        const detailedOrder = orderDetailsById[String(orderId)];
+
+        const client =
+          clientByOrderId[String(orderId)] ||
+          detailedOrder?.client ||
+          appointment?.client;
+
+        return {
+          ...appointment,
+          ...(client ? { client } : {}),
+          order: {
+            ...appointment.order,
+            ...(detailedOrder || {}),
+            ...(client ? { client } : {}),
+          },
+        };
+      }),
+    [appointments, clientByOrderId, orderDetailsById]
+  );
 
   useEffect(() => {
     if (!createOpen) return;
@@ -411,7 +637,7 @@ export default function CustomerServiceAppointmentsPage() {
   const filteredAppointments = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
-    return appointments.filter((appointment) => {
+    return displayAppointments.filter((appointment) => {
       const status = getAppointmentStatus(appointment);
       const orderStatus = getOrderStatus(appointment);
       const slotStatus = getSlotStatus(appointment);
@@ -441,7 +667,7 @@ export default function CustomerServiceAppointmentsPage() {
 
       return matchesStatus && (!q || searchable.includes(q));
     });
-  }, [appointments, searchTerm, statusFilter]);
+  }, [displayAppointments, searchTerm, statusFilter]);
 
   const total = meta?.total ?? appointments.length;
   const completed = appointments.filter((item) =>
@@ -511,9 +737,14 @@ export default function CustomerServiceAppointmentsPage() {
     [bookedSlots]
   );
   const selectedSlotId = createFormData.av_slot_id.trim();
-  const selectedBookedSlot = selectedSlotId
+  const bookedSlotMatch = selectedSlotId
     ? bookedSlotById.get(String(selectedSlotId))
     : null;
+  const selectedBookedSlot =
+    bookedSlotMatch &&
+    String(bookedSlotMatch.appointmentId) !== String(getAppointmentId(editingAppointment))
+      ? bookedSlotMatch
+      : null;
   const slotScheduleAnchor = useMemo(() => {
     const anchors = bookedSlots
       .map((slot) => ({
@@ -534,14 +765,33 @@ export default function CustomerServiceAppointmentsPage() {
         ? `Slot #${selectedBookedSlot.id} is already booked from ${selectedBookedSlot.range}.`
         : "",
     client_id: createFormData.client_id.trim() ? "" : "Client ID is required.",
+    notes:
+      createFormData.type !== "sales" && !createFormData.notes.trim()
+        ? "Notes are required for legal consultation and general appointments."
+        : "",
   };
 
   const closeCreateModal = () => {
     setCreateOpen(false);
+    setEditingAppointment(null);
     setCreateFormData(INITIAL_CREATE_FORM);
     setCreateTouched({});
     setCreateError("");
     setSlotOptionsError("");
+  };
+
+  const openEditModal = (appointment) => {
+    setEditingAppointment(appointment);
+    setCreateFormData({
+      order_id: String(getOrderId(appointment) || "").replace("-", ""),
+      av_slot_id: String(getSlotId(appointment) || "").replace("-", ""),
+      client_id: String(getAppointmentClientId(appointment) || ""),
+      type: String(getAppointmentType(appointment) || "sales").toLowerCase(),
+      notes: String(getAppointmentNotes(appointment) || ""),
+    });
+    setCreateTouched({});
+    setCreateError("");
+    setCreateOpen(true);
   };
 
   const handleCreateChange = (event) => {
@@ -574,13 +824,35 @@ export default function CustomerServiceAppointmentsPage() {
         order_id: true,
         av_slot_id: true,
         client_id: true,
+        type: true,
+        notes: true,
       });
       setCreateError(errors.join("\n"));
       return;
     }
-    const result = await dispatch(createCustomerServiceAppointment(createFormData));
+    const appointmentId = getAppointmentId(editingAppointment);
+    const result = editingAppointment
+      ? await dispatch(
+          updateCustomerServiceAppointment({ id: appointmentId, payload: createFormData })
+        )
+      : await dispatch(createCustomerServiceAppointment(createFormData));
 
-    if (createCustomerServiceAppointment.fulfilled.match(result)) {
+    const succeeded = editingAppointment
+      ? updateCustomerServiceAppointment.fulfilled.match(result)
+      : createCustomerServiceAppointment.fulfilled.match(result);
+
+    if (succeeded) {
+      const selectedClient = createOptions.clients.find(
+        (client) => String(getClientOptionId(client)) === String(createFormData.client_id)
+      );
+
+      if (selectedClient) {
+        saveAppointmentClient(createFormData.order_id, selectedClient);
+        setClientByOrderId((current) => ({
+          ...current,
+          [String(createFormData.order_id)]: selectedClient,
+        }));
+      }
       closeCreateModal();
     } else {
       setCreateError(result.payload || "Failed to create appointment.");
@@ -603,6 +875,11 @@ export default function CustomerServiceAppointmentsPage() {
       createOptions.slots.filter((slot) => {
         const status = getSlotOptionStatus(slot);
         const id = getSlotOptionId(slot);
+
+        if (slot?.is_available === false || slot?.available === false) {
+          return false;
+        }
+
         return isAvailableSlotStatus(status) && !bookedSlotById.has(String(id));
       }),
     [bookedSlotById, createOptions.slots]
@@ -711,17 +988,14 @@ export default function CustomerServiceAppointmentsPage() {
         ) : error ? (
           <div className="table-state is-error">{error}</div>
         ) : (
-          <table className="legal-table">
+          <table className="legal-table customer-service-appointments-table">
             <thead>
               <tr>
                 <th>Appointment</th>
-                <th>Appointment Status</th>
+                <th>Customer</th>
+                <th>Date & Time</th>
                 <th>Order</th>
-                <th>Order Status</th>
-                <th>Slot</th>
-                <th>Slot Time</th>
-                <th>Slot Status</th>
-                <th>Created By</th>
+                <th>Status</th>
                 <th>Created At</th>
                 <th>Actions</th>
               </tr>
@@ -733,43 +1007,41 @@ export default function CustomerServiceAppointmentsPage() {
                   const id = getAppointmentId(appointment);
                   const status = getAppointmentStatus(appointment);
                   const orderStatus = getOrderStatus(appointment);
-                  const slotStatus = getSlotStatus(appointment);
                   const isLocked = isFinalStatus(status);
+                  const isFuture = isFutureAppointment(appointment);
 
                   return (
                     <tr key={id || JSON.stringify(appointment)}>
                       <td data-label="Appointment">
-                        <strong>{id || "-"}</strong>
+                        <div className="customer-service-name-cell">
+                          <strong>#{id || "-"}</strong>
+                          <span>{formatStatus(getAppointmentType(appointment))}</span>
+                        </div>
                       </td>
-                      <td data-label="Appointment Status">
+                      <td data-label="Customer">
+                        <div className="customer-service-name-cell">
+                          <strong>{getClientName(appointment)}</strong>
+                          <span>{getClientContact(appointment)}</span>
+                        </div>
+                      </td>
+                      <td data-label="Date & Time">
+                        <div className="appointment-date-cell">
+                          <strong>{getAppointmentDate(appointment)}</strong>
+                          <span>
+                            {getTimeRange(getAppointmentTime(appointment), slotDurationMinutes)}
+                          </span>
+                        </div>
+                      </td>
+                      <td data-label="Order">
+                        <div className="customer-service-name-cell">
+                          <strong>#{getOrderId(appointment)}</strong>
+                          <span>{formatStatus(orderStatus)}</span>
+                        </div>
+                      </td>
+                      <td data-label="Status">
                         <span className={`customer-service-pill ${status}`}>
                           {formatStatus(status)}
                         </span>
-                      </td>
-                      <td data-label="Order">
-                        <strong>{getOrderId(appointment)}</strong>
-                      </td>
-                      <td data-label="Order Status">
-                        <span className={`customer-service-pill ${orderStatus}`}>
-                          {formatStatus(orderStatus)}
-                        </span>
-                      </td>
-                      <td data-label="Slot">
-                        <strong>{getSlotId(appointment)}</strong>
-                      </td>
-                      <td data-label="Slot Time">
-                        {getTimeRange(getAppointmentTime(appointment), slotDurationMinutes)}
-                      </td>
-                      <td data-label="Slot Status">
-                        <span className={`customer-service-pill ${slotStatus}`}>
-                          {formatStatus(slotStatus)}
-                        </span>
-                      </td>
-                      <td data-label="Created By">
-                        <div className="customer-service-name-cell">
-                          <strong>{getCreatedBy(appointment)}</strong>
-                          <span>{readNested(appointment, ["created_by.phone"]) || ""}</span>
-                        </div>
                       </td>
                       <td data-label="Created At">{getCreatedAt(appointment)}</td>
                       <td data-label="Actions">
@@ -777,11 +1049,24 @@ export default function CustomerServiceAppointmentsPage() {
                           <button
                             type="button"
                             className="icon-action-btn"
+                            onClick={() => openEditModal(appointment)}
+                            disabled={actionLoading || isLocked || !id}
+                            title="Edit appointment"
+                          >
+                            <PencilLine size={16} />
+                          </button>
+                          <button
+                            type="button"
+                            className="icon-action-btn"
                             onClick={() =>
                               setConfirmAction({ type: "complete", appointment })
                             }
-                            disabled={actionLoading || isLocked || !id}
-                            title="Complete appointment"
+                            disabled={actionLoading || isLocked || isFuture || !id}
+                            title={
+                              isFuture
+                                ? "This appointment can be completed after its scheduled time"
+                                : "Complete appointment"
+                            }
                           >
                             <CalendarCheck size={16} />
                           </button>
@@ -803,7 +1088,7 @@ export default function CustomerServiceAppointmentsPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="10" className="empty-cell">
+                  <td colSpan="7" className="empty-cell">
                     {message || "No appointments found"}
                   </td>
                 </tr>
@@ -858,11 +1143,15 @@ export default function CustomerServiceAppointmentsPage() {
       <Modal
         open={createOpen}
         onClose={closeCreateModal}
-        title="Create appointment"
-        description="Book an appointment by choosing the related order, available slot, and client."
-        size="md"
+        title={editingAppointment ? "Edit appointment" : "Create appointment"}
+        description={
+          editingAppointment
+            ? "Update the customer, order, slot, purpose, or appointment notes."
+            : "Book an appointment by choosing the related order, available slot, and client."
+        }
+        size="lg"
       >
-        <form className="modal-form" onSubmit={handleCreateAppointment}>
+        <form className="modal-form appointment-create-form" onSubmit={handleCreateAppointment}>
           {createError ? <div className="form-alert">{createError}</div> : null}
 
           <div className="appointment-picker">
@@ -1021,6 +1310,47 @@ export default function CustomerServiceAppointmentsPage() {
                 </div>
               ) : null}
             </div>
+
+            <div className="appointment-picker-step">
+              <span className="appointment-picker-index">4</span>
+              <div className="appointment-picker-copy">
+                <strong>Appointment purpose</strong>
+                <span>Choose sales, legal consultation, or a general meeting.</span>
+              </div>
+              <select
+                name="type"
+                value={createFormData.type}
+                onChange={handleCreateChange}
+                onBlur={handleCreateBlur}
+              >
+                <option value="sales">Sales</option>
+                <option value="legal_consultation">Legal consultation</option>
+                <option value="general">General</option>
+              </select>
+            </div>
+
+            <div className="appointment-picker-step">
+              <span className="appointment-picker-index">5</span>
+              <div className="appointment-picker-copy">
+                <strong>Notes</strong>
+                <span>
+                  {createFormData.type === "sales"
+                    ? "Optional for sales appointments."
+                    : "Briefly explain the reason for this appointment."}
+                </span>
+              </div>
+              <textarea
+                name="notes"
+                value={createFormData.notes}
+                onChange={handleCreateChange}
+                onBlur={handleCreateBlur}
+                rows="3"
+                placeholder="Add the appointment reason and useful context..."
+              />
+              {createTouched.notes && createFieldErrors.notes ? (
+                <p className="field-error">{createFieldErrors.notes}</p>
+              ) : null}
+            </div>
           </div>
 
           <div className="modal-actions">
@@ -1038,7 +1368,13 @@ export default function CustomerServiceAppointmentsPage() {
               className="primary-action-btn"
               disabled={actionLoading}
             >
-              {actionLoading ? "Creating..." : "Create"}
+              {actionLoading
+                ? editingAppointment
+                  ? "Saving..."
+                  : "Creating..."
+                : editingAppointment
+                  ? "Save changes"
+                  : "Create"}
             </Button>
           </div>
         </form>

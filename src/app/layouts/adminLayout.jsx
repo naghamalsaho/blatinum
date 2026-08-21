@@ -52,7 +52,6 @@ export default function AdminLayout() {
 
       <main className="dashboard-main">
         <Topbar
-          onMenuClick={() => setSidebarOpen(true)}
           title={pageMeta[0]}
           subtitle={pageMeta[1]}
           searchPlaceholder={adminDashboardConfig.topbar.searchPlaceholder}

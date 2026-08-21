@@ -31,6 +31,10 @@ export const getCustomerServiceOrderRequest = (orderId) => {
   return api.get(`${ORDER_ENDPOINT}/${orderId}`);
 };
 
+export const getDepartmentOrdersRequest = (departmentId) => {
+  return api.get(`${ORDER_ENDPOINT}/departmentOrders/${departmentId}`);
+};
+
 export const getClientUnitOrdersRequest = (clientId) => {
   return api.get(`${ORDER_ENDPOINT}/getClientUnitOrders/${clientId}`);
 };

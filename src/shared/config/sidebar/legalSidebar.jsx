@@ -3,6 +3,7 @@ import {
   Banknote,
   LayoutDashboard,
   FileText,
+  Inbox,
 } from "lucide-react";
 import { t } from "@/shared/i18n";
 
@@ -30,6 +31,11 @@ export const getLegalSidebar = () => [
         label: t("legal_sidebar.contracts"),
         icon: FileText,
         to: "/legal/contracts",
+      },
+      {
+        label: t("legal_sidebar.incoming_orders"),
+        icon: Inbox,
+        to: "/legal/incoming-orders",
       },
     ],
   },

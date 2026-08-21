@@ -27,7 +27,6 @@ export default function DashboardLayout({
 
     <main className="dashboard-main">
       <Topbar
-        onMenuClick={() => setSidebarOpen(true)}
         title={topbar.title}
         subtitle={topbar.subtitle}
         searchPlaceholder={topbar.searchPlaceholder}

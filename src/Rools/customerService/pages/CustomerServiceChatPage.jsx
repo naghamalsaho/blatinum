@@ -4,13 +4,20 @@ import { useDispatch, useSelector } from "react-redux";
 import Echo from "laravel-echo";
 import Pusher from "pusher-js";
 import {
+  BadgeCheck,
+  BriefcaseBusiness,
   Hash,
   Inbox,
+  BookOpenText,
   MessageCircle,
+  MessageSquareQuote,
+  Search,
   Send,
   UserCheck,
+  UserRound,
 } from "lucide-react";
 
+import FaqTreeManager from "../features/faqs/components/FaqTreeManager";
 import { receiveCustomerServiceChatMessage } from "../features/chat/model/chat.slice";
 import {
   claimCustomerServiceChatRoom,
@@ -145,6 +152,79 @@ const getInitials = (value) => {
     .slice(0, 2)
     .map((word) => word[0]?.toUpperCase())
     .join("") || "CS";
+};
+
+const getAvatarUrl = (value) => {
+  const source = value?.account || value || {};
+  return source.avatar_url || source.avatar || source.profile_image || source.photo || source.image || "";
+};
+
+function PersonAvatar({ person, label, className = "" }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const imageUrl = getAvatarUrl(person);
+
+  return (
+    <span className={`chat-message-avatar ${className}`.trim()} aria-hidden="true">
+      {imageUrl && !imageFailed ? (
+        <img src={imageUrl} alt="" onError={() => setImageFailed(true)} />
+      ) : getInitials(label)}
+    </span>
+  );
+}
+
+PersonAvatar.propTypes = {
+  person: PropTypes.object,
+  label: PropTypes.string,
+  className: PropTypes.string,
+};
+
+PersonAvatar.defaultProps = { person: null, label: "CS", className: "" };
+
+const playIncomingMessageSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const gain = context.createGain();
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.42);
+    gain.connect(context.destination);
+    [660, 880].forEach((frequency, index) => {
+      const oscillator = context.createOscillator();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      oscillator.connect(gain);
+      oscillator.start(context.currentTime + index * 0.1);
+      oscillator.stop(context.currentTime + 0.32 + index * 0.1);
+    });
+    window.setTimeout(() => context.close(), 700);
+  } catch {
+    // Browsers may block sound until the first user interaction.
+  }
+};
+
+const playOutgoingMessageSound = () => {
+  try {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const oscillator = context.createOscillator();
+    const gain = context.createGain();
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(520, context.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(980, context.currentTime + 0.12);
+    gain.gain.setValueAtTime(0.0001, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.08, context.currentTime + 0.015);
+    gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.18);
+    oscillator.connect(gain);
+    gain.connect(context.destination);
+    oscillator.start();
+    oscillator.stop(context.currentTime + 0.2);
+    window.setTimeout(() => context.close(), 400);
+  } catch {
+    // Browsers may block sound until the first user interaction.
+  }
 };
 
 const getToken = (fallbackToken = "") => {
@@ -294,11 +374,15 @@ export default function CustomerServiceChatPage() {
   } = useSelector((state) => state.customerServiceChat || {});
   const clients = useSelector((state) => state.customerServiceClients?.items || []);
   const authToken = useSelector((state) => state.auth?.token || "");
+  const authUser = useSelector((state) => state.auth?.user || state.auth?.account || null);
 
   const [selectedRoom, setSelectedRoom] = useState(null);
   const [draft, setDraft] = useState("");
   const [draftError, setDraftError] = useState("");
   const [realtimeStatus, setRealtimeStatus] = useState("REST mode");
+  const [sideTab, setSideTab] = useState("room");
+  const [conversationTab, setConversationTab] = useState("all");
+  const [conversationSearch, setConversationSearch] = useState("");
   const messageEndRef = useRef(null);
   const echoRef = useRef(null);
   const channelRef = useRef(null);
@@ -328,6 +412,24 @@ export default function CustomerServiceChatPage() {
       selectedRoom,
     [activeRooms, selectedRoom, selectedRoomId, unassignedRooms]
   );
+
+  const visibleConversations = useMemo(() => {
+    const source = conversationTab === "unassigned"
+      ? unassignedRooms
+      : [...activeRooms, ...unassignedRooms].filter((room, index, list) =>
+          list.findIndex((entry) => String(getRoomId(entry)) === String(getRoomId(room))) === index
+        );
+    const query = conversationSearch.trim().toLowerCase();
+
+    return source.filter((room) => {
+      if (!query) return true;
+      return [getRoomTitle(room, clientNameById), getLatestMessageText(room), getRoomStatus(room), getRoomId(room)]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(query);
+    });
+  }, [activeRooms, clientNameById, conversationSearch, conversationTab, unassignedRooms]);
 
   useEffect(() => {
     dispatch(fetchCustomerServiceChatRooms());
@@ -427,6 +529,8 @@ export default function CustomerServiceChatPage() {
 
       const message = getEchoEventMessage(event);
       const messageRoomId = getMessageRoomId(message);
+
+      if (message?.sender_type !== "employee") playIncomingMessageSound();
 
       if (String(messageRoomId) === String(selectedRoomIdRef.current)) {
         dispatch(
@@ -546,6 +650,7 @@ export default function CustomerServiceChatPage() {
     );
 
     if (sendCustomerServiceChatMessage.fulfilled.match(result)) {
+      playOutgoingMessageSound();
       setDraft("");
     }
   };
@@ -554,82 +659,30 @@ export default function CustomerServiceChatPage() {
     <div className="customer-service-page customer-service-chat-page">
       <section className="chat-workspace">
         <aside className="chat-sidebar">
-          <div className="chat-panel">
-            <div className="chat-panel-head">
-              <h2>
-                <Inbox size={16} />
-                Unassigned
-              </h2>
-              <span>{unassignedRooms.length}</span>
+          <div className="chat-panel conversations-panel">
+            <div className="chat-panel-head conversations-head">
+              <h2><Inbox size={16} /> Conversations <span>{activeRooms.length + unassignedRooms.length}</span></h2>
             </div>
+            <div className="conversation-tabs">
+              <button type="button" className={conversationTab === "all" ? "active" : ""} onClick={() => setConversationTab("all")}>All <span>{activeRooms.length + unassignedRooms.length}</span></button>
+              <button type="button" className={conversationTab === "unassigned" ? "active" : ""} onClick={() => setConversationTab("unassigned")}>Unassigned <span>{unassignedRooms.length}</span></button>
+            </div>
+            <label className="conversation-search"><Search size={16} /><input value={conversationSearch} onChange={(event) => setConversationSearch(event.target.value)} placeholder="Search conversations..." /></label>
 
-            {unassigned.loading ? (
-              <div className="table-state">Loading unassigned chats...</div>
-            ) : unassigned.error ? (
-              <div className="table-state is-error">{unassigned.error}</div>
-            ) : unassignedRooms.length > 0 ? (
-              <div className="chat-room-list">
-                {unassignedRooms.map((room) => {
+            {rooms.loading || unassigned.loading ? (
+              <div className="table-state">Loading conversations...</div>
+            ) : rooms.error || unassigned.error ? (
+              <div className="table-state is-error">{rooms.error || unassigned.error}</div>
+            ) : visibleConversations.length > 0 ? (
+              <div className="chat-room-list unified-list">
+                {visibleConversations.map((room) => {
                   const id = getRoomId(room);
-
-                  return (
-                    <ChatRoomButton
-                      key={id}
-                      room={room}
-                      active={String(id) === String(selectedRoomId)}
-                      onClick={() => openRoom(room)}
-                      clientNameById={clientNameById}
-                      action={
-                        <button
-                          type="button"
-                          className="chat-claim-btn"
-                          onClick={() => claimRoom(room)}
-                          disabled={String(claimLoadingId) === String(id)}
-                        >
-                          {String(claimLoadingId) === String(id) ? "Claiming..." : "Claim"}
-                        </button>
-                      }
-                    />
-                  );
+                  const isUnassigned = !room.employee_id || unassignedRooms.some((entry) => String(getRoomId(entry)) === String(id));
+                  return <ChatRoomButton key={id} room={room} active={String(id) === String(selectedRoomId)} onClick={() => openRoom(room)} clientNameById={clientNameById} action={isUnassigned ? <button type="button" className="chat-claim-btn" onClick={() => claimRoom(room)} disabled={String(claimLoadingId) === String(id)}>{String(claimLoadingId) === String(id) ? "Claiming..." : "Claim"}</button> : null} />;
                 })}
               </div>
-            ) : (
-              <p className="customer-service-empty-note">No unassigned chats right now.</p>
-            )}
-          </div>
-
-          <div className="chat-panel">
-            <div className="chat-panel-head">
-              <h2>
-                <MessageCircle size={16} />
-                Active
-              </h2>
-              <span>{activeRooms.length}</span>
-            </div>
-
-            {rooms.loading ? (
-              <div className="table-state">Loading active chats...</div>
-            ) : rooms.error ? (
-              <div className="table-state is-error">{rooms.error}</div>
-            ) : activeRooms.length > 0 ? (
-              <div className="chat-room-list">
-                {activeRooms.map((room) => {
-                  const id = getRoomId(room);
-
-                  return (
-                    <ChatRoomButton
-                      key={id}
-                      room={room}
-                      active={String(id) === String(selectedRoomId)}
-                      onClick={() => openRoom(room)}
-                      clientNameById={clientNameById}
-                    />
-                  );
-                })}
-              </div>
-            ) : (
-              <p className="customer-service-empty-note">No active chats yet.</p>
-            )}
+            ) : <div className="chat-info-empty compact"><MessageCircle size={22} /><strong>No conversations found</strong><p>Try another search or conversation filter.</p></div>}
+            <div className="conversation-footer">Showing {visibleConversations.length} conversations</div>
           </div>
         </aside>
 
@@ -677,22 +730,14 @@ export default function CustomerServiceChatPage() {
                     key={message.id || `${message.created_at}-${message.content}`}
                     className={`chat-message ${isEmployee ? "employee" : "client"}`}
                   >
-                    {!isEmployee ? (
-                      <span className="chat-message-avatar">
-                        {getInitials(
-                          selectedRoomFromState
-                            ? getRoomTitle(selectedRoomFromState, clientNameById)
-                            : "CL"
-                        )}
-                      </span>
-                    ) : null}
+                    {!isEmployee ? <PersonAvatar person={selectedRoomFromState?.client || selectedRoomFromState?.account} label={selectedRoomFromState ? getRoomTitle(selectedRoomFromState, clientNameById) : "CL"} /> : null}
                     <div className="chat-message-bubble">
                       <p>{message.content}</p>
                       {message.created_at ? (
                         <span className="chat-message-meta">{formatMessageTime(message.created_at)}</span>
                       ) : null}
                     </div>
-                    {isEmployee ? <span className="chat-message-avatar employee">CS</span> : null}
+                    {isEmployee ? <PersonAvatar person={authUser} label={getPersonName(authUser) || "CS"} className="employee" /> : null}
                   </article>
                 );
               })
@@ -724,45 +769,60 @@ export default function CustomerServiceChatPage() {
 
         <aside className="chat-info-panel">
           <section className="chat-side-card">
-            <div className="chat-panel-head">
-              <h2>
-                <UserCheck size={16} />
-                Room Info
-              </h2>
+            <div className="chat-side-tabs">
+              <button type="button" className={sideTab === "room" ? "active" : ""} onClick={() => setSideTab("room")}><UserCheck size={15} /> Room</button>
+              <button type="button" className={sideTab === "faq" ? "active" : ""} onClick={() => setSideTab("faq")}><BookOpenText size={15} /> FAQ tree</button>
             </div>
 
-            {selectedRoomFromState ? (
-              <dl className="chat-room-info">
-                <div>
-                  <dt>Room id</dt>
-                  <dd>
-                    <Hash size={13} />
-                    {getRoomId(selectedRoomFromState)}
-                  </dd>
+            {sideTab === "faq" ? <FaqTreeManager /> : selectedRoomFromState ? (
+              <div className="chat-room-overview">
+                <section className="chat-client-profile">
+                  <PersonAvatar
+                    person={selectedRoomFromState.client || selectedRoomFromState.account}
+                    label={getRoomTitle(selectedRoomFromState, clientNameById)}
+                    className="profile"
+                  />
+                  <div>
+                    <span>Current customer</span>
+                    <h3>{getClientName(selectedRoomFromState, clientNameById) || "Unknown customer"}</h3>
+                    <small>Customer support conversation</small>
+                  </div>
+                  <span className={`chat-room-status ${getRoomStatus(selectedRoomFromState)}`}>
+                    {getRoomStatus(selectedRoomFromState)}
+                  </span>
+                </section>
+
+                <div className="chat-overview-grid">
+                  <article>
+                    <span className="chat-overview-icon"><BriefcaseBusiness size={17} /></span>
+                    <div><small>Assigned to</small><strong>{selectedRoomFromState.employee?.account?.full_name || selectedRoomFromState.employee_name || (selectedRoomFromState.employee_id ? "Customer service team" : "Not assigned yet")}</strong></div>
+                  </article>
+                  <article>
+                    <span className="chat-overview-icon success"><BadgeCheck size={17} /></span>
+                    <div><small>Conversation</small><strong>{getRoomStatus(selectedRoomFromState) === "active" ? "Ready to reply" : getRoomStatus(selectedRoomFromState)}</strong></div>
+                  </article>
                 </div>
-                <div>
-                  <dt>Client</dt>
-                  <dd>{getClientName(selectedRoomFromState, clientNameById) || "-"}</dd>
-                </div>
-                <div>
-                  <dt>Client id</dt>
-                  <dd>{selectedRoomFromState.client_id || "-"}</dd>
-                </div>
-                <div>
-                  <dt>Employee id</dt>
-                  <dd>{selectedRoomFromState.employee_id || "-"}</dd>
-                </div>
-                <div>
-                  <dt>Status</dt>
-                  <dd>{getRoomStatus(selectedRoomFromState)}</dd>
-                </div>
-                <div>
-                  <dt>Latest message</dt>
-                  <dd>{getLatestMessageText(selectedRoomFromState)}</dd>
-                </div>
-              </dl>
+
+                <section className="chat-latest-card">
+                  <header><MessageSquareQuote size={17} /><span>Latest message</span></header>
+                  <p>{getLatestMessageText(selectedRoomFromState)}</p>
+                </section>
+
+                <details className="chat-technical-details">
+                  <summary><Hash size={15} /> Technical details</summary>
+                  <dl>
+                    <div><dt>Conversation</dt><dd>#{getRoomId(selectedRoomFromState)}</dd></div>
+                    <div><dt>Customer reference</dt><dd>{selectedRoomFromState.client_id ? `#${selectedRoomFromState.client_id}` : "Not provided"}</dd></div>
+                    <div><dt>Agent reference</dt><dd>{selectedRoomFromState.employee_id ? `#${selectedRoomFromState.employee_id}` : "Unassigned"}</dd></div>
+                  </dl>
+                </details>
+              </div>
             ) : (
-              <p className="customer-service-empty-note">Open a room to see its details.</p>
+              <div className="chat-info-empty">
+                <span><UserRound size={24} /></span>
+                <strong>No conversation selected</strong>
+                <p>Choose a conversation to see the customer summary and assignment details.</p>
+              </div>
             )}
           </section>
         </aside>

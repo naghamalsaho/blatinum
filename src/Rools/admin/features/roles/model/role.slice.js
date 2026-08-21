@@ -3,9 +3,7 @@ import {
   assignRolesToUser,
   fetchPermissions,
   fetchRoles,
-  removePermission,
   removeRole,
-  savePermission,
   saveRole,
   saveRolePermissions,
 } from "./role.thunks";
@@ -70,8 +68,6 @@ const roleSlice = createSlice({
           [
             saveRole.pending.type,
             removeRole.pending.type,
-            savePermission.pending.type,
-            removePermission.pending.type,
             saveRolePermissions.pending.type,
             assignRolesToUser.pending.type,
           ].includes(action.type),
@@ -86,8 +82,6 @@ const roleSlice = createSlice({
           [
             saveRole.fulfilled.type,
             removeRole.fulfilled.type,
-            savePermission.fulfilled.type,
-            removePermission.fulfilled.type,
             saveRolePermissions.fulfilled.type,
             assignRolesToUser.fulfilled.type,
           ].includes(action.type),
@@ -101,8 +95,6 @@ const roleSlice = createSlice({
           [
             saveRole.rejected.type,
             removeRole.rejected.type,
-            savePermission.rejected.type,
-            removePermission.rejected.type,
             saveRolePermissions.rejected.type,
             assignRolesToUser.rejected.type,
           ].includes(action.type),

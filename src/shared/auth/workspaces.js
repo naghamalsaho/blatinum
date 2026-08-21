@@ -6,8 +6,51 @@ const normalize = (value) =>
 
 const roleName = (role) =>
   typeof role === "object"
-    ? role?.name || role?.title || role?.display_name || role?.role || ""
+    ? role?.name || role?.title || role?.display_name || role?.role?.name || role?.role || ""
     : role;
+
+const roleId = (role) =>
+  typeof role === "object"
+    ? role?.id ?? role?.role_id ?? role?.roleId ?? role?.role?.id ?? role?.pivot?.role_id ?? null
+    : null;
+
+const asRoleArray = (value) => {
+  if (Array.isArray(value)) return value;
+  if (!value || typeof value !== "object") return [];
+
+  if (Array.isArray(value.roles)) return value.roles;
+  if (Array.isArray(value.data)) return value.data;
+  if (Array.isArray(value.items)) return value.items;
+
+  return Object.entries(value).map(([id, role]) =>
+    typeof role === "object" ? role : { id, name: role }
+  );
+};
+
+export function extractAvailableRoles(payload = {}) {
+  const candidates = [
+    payload?.available_roles,
+    payload?.availableRoles,
+    payload?.roles,
+    payload?.data,
+    payload?.data?.available_roles,
+    payload?.data?.availableRoles,
+    payload?.data?.roles,
+    payload?.data?.data,
+    payload?.user?.available_roles,
+    payload?.user?.roles,
+    payload?.user?.account?.roles,
+    payload?.data?.user?.available_roles,
+    payload?.data?.user?.roles,
+    payload?.data?.user?.account?.roles,
+  ].map(asRoleArray).filter((roles) => roles.length);
+
+  const selected = candidates.find((roles) => roles.some((role) => roleId(role) != null)) || candidates[0] || [];
+  return selected.map((role) => ({
+    id: roleId(role),
+    name: roleName(role),
+  })).filter((role) => role.name);
+}
 
 export const WORKSPACES = [
   { key: "admin", labelKey: "workspace_admin", path: "/admin", roles: ["admin", "administrator"] },
@@ -39,6 +82,13 @@ export function getAssignedWorkspaces(user) {
   return WORKSPACES.filter((workspace) =>
     workspace.roles.some((role) => roles.includes(normalize(role)))
   );
+}
+
+export function getWorkspaceForRole(role) {
+  const normalizedRole = normalize(roleName(role));
+  return WORKSPACES.find((workspace) =>
+    workspace.roles.some((candidate) => normalize(candidate) === normalizedRole)
+  ) || null;
 }
 
 export function hasAssignedRole(user, allowedRoles = []) {

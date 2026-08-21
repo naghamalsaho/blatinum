@@ -1,8 +1,9 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Link } from "react-router-dom";
 import {
   Activity,
+  AlertTriangle,
   ArrowUpRight,
   Boxes,
   BriefcaseBusiness,
@@ -32,6 +33,7 @@ import { fetchDepartments } from "@/Rools/admin/features/departments/model/depar
 import { fetchEmployees } from "@/Rools/admin/features/employees/model/employee.thunks";
 import { fetchWarehouses } from "@/Rools/admin/features/warehouses/model/warehouse.thunks";
 import { fetchPermissions, fetchRoles } from "@/Rools/admin/features/roles/model/role.thunks";
+import { getConstructionInsightsRequest, markConstructionInsightReadRequest } from "@/Rools/admin/features/insights/api/insights.api";
 import { t } from "@/shared/i18n";
 import "./dashboard.css";
 
@@ -50,6 +52,56 @@ export default function DashboardPage() {
   const warehouses = useSelector((state) => state.warehouses?.items || []);
   const roles = useSelector((state) => state.rolePermissions?.roles?.items || []);
   const permissions = useSelector((state) => state.rolePermissions?.permissions?.items || []);
+  const [insights, setInsights] = useState([]);
+  const [insightsLoading, setInsightsLoading] = useState(true);
+  const [insightsError, setInsightsError] = useState("");
+  const [insightFilters, setInsightFilters] = useState({ severity: "", is_read: "", building_id: "" });
+
+  useEffect(() => {
+    let active = true;
+    setInsightsLoading(true);
+    setInsightsError("");
+
+    const params = { per_page: 5 };
+    Object.entries(insightFilters).forEach(([key, value]) => {
+      if (value !== "") params[key] = value;
+    });
+
+    getConstructionInsightsRequest(params).then((result) => {
+      if (!active) return;
+      if (!result.ok) {
+        setInsightsError(result.message || "Failed to load construction insights.");
+        setInsightsLoading(false);
+        return;
+      }
+      const payload = result.data?.data;
+      const items = Array.isArray(payload)
+        ? payload
+        : Array.isArray(payload?.data)
+          ? payload.data
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+      setInsights(items);
+      setInsightsLoading(false);
+    });
+
+    return () => { active = false; };
+  }, [insightFilters]);
+
+  const openInsight = async (insight) => {
+    if (!insight?.is_read) {
+      const result = await markConstructionInsightReadRequest(insight.id);
+      if (result.ok) {
+        setInsights((items) => items.map((item) =>
+          String(item.id) === String(insight.id) ? { ...item, is_read: true } : item
+        ));
+      }
+    }
+
+    const reportPath = insight.report_url || insight.report_path || insight.source_url;
+    if (reportPath) window.location.assign(reportPath);
+  };
 
   useEffect(() => {
     dispatch(fetchEmployees());
@@ -110,6 +162,42 @@ export default function DashboardPage() {
       </section>
 
       <section className="admin-dashboard-grid">
+        <article className="admin-panel admin-insights-panel">
+          <header className="admin-panel-head admin-insights-head">
+            <div><span className="admin-panel-eyebrow"><AlertTriangle size={14} /> Construction intelligence</span><h2>Construction insights</h2><p>Live productivity, manpower, and cost analysis</p></div>
+            <div className="admin-insights-filters">
+              <input type="number" min="1" placeholder="Building ID" value={insightFilters.building_id} onChange={(event) => setInsightFilters((filters) => ({ ...filters, building_id: event.target.value }))} />
+              <select value={insightFilters.severity} onChange={(event) => setInsightFilters((filters) => ({ ...filters, severity: event.target.value }))}>
+                <option value="">All severity</option><option value="danger">Danger</option><option value="warning">Warning</option><option value="info">Info</option><option value="success">Success</option>
+              </select>
+              <select value={insightFilters.is_read} onChange={(event) => setInsightFilters((filters) => ({ ...filters, is_read: event.target.value }))}>
+                <option value="">All</option><option value="0">Unread</option><option value="1">Read</option>
+              </select>
+            </div>
+          </header>
+          <div className="admin-insights-list">
+            {insightsLoading ? <div className="admin-empty-state">Loading insights...</div> : null}
+            {!insightsLoading && insightsError ? <div className="admin-empty-state is-error">{insightsError}</div> : null}
+            {!insightsLoading && !insightsError && insights.length === 0 ? <div className="admin-empty-state">No insights match the selected filters.</div> : null}
+            {insights.map((insight) => {
+              const metrics = insight.metrics || {};
+              const severity = ["warning", "danger", "info", "success"].includes(insight.severity) ? insight.severity : "info";
+              return (
+                <button type="button" className={`admin-insight-item severity-${severity} ${insight.is_read ? "is-read" : "is-unread"}`} key={insight.id} onClick={() => openInsight(insight)}>
+                  <span className="admin-insight-severity"><AlertTriangle size={18} /></span>
+                  <span className="admin-insight-copy"><strong>{insight.title || "Construction insight"}</strong><small>{insight.diagnosis || "No diagnosis provided."}</small><em>{insight.recommendation || "Review the source report for details."}</em></span>
+                  <span className="admin-insight-metrics">
+                    <small>Previous manpower <strong>{metrics.past_avg_manpower ?? "—"}</strong></small>
+                    <small>Current manpower <strong>{metrics.current_avg_manpower ?? "—"}</strong></small>
+                    <small>Productivity drop <strong>{metrics.productivity_drop ?? "—"}{metrics.productivity_drop != null ? "%" : ""}</strong></small>
+                  </span>
+                  <span className="admin-insight-meta"><small>{insight.created_at || ""}</small><em>{insight.is_read ? "Read" : "New"}</em><b>View details <ArrowUpRight size={13} /></b></span>
+                </button>
+              );
+            })}
+          </div>
+        </article>
+
         <article className="admin-panel admin-activity-panel">
           <header className="admin-panel-head">
             <div><span className="admin-panel-eyebrow"><Activity size={14} /> {t("live_overview")}</span><h2>{t("system_activity")}</h2><p>{t("operational_pulse")}</p></div>

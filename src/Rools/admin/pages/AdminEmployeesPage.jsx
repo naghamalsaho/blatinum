@@ -53,7 +53,6 @@ const getEmployeeId = (item) =>
 // employee_id inside additional_info is used by department assignments only.
 const getEmployeeAccountId = (item) =>
   getAccount(item)?.id || item?.account_id || item?.employee?.account_id || item?.id;
-const getDepartment = (item) => item?.department || {};
 const getLocalizedName = (value) => {
   if (!value) return "";
   if (typeof value === "string") return value;
@@ -87,35 +86,6 @@ const splitFullName = (fullName = "") => {
   };
 };
 
-const getEmployeeDepartments = (item) => {
-  if (Array.isArray(item.departments)) return item.departments;
-  if (item.department || item.position || item.from_date) return [item];
-  return [];
-};
-
-const groupEmployeeRecords = (items) => {
-  const grouped = new Map();
-
-  items.forEach((item) => {
-    const key = getEmployeeKey(item);
-
-    if (!key) return;
-
-    const current = grouped.get(key);
-    const departments = [
-      ...(current?.departments || []),
-      ...getEmployeeDepartments(item),
-    ];
-
-    grouped.set(key, {
-      ...(current || item),
-      departments,
-    });
-  });
-
-  return Array.from(grouped.values());
-};
-
 const buildEditForm = (employee) => {
   const account = getAccount(employee);
   const splitName = splitFullName(account.full_name || employee.full_name);
@@ -142,10 +112,10 @@ export default function AdminEmployeesPage() {
     actionMessage,
   } = useSelector((state) => state.employees || {});
   const departmentOptions = useSelector((state) => state.departments?.items || []);
-  const roleOptions = useSelector((state) => state.rolePermissions?.roles?.items || []);
+  const roleOptions = useSelector((state) => state.rolePermission?.roles?.items || []);
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [positionFilter, setPositionFilter] = useState("all");
+  const [roleFilter, setRoleFilter] = useState("all");
   const [employeeModalOpen, setEmployeeModalOpen] = useState(false);
   const [employeeModalMode, setEmployeeModalMode] = useState("create");
   const [selectedEmployee, setSelectedEmployee] = useState(null);
@@ -153,33 +123,36 @@ export default function AdminEmployeesPage() {
   const [formError, setFormError] = useState("");
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
-  const positionOptions = [
-    { value: "all", label: t("all"), dotClass: "" },
-    { value: "manager", label: t("managers"), dotClass: "ok" },
-    { value: "supervisor", label: t("supervisors"), dotClass: "busy" },
-    { value: "staff", label: t("staff"), dotClass: "" },
-  ];
-
   useEffect(() => {
     dispatch(fetchEmployees());
     dispatch(fetchDepartments());
     dispatch(fetchRoles());
   }, [dispatch]);
 
-  const groupedEmployees = useMemo(
-    () => groupEmployeeRecords(employees),
-    [employees]
-  );
+  const roleFilterOptions = useMemo(() => {
+    const roles = new Set(
+      employees.flatMap((item) =>
+        (getAccount(item).roles || []).map(getRoleName).filter(Boolean)
+      )
+    );
+
+    return [
+      { value: "all", label: t("all"), dotClass: "" },
+      ...Array.from(roles).map((role) => ({
+        value: role,
+        label: role.replaceAll("_", " "),
+        dotClass: "",
+      })),
+    ];
+  }, [employees]);
 
   const filteredEmployees = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
-    return groupedEmployees.filter((item) => {
+    return employees.filter((item) => {
       const account = getAccount(item);
       const info = getEmployeeInfo(item);
       const roles = (account.roles || []).map(getRoleName).filter(Boolean);
-      const departments = item.departments || [];
-      const positions = departments.map((entry) => entry.position || "staff");
       const searchableText = [
         account.id,
         getEmployeeId(item),
@@ -188,8 +161,8 @@ export default function AdminEmployeesPage() {
         account.phone,
         account.address,
         info.gender,
-        ...departments.map((entry) => getLocalizedName(getDepartment(entry).name)),
-        ...positions,
+        account.created_at,
+        account.verified_at,
         ...roles,
       ]
         .filter(Boolean)
@@ -197,24 +170,21 @@ export default function AdminEmployeesPage() {
         .toLowerCase();
 
       const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesPosition =
-        positionFilter === "all" ||
-        positions.includes(positionFilter) ||
-        (positionFilter === "staff" && positions.length === 0);
+      const matchesRole = roleFilter === "all" || roles.includes(roleFilter);
 
-      return matchesSearch && matchesPosition;
+      return matchesSearch && matchesRole;
     });
-  }, [groupedEmployees, searchTerm, positionFilter]);
+  }, [employees, searchTerm, roleFilter]);
 
-  const total = groupedEmployees.length;
-  const managers = groupedEmployees.filter((item) =>
-    item.departments?.some((entry) => entry.position === "manager")
+  const total = employees.length;
+  const verified = employees.filter((item) => Boolean(getAccount(item).verified_at)).length;
+  const employeeAccounts = employees.filter(
+    (item) => getAccount(item).type === "employee"
   ).length;
-  const supervisors = groupedEmployees.filter((item) =>
-    item.departments?.some((entry) => entry.position === "supervisor")
-  ).length;
-  const departmentsCount = new Set(
-    employees.map((item) => getDepartment(item).id).filter(Boolean)
+  const specializedRoles = new Set(
+    employees
+      .flatMap((item) => (getAccount(item).roles || []).map(getRoleName))
+      .filter((role) => role && role !== "employee")
   ).size;
 
   const openCreateEmployee = () => {
@@ -331,18 +301,18 @@ export default function AdminEmployeesPage() {
     <div className="employees-page">
       <div className="legal-stats-grid">
         <StatCard title={t("total")} value={total} note={t("employees_total_note")} icon={UsersRound} />
-        <StatCard title={t("managers")} value={managers} note={t("department_leads")} icon={Crown} />
-        <StatCard title={t("supervisors")} value={supervisors} note={t("team_oversight")} icon={ShieldCheck} />
-        <StatCard title={t("departments")} value={departmentsCount} note={t("departments_count_note")} icon={BriefcaseBusiness} />
+        <StatCard title="Verified" value={verified} note="Verified employee accounts" icon={ShieldCheck} />
+        <StatCard title="Employee accounts" value={employeeAccounts} note="Accounts returned as employees" icon={BriefcaseBusiness} />
+        <StatCard title="Specialized roles" value={specializedRoles} note="Unique access roles" icon={Crown} />
       </div>
 
       <Toolbar
         placeholder={t("search_employees")}
         searchValue={searchTerm}
         onSearchChange={setSearchTerm}
-        filterValue={positionFilter}
-        onFilterChange={setPositionFilter}
-        selectOptions={positionOptions}
+        filterValue={roleFilter}
+        onFilterChange={setRoleFilter}
+        selectOptions={roleFilterOptions}
         action={
           <Button
             type="button"
@@ -367,9 +337,10 @@ export default function AdminEmployeesPage() {
                 <th>{t("employee")}</th>
                 <th>{t("email")}</th>
                 <th>{t("phone")}</th>
-                <th>{t("departments")}</th>
-                <th>{t("positions")}</th>
+                <th>{t("address")}</th>
                 <th>{t("roles")}</th>
+                <th>Account status</th>
+                <th>Created at</th>
                 <th>{t("actions")}</th>
               </tr>
             </thead>
@@ -380,10 +351,9 @@ export default function AdminEmployeesPage() {
                   const account = getAccount(item);
                   const employeeId = getEmployeeId(item) || account.id;
                   const roles = (account.roles || []).map(getRoleName).filter(Boolean);
-                  const departments = item.departments || [];
-                  const positions = [
-                    ...new Set(departments.map((entry) => entry.position || "staff")),
-                  ];
+                  const visibleRoles = roles.length > 1
+                    ? roles.filter((role) => role !== "employee")
+                    : roles;
 
                   return (
                     <tr key={getEmployeeKey(item)}>
@@ -404,48 +374,11 @@ export default function AdminEmployeesPage() {
                         </span>
                       </td>
                       <td data-label={t("phone")}>{account.phone || "-"}</td>
-                      <td data-label={t("departments")}>
-                        <div className="employee-departments">
-                          {departments.length > 0 ? (
-                            departments.map((entry) => {
-                              const department = getDepartment(entry);
-                              const position = entry.position || "staff";
-
-                              return (
-                                <span
-                                  className="employee-department-pill"
-                                  key={`${employeeId}-${department.id || department.name}-${position}`}
-                                >
-                                  <strong>{getLocalizedName(department.name) || "-"}</strong>
-                                  <small>{t(position) || position}</small>
-                                </span>
-                              );
-                            })
-                          ) : (
-                            <span className="employee-muted">Not assigned</span>
-                          )}
-                        </div>
-                      </td>
-                      <td data-label={t("positions")}>
-                        <div className="employee-roles">
-                          {positions.length > 0 ? (
-                            positions.map((position) => (
-                              <span
-                                className={`employee-position ${position}`}
-                                key={`${employeeId}-${position}`}
-                              >
-                                {t(position) || position}
-                              </span>
-                            ))
-                          ) : (
-                            <span className="employee-muted">Staff</span>
-                          )}
-                        </div>
-                      </td>
+                      <td data-label={t("address")}>{account.address || "-"}</td>
                       <td data-label={t("roles")}>
                         <div className="employee-roles">
-                          {roles.length > 0 ? (
-                            roles.map((role) => (
+                          {visibleRoles.length > 0 ? (
+                            visibleRoles.map((role) => (
                               <span className="employee-role-pill" key={role}>
                                 {role.replaceAll("_", " ")}
                               </span>
@@ -455,6 +388,12 @@ export default function AdminEmployeesPage() {
                           )}
                         </div>
                       </td>
+                      <td data-label="Account status">
+                        <span className={`employee-position ${account.verified_at ? "manager" : "staff"}`}>
+                          {account.verified_at ? "Verified" : "Unverified"}
+                        </span>
+                      </td>
+                      <td data-label="Created at">{account.created_at || "-"}</td>
                       <td data-label={t("actions")}>
                         <div className="employee-action-buttons">
                           <button
@@ -480,7 +419,7 @@ export default function AdminEmployeesPage() {
                 })
               ) : (
                 <tr>
-                  <td colSpan="7" className="empty-cell">
+                  <td colSpan="8" className="empty-cell">
                     {t("no_employees_found")}
                   </td>
                 </tr>

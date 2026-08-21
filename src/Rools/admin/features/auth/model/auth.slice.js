@@ -1,5 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import { loginUser, selectRole } from "./auth.thunks";
+import { extractAvailableRoles } from "@/shared/auth/workspaces";
 
 const readJsonStorage = (key, fallback) => {
   try {
@@ -63,10 +64,40 @@ const getRefreshToken = (payload = {}) =>
 
 const getAuthUser = (payload = {}) => payload.user || payload.data?.user || null;
 
-const getAuthPermissions = (payload = {}) =>
-  payload.permissions || payload.data?.permissions || [];
-const getAvailableRoles = (payload = {}) =>
-  payload.available_roles || payload.data?.available_roles || [];
+const flattenPermissionList = (value) => {
+  if (!value) return [];
+  if (Array.isArray(value)) return value.flatMap((item) => flattenPermissionList(item));
+  if (typeof value !== "object") return [value];
+
+  if (Array.isArray(value.permissions)) return value.permissions.flatMap((item) => flattenPermissionList(item));
+  if (Array.isArray(value.data)) return value.data.flatMap((item) => flattenPermissionList(item));
+
+  return [value];
+};
+
+const getAuthPermissions = (payload = {}) => {
+  const candidates = [
+    payload.permissions,
+    payload.data?.permissions,
+    payload.permission,
+    payload.data?.permission,
+    payload.active_role?.permissions,
+    payload.data?.active_role?.permissions,
+    payload.roles?.permissions,
+    payload.data?.roles?.permissions,
+    payload.data,
+  ];
+
+  const flatPermissions = candidates
+    .flatMap((candidate) => flattenPermissionList(candidate))
+    .filter((permission) => permission && typeof permission === "object");
+
+  if (flatPermissions.length) return flatPermissions;
+
+  const rawPermissions = payload.permissions || payload.data?.permissions || [];
+  return Array.isArray(rawPermissions) ? rawPermissions : [];
+};
+const getAvailableRoles = (payload = {}) => extractAvailableRoles(payload);
 const getActiveRole = (payload = {}) =>
   payload.active_role || payload.data?.active_role || null;
 
@@ -88,6 +119,11 @@ const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
+    activateAssignedRole(state, action) {
+      state.activeRole = action.payload;
+      state.roleError = null;
+      localStorage.setItem("activeRole", JSON.stringify(action.payload));
+    },
     logout(state) {
       console.log("[auth.slice] logout called");
 
@@ -181,9 +217,19 @@ const authSlice = createSlice({
       .addCase(selectRole.fulfilled, (state, action) => {
         const activeRole = getActiveRole(action.payload);
         const permissions = getAuthPermissions(action.payload);
+        const token = getAuthToken(action.payload);
+        const refreshToken = getRefreshToken(action.payload);
         state.roleSelecting = false;
         state.activeRole = activeRole;
         state.permissions = permissions;
+        if (token) {
+          state.token = token;
+          localStorage.setItem("token", token);
+        }
+        if (refreshToken) {
+          state.refreshToken = refreshToken;
+          localStorage.setItem("refreshToken", refreshToken);
+        }
         localStorage.setItem("activeRole", JSON.stringify(activeRole));
         localStorage.setItem("permissions", JSON.stringify(permissions));
       })
@@ -194,5 +240,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { activateAssignedRole, logout } = authSlice.actions;
 export default authSlice.reducer;

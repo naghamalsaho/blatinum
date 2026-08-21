@@ -362,16 +362,21 @@ useEffect(() => {
           <input type="text" placeholder={searchPlaceholder} />
         </div>
 
-        <div className="topbar-user">
-          <span className="topbar-user-avatar" aria-hidden="true">
-            {accountName.charAt(0).toUpperCase()}
-          </span>
-          <span className="topbar-user-copy">
-            <strong>{accountName}</strong>
-            <small>{account.email || "Admin"}</small>
-          </span>
-        </div>
       </div>
     </header>
   );
 }
+
+Topbar.propTypes = {
+  title: PropTypes.string,
+  subtitle: PropTypes.string,
+  searchPlaceholder: PropTypes.string,
+  actions: PropTypes.arrayOf(
+    PropTypes.shape({
+      key: PropTypes.string,
+      label: PropTypes.string.isRequired,
+      icon: PropTypes.elementType.isRequired,
+      onClick: PropTypes.func,
+    })
+  ),
+};

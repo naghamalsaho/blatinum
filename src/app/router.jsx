@@ -24,6 +24,7 @@ import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
 import LegalContractsPage from "@/Rools/legal/pages/LegalContractsPage";
 import LegalSalesPage from "@/Rools/legal/pages/LegalSalesPage";
+import LegalIncomingOrdersPage from "@/Rools/legal/pages/LegalIncomingOrdersPage";
 
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
@@ -96,6 +97,7 @@ export default function AppRouter() {
             <Route path="slots" element={<LegalAvailableSlotsPage />} />
             <Route path="sales" element={<LegalSalesPage />} />
             <Route path="contracts" element={<LegalContractsPage />} />
+            <Route path="incoming-orders" element={<LegalIncomingOrdersPage />} />
           </Route>
         </Route>
 
@@ -164,6 +166,7 @@ export default function AppRouter() {
             />
             <Route path="lottery" element={<CustomerServiceLotteryPage />} />
             <Route path="orders" element={<CustomerServiceOrdersPage />} />
+            <Route path="orders/:orderId" element={<CustomerServiceOrdersPage />} />
           </Route>
         </Route>
 

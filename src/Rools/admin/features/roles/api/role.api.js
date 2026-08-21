@@ -36,28 +36,14 @@ export const deleteRoleRequest = (roleId) => api.delete(`${ROLE_ENDPOINT}/${role
 
 export const getPermissionsRequest = () => api.get(PERMISSION_ENDPOINT);
 
-export const createPermissionRequest = (payload) => {
-  return api.postForm(PERMISSION_ENDPOINT, toFormData(payload));
-};
-
-export const updatePermissionRequest = (permissionId, payload) => {
-  return api.putForm(`${PERMISSION_ENDPOINT}/${permissionId}`, toFormData(payload));
-};
-
-export const deletePermissionRequest = (permissionId) => {
-  return api.delete(`${PERMISSION_ENDPOINT}/${permissionId}`);
-};
-
 export const updateRolePermissionsRequest = (roleId, permissionIds = []) => {
-  return api.postForm(
-    `${ROLE_ENDPOINT}/selectPermission/${roleId}`,
-    toFormData({ permissions: permissionIds })
-  );
+  const payload = toFormData({ permissions: permissionIds });
+
+  return api.postForm(`${ROLE_ENDPOINT}/selectPermission/${roleId}`, payload);
 };
 
 export const assignRolesToUserRequest = (userId, roleIds = []) => {
-  return api.postForm(
-    `${ROLE_ENDPOINT}/assignRoles/${userId}`,
-    toFormData({ roles: roleIds.map((roleId) => Number(roleId)) })
-  );
+  return api.post(`${ROLE_ENDPOINT}/assignRoles/${userId}`, {
+    roles: roleIds.map((roleId) => Number(roleId)),
+  });
 };

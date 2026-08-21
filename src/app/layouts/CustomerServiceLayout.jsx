@@ -15,7 +15,9 @@ export default function CustomerServiceLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const dir = getDirection();
-  const pageMeta = {
+  const pageMeta = (location.pathname.startsWith("/customer-service/orders/")
+    ? [t("orders"), t("orders_page_desc")]
+    : {
     "/customer-service": [t("dashboard"), t("service_dashboard_desc")],
     "/customer-service/clients": [t("clients"), t("clients_page_desc")],
     "/customer-service/appointments": [t("appointments"), t("appointments_page_desc")],
@@ -23,7 +25,7 @@ export default function CustomerServiceLayout() {
     "/customer-service/complaints": [t("complaints"), t("complaints_page_desc")],
     "/customer-service/lottery": [t("lottery"), t("lottery_page_desc")],
     "/customer-service/chat": [t("service_chat_title"), t("chat_page_desc")],
-  }[location.pathname] || [t("service_title"), ""];
+    }[location.pathname]) || [t("service_title"), ""];
 
   const handleLogout = async () => {
     try {

@@ -43,6 +43,7 @@ export const createEmployee = createAsyncThunk(
     const result = await createEmployeeRequest(payload);
 
     if (result.ok) {
+      await thunkAPI.dispatch(fetchEmployees());
       return result.data?.data ?? result.data;
     }
 
@@ -56,6 +57,7 @@ export const updateEmployee = createAsyncThunk(
     const result = await updateEmployeeRequest(employeeId, payload);
 
     if (result.ok) {
+      await thunkAPI.dispatch(fetchEmployees());
       return result.data?.data ?? result.data;
     }
 

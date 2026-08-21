@@ -274,6 +274,15 @@ const playDrawStageCue = (stage) => {
   });
 };
 
+const RULE_KEY_OPTIONS = [
+  { value: "social_status", label: "Social status" },
+  { value: "age", label: "Age (years)" },
+  { value: "gender", label: "Gender" },
+  { value: "salary", label: "Salary" },
+];
+
+const NUMERIC_RULE_KEYS = new Set(["age", "salary"]);
+
 const readNested = (item, paths) => {
   for (const path of paths) {
     const value = path.split(".").reduce((current, key) => current?.[key], item);
@@ -596,12 +605,23 @@ function LotteryFormFields({ form, onChange, onRuleChange, onAddRule, onRemoveRu
 
         {form.rules.map((rule, index) => (
           <div className="lottery-rule-row" key={`${index}-${rule.rule_key}`}>
-            <input
+            <select
               value={rule.rule_key}
               onChange={(event) => onRuleChange(index, "rule_key", event.target.value)}
-              placeholder="rule_key"
               disabled={disabled}
-            />
+              aria-label="Rule key"
+            >
+              <option value="">Select rule</option>
+              {!RULE_KEY_OPTIONS.some((option) => option.value === rule.rule_key) &&
+              rule.rule_key ? (
+                <option value={rule.rule_key}>{rule.rule_key}</option>
+              ) : null}
+              {RULE_KEY_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
             <select
               value={rule.operator}
               onChange={(event) => onRuleChange(index, "operator", event.target.value)}
@@ -615,12 +635,46 @@ function LotteryFormFields({ form, onChange, onRuleChange, onAddRule, onRemoveRu
               <option value="<=">&lt;=</option>
               <option value="in">in</option>
             </select>
-            <input
-              value={rule.rule_value}
-              onChange={(event) => onRuleChange(index, "rule_value", event.target.value)}
-              placeholder="rule_value"
-              disabled={disabled}
-            />
+            {rule.rule_key === "social_status" ? (
+              <select
+                value={rule.rule_value}
+                onChange={(event) => onRuleChange(index, "rule_value", event.target.value)}
+                disabled={disabled}
+                aria-label="Social status"
+              >
+                <option value="">Select social status</option>
+                <option value="single">Single</option>
+                <option value="married">Married</option>
+                <option value="divorced">Divorced</option>
+              </select>
+            ) : rule.rule_key === "gender" ? (
+              <select
+                value={rule.rule_value}
+                onChange={(event) => onRuleChange(index, "rule_value", event.target.value)}
+                disabled={disabled}
+                aria-label="Gender"
+              >
+                <option value="">Select gender</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
+            ) : (
+              <input
+                type={NUMERIC_RULE_KEYS.has(rule.rule_key) ? "number" : "text"}
+                min={rule.rule_key === "age" ? "0" : undefined}
+                step={rule.rule_key === "age" ? "1" : "any"}
+                value={rule.rule_value}
+                onChange={(event) => onRuleChange(index, "rule_value", event.target.value)}
+                placeholder={
+                  rule.rule_key === "age"
+                    ? "Age in years"
+                    : rule.rule_key === "salary"
+                      ? "Salary amount"
+                      : "Rule value"
+                }
+                disabled={disabled}
+              />
+            )}
             <button
               type="button"
               className="lottery-remove-rule"
@@ -659,13 +713,8 @@ function LotteryDetailsDrawer({
   lottery,
   loading,
   error,
-  actionLoading,
-  drawing,
   drawWinnerName,
   onClose,
-  onEdit,
-  onCancel,
-  onDrawWinner,
 }) {
   const status = getLotteryStatus(lottery);
   const rules = getLotteryRules(lottery);
@@ -685,7 +734,7 @@ function LotteryDetailsDrawer({
         aria-label="Close lottery details"
       />
 
-      <section className="lottery-details-modal">
+      <section className="lottery-details-modal" aria-busy={loading}>
         <header className="lottery-details-header">
           <span className="lottery-details-icon">
             <Ticket size={26} />
@@ -706,7 +755,7 @@ function LotteryDetailsDrawer({
         </header>
 
         <div className="lottery-details-body">
-          {loading ? <div className="table-state">Loading lottery details...</div> : null}
+          {loading && !lottery ? <div className="table-state">Loading lottery details...</div> : null}
           {error ? <div className="table-state is-error">{error}</div> : null}
 
           {lottery ? (
@@ -852,25 +901,6 @@ function LotteryDetailsDrawer({
                 </section>
               </main>
 
-              <footer className="lottery-details-actions">
-                <Button type="button" className="ghost-filter-btn" onClick={() => onEdit(lottery)}>
-                  <PencilLine size={16} />
-                  Edit
-                </Button>
-                <Button type="button" className="ghost-filter-btn danger-soft" onClick={() => onCancel(lottery)} disabled={actionLoading}>
-                  <ShieldX size={16} />
-                  Cancel
-                </Button>
-                <Button
-                  type="button"
-                  className="primary-action-btn lottery-draw-main-btn"
-                  onClick={() => onDrawWinner(lottery)}
-                  disabled={actionLoading || drawing}
-                >
-                  <Trophy size={16} />
-                  {drawing ? "Drawing..." : "Draw Winner"}
-                </Button>
-              </footer>
             </>
           ) : null}
         </div>
@@ -884,21 +914,14 @@ LotteryDetailsDrawer.propTypes = {
   lottery: PropTypes.object,
   loading: PropTypes.bool,
   error: PropTypes.string,
-  actionLoading: PropTypes.bool,
-  drawing: PropTypes.bool,
   drawWinnerName: PropTypes.string,
   onClose: PropTypes.func.isRequired,
-  onEdit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
-  onDrawWinner: PropTypes.func.isRequired,
 };
 
 LotteryDetailsDrawer.defaultProps = {
   lottery: null,
   loading: false,
   error: "",
-  actionLoading: false,
-  drawing: false,
   drawWinnerName: "",
 };
 
@@ -959,6 +982,7 @@ function LotteryDrawModal({
   const [isRunning, setIsRunning] = useState(false);
   const [runId, setRunId] = useState(0);
   const drawPromiseRef = useRef({ key: "", promise: null });
+  const lotteryId = getLotteryId(lottery);
 
   const activeStage = DRAW_STAGES.find((item) => item.key === stage) || DRAW_STAGES[0];
   const showSuccess = stage === "success" && (drawResult || result);
@@ -979,7 +1003,7 @@ function LotteryDrawModal({
 
     const timers = [];
     let cancelled = false;
-    const runKey = `${getLotteryId(lottery) || "lottery"}-${runId}`;
+    const runKey = `${lotteryId || "lottery"}-${runId}`;
 
     const schedule = (callback, ms) => {
       const timer = window.setTimeout(() => {
@@ -1038,7 +1062,10 @@ function LotteryDrawModal({
       stopLotteryDrawSound();
       timers.forEach((timer) => window.clearTimeout(timer));
     };
-  }, [lottery, onRunDraw, open, runId]);
+  // Updating the same lottery with its winner/status must not start a second draw.
+  // A new run happens only for another lottery or an explicit retry.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lotteryId, onRunDraw, open, runId]);
 
   useEffect(() => {
     if (open && ["preparing", "drawing", "finalizing"].includes(stage)) {
@@ -1175,9 +1202,22 @@ function LotteryDrawModal({
 
         {showSuccess ? (
           <div className="lottery-live-result">
+            <div className="lottery-winner-burst" aria-hidden="true">
+              <span />
+              <span />
+              <span />
+            </div>
             <div className="lottery-live-confetti" aria-hidden="true">
-              {Array.from({ length: 24 }).map((_, index) => (
-                <span key={index} />
+              {Array.from({ length: 72 }).map((_, index) => (
+                <span
+                  key={index}
+                  style={{
+                    "--confetti-index": index,
+                    "--confetti-x": `${(index * 47) % 100}%`,
+                    "--confetti-delay": `${(index % 12) * 0.055}s`,
+                    "--confetti-drift": `${((index * 37) % 180) - 90}px`,
+                  }}
+                />
               ))}
             </div>
             <div className="lottery-live-emoji-confetti" aria-hidden="true">
@@ -1204,7 +1244,11 @@ function LotteryDrawModal({
               </em>
             </div>
 
-            <strong className="lottery-live-winner-name">{winnerName}</strong>
+            <div className="lottery-winner-name-reveal">
+              <small>Congratulations</small>
+              <strong className="lottery-live-winner-name">{winnerName}</strong>
+              <span aria-hidden="true">WINNER</span>
+            </div>
 
             <div className="lottery-live-meta">
               <span>Lottery: {getLotteryTitle(metadataLottery)}</span>
@@ -1216,10 +1260,6 @@ function LotteryDrawModal({
             <footer className="lottery-live-actions">
               <Button type="button" className="ghost-filter-btn" onClick={() => onViewDetails(finalResult?.lottery)}>
                 View Details
-              </Button>
-              <Button type="button" className="ghost-filter-btn" onClick={restartDraw} disabled={isRunning || running}>
-                <RefreshCcw size={15} />
-                Draw Again
               </Button>
               <Button type="button" className="primary-action-btn" onClick={onDone}>
                 Done
@@ -1239,7 +1279,12 @@ function LotteryDrawModal({
               <Button type="button" className="ghost-filter-btn" onClick={onClose}>
                 Close
               </Button>
-              <Button type="button" className="primary-action-btn" onClick={restartDraw} disabled={isRunning || running}>
+              <Button
+                type="button"
+                className="primary-action-btn"
+                onClick={restartDraw}
+                disabled={isRunning || running || !canDrawLottery(lottery)}
+              >
                 Try Again
               </Button>
             </footer>
@@ -1439,6 +1484,7 @@ export default function CustomerServiceLotteryPage() {
 
   const openDetails = (lottery) => {
     const id = getLotteryId(lottery);
+    dispatch(clearCustomerServiceSelectedLottery());
     setSelectedItem(lottery);
     setDrawerOpen(true);
     dispatch(clearCustomerServiceLotteryActionState());
@@ -1457,6 +1503,8 @@ export default function CustomerServiceLotteryPage() {
   };
 
   const openEditForm = (lottery) => {
+    setDrawerOpen(false);
+    dispatch(clearCustomerServiceSelectedLottery());
     setFormMode("edit");
     setSelectedItem(lottery);
     setForm({
@@ -1483,9 +1531,20 @@ export default function CustomerServiceLotteryPage() {
   const updateRuleField = (index, field, value) => {
     setForm((current) => ({
       ...current,
-      rules: current.rules.map((rule, ruleIndex) =>
-        ruleIndex === index ? { ...rule, [field]: value } : rule
-      ),
+      rules: current.rules.map((rule, ruleIndex) => {
+        if (ruleIndex !== index) return rule;
+
+        if (field === "rule_key") {
+          return {
+            ...rule,
+            rule_key: value,
+            operator: ["social_status", "gender"].includes(value) ? "=" : rule.operator,
+            rule_value: "",
+          };
+        }
+
+        return { ...rule, [field]: value };
+      }),
     }));
   };
 
@@ -1754,6 +1813,16 @@ export default function CustomerServiceLotteryPage() {
                         </button>
                         <button
                           type="button"
+                          className="customer-service-action-btn lottery-edit-action"
+                          onClick={() => openEditForm(displayLottery)}
+                          disabled={!id || actionLoading || drawing}
+                          title="Edit lottery"
+                        >
+                          <PencilLine size={16} />
+                          <span>Edit</span>
+                        </button>
+                        <button
+                          type="button"
                           className={`customer-service-action-btn ${drawing ? "is-drawing" : ""}`}
                           onClick={() => openDrawModal(lottery)}
                           disabled={!id || !canDrawLottery(displayLottery) || actionLoading || drawing || drawModalOpen}
@@ -1786,13 +1855,8 @@ export default function CustomerServiceLotteryPage() {
         lottery={currentLottery}
         loading={selectedLottery?.loading}
         error={selectedLottery?.error}
-        actionLoading={actionLoading}
-        drawing={currentLottery ? String(getLotteryId(currentLottery)) === drawingLotteryId : false}
         drawWinnerName={drawWinnerName}
         onClose={closeDrawer}
-        onEdit={openEditForm}
-        onCancel={submitCancel}
-        onDrawWinner={openDrawModal}
       />
 
       <LotteryDrawModal
@@ -1813,7 +1877,7 @@ export default function CustomerServiceLotteryPage() {
         title={formMode === "edit" ? "Update lottery" : "Create lottery"}
         description={
           formMode === "edit" && selectedItem
-            ? `Lottery #${getLotteryId(selectedItem)}`
+            ? `Update Lottery #${getLotteryId(selectedItem)}`
             : "Create a lottery using the same API payload from the collection."
         }
         size="lg"
