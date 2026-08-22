@@ -32,7 +32,13 @@ export const fetchActiveAdvertisements = createAsyncThunk(
         headers: buildThunkHeaders(false),
       });
 
-      return response.data?.data || [];
+      // معالجة مرنة للبيانات القادمة من Postman
+      const responseData = response.data?.data ?? response.data;
+      
+      if (Array.isArray(responseData)) {
+        return responseData;
+      }
+      return responseData ? [responseData] : [];
     } catch (error) {
       const normalized = getThunkErrorMessage(
         error,

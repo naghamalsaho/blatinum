@@ -1,11 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Users2,
   Search,
   Plus,
   Trash2,
-  
   Shield,
   Award,
 } from "lucide-react";
@@ -172,24 +171,14 @@ export default function EngineeringEngineersPage() {
   };
 
   return (
-    <div className="engineering-page engineering-engineers-page">
+    <div className="engineering-page" dir="rtl">
       <PageHeader
         kicker="القسم الهندسي"
         title="المهندسون"
         subtitle="عرض جميع المهندسين مع إمكانية الإضافة والحذف."
-        action={
-          <button
-            type="button"
-            className="primary-action-btn"
-            onClick={() => setCreateOpen(true)}
-          >
-            <Plus size={18} />
-            <span>إضافة مهندس</span>
-          </button>
-        }
       />
 
-      <div className="engineering-stats-grid">
+      <section className="legal-stats-grid">
         <StatCard
           title="إجمالي المهندسين"
           value={totalEngineers}
@@ -208,18 +197,18 @@ export default function EngineeringEngineersPage() {
           note="سنوات خبرة"
           icon={Award}
         />
-      </div>
+      </section>
 
+      {/* شريط البحث مع زر الإضافة والقائمة المنسدلة */}
       <div className="engineering-toolbar">
-        <div className="toolbar-search">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="ابحث بالاسم أو البريد أو الهاتف..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
+        <button
+          type="button"
+          className="primary-action-btn"
+          onClick={() => setCreateOpen(true)}
+        >
+          <Plus size={18} />
+          <span>إضافة مهندس</span>
+        </button>
 
         <div className="toolbar-filters">
           <select
@@ -235,14 +224,22 @@ export default function EngineeringEngineersPage() {
             ))}
           </select>
         </div>
+
+        <div className="toolbar-search">
+          <input
+            type="text"
+            placeholder="ابحث بالاسم أو البريد أو الهاتف..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search size={18} />
+        </div>
       </div>
 
       {loading ? (
         <div className="project-empty-state">جاري تحميل المهندسين...</div>
       ) : error ? (
-        <div className="project-empty-state" style={{ color: "red" }}>
-          {error}
-        </div>
+        <div className="project-empty-state error-state">{error}</div>
       ) : filteredEngineers.length === 0 ? (
         <div className="project-empty-state">لا توجد نتائج مطابقة.</div>
       ) : (
@@ -252,7 +249,7 @@ export default function EngineeringEngineersPage() {
               <thead>
                 <tr>
                   <th>الاسم</th>
-                  <th>البريد</th>
+                  <th>البريد الإلكتروني</th>
                   <th>الهاتف</th>
                   <th>العنوان</th>
                   <th>التخصص</th>
@@ -275,12 +272,14 @@ export default function EngineeringEngineersPage() {
 
                   return (
                     <tr key={engineerId}>
-                      <td>{name}</td>
+                      <td className="fw-semibold">{name}</td>
                       <td>{email}</td>
                       <td>{phone}</td>
                       <td>{address}</td>
-                      <td>{specialization}</td>
-                      <td>{experience}</td>
+                      <td>
+                        <span className="badge-spec">{specialization}</span>
+                      </td>
+                      <td>{experience} سنوات</td>
                       <td>
                         <div className="row-actions">
                           <button
@@ -312,109 +311,92 @@ export default function EngineeringEngineersPage() {
         size="lg"
       >
         <form className="engineering-form" onSubmit={handleCreate}>
-         {/* التعديل الجديد: تنظيم الحقول على شكل صفوف ثنائية متناسقة لتوفير المساحة العمودية */}
-<div className="engineering-form-grid" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-  
-  {/* الصف الأول: الاسم الأول واسم العائلة */}
-  <Field
-    type="text"
-    name="first_name"
-    value={formData.first_name}
-    onChange={handleChange}
-    label="الاسم الأول"
-    iconClass="fa-solid fa-user"
-    error=""
-  />
-  <Field
-    type="text"
-    name="last_name"
-    value={formData.last_name}
-    onChange={handleChange}
-    label="اسم العائلة"
-    iconClass="fa-solid fa-user"
-    error=""
-  />
+          <div className="engineering-form-grid">
+            <Field
+              type="text"
+              name="first_name"
+              value={formData.first_name}
+              onChange={handleChange}
+              label="الاسم الأول"
+              iconClass="fa-solid fa-user"
+            />
+            <Field
+              type="text"
+              name="last_name"
+              value={formData.last_name}
+              onChange={handleChange}
+              label="اسم العائلة"
+              iconClass="fa-solid fa-user"
+            />
 
-  {/* الصف الثاني: البريد الإلكتروني والهاتف */}
-  <Field
-    type="email"
-    name="email"
-    value={formData.email}
-    onChange={handleChange}
-    label="البريد الإلكتروني"
-    iconClass="fa-solid fa-envelope"
-    error=""
-  />
-  <Field
-    type="text"
-    name="phone"
-    value={formData.phone}
-    onChange={handleChange}
-    label="رقم الهاتف"
-    iconClass="fa-solid fa-phone"
-    error=""
-  />
+            <Field
+              type="email"
+              name="email"
+              value={formData.email}
+              onChange={handleChange}
+              label="البريد الإلكتروني"
+              iconClass="fa-solid fa-envelope"
+            />
+            <Field
+              type="text"
+              name="phone"
+              value={formData.phone}
+              onChange={handleChange}
+              label="رقم الهاتف"
+              iconClass="fa-solid fa-phone"
+            />
 
-  {/* الصف الثالث: التخصص وسنوات الخبرة */}
-  <Field
-    type="text"
-    name="specialization"
-    value={formData.specialization}
-    onChange={handleChange}
-    label="التخصص"
-    iconClass="fa-solid fa-briefcase"
-    error=""
-  />
-  <Field
-    type="number"
-    name="experience_years"
-    value={formData.experience_years}
-    onChange={handleChange}
-    label="سنوات الخبرة"
-    iconClass="fa-solid fa-award"
-    error=""
-  />
+            <Field
+              type="text"
+              name="specialization"
+              value={formData.specialization}
+              onChange={handleChange}
+              label="التخصص"
+              iconClass="fa-solid fa-briefcase"
+            />
+            <Field
+              type="number"
+              name="experience_years"
+              value={formData.experience_years}
+              onChange={handleChange}
+              label="سنوات الخبرة"
+              iconClass="fa-solid fa-award"
+            />
 
-  {/* الصف الرابع: العنوان والجنس */}
-  <Field
-    type="text"
-    name="address"
-    value={formData.address}
-    onChange={handleChange}
-    label="العنوان"
-    iconClass="fa-solid fa-location-dot"
-    error=""
-  />
-  <Field
-    type="text"
-    name="gender"
-    value={formData.gender}
-    onChange={handleChange}
-    label="الجنس"
-    iconClass="fa-solid fa-venus-mars"
-    error=""
-  />
+            <Field
+              type="text"
+              name="address"
+              value={formData.address}
+              onChange={handleChange}
+              label="العنوان"
+              iconClass="fa-solid fa-location-dot"
+            />
+            <Field
+              type="text"
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              label="الجنس"
+              iconClass="fa-solid fa-venus-mars"
+            />
 
-  {/* الصف الخامس: كلمة المرور وتأكيدها */}
-  <Field
-    type="password"
-    name="password"
-    value={formData.password}
-    onChange={handleChange}
-    label="كلمة المرور"
-    iconClass="fa-solid fa-lock"
-    error=""
-  />
-  <Field
-    type="password"
-    name="password_confirmation"
-    value={formData.password_confirmation}
-    onChange={handleChange}
-    label="تأكيد كلمة المرور"
-    iconClass="fa-solid fa-lock"
-    error=""
-  />
-</div>
+            <Field
+              type="password"
+              name="password"
+              value={formData.password}
+              onChange={handleChange}
+              label="كلمة المرور"
+              iconClass="fa-solid fa-lock"
+            />
+            <Field
+              type="password"
+              name="password_confirmation"
+              value={formData.password_confirmation}
+              onChange={handleChange}
+              label="تأكيد كلمة المرور"
+              iconClass="fa-solid fa-lock"
+            />
+          </div>
 
           <div className="modal-actions">
             <Button

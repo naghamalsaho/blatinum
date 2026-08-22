@@ -7,13 +7,16 @@ import {
   HeartHandshake,
   ContactRound,
   FileText,
-  PencilLine,
+  Pencil,
   Plus,
   Search,
   Trash2,
   Upload,
   Users2,
   X,
+  ChevronDown,
+  SlidersHorizontal,
+  Eye,
 } from "lucide-react";
 
 import { t } from "../../../shared/i18n";
@@ -21,6 +24,7 @@ import { t } from "../../../shared/i18n";
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
 import StatusBadge from "@/shared/components/StatusBadge";
 
 // Thunks المبيعات والملكيات
@@ -64,12 +68,13 @@ function getClientId(item) {
   return firstValue(
     item?.client?.additional_info?.client_id,
     item?.client_id,
-    item?.client?.id
+    item?.client?.id,
+    item?.client?.account?.id
   );
 }
 
 function getClientName(item) {
-  return firstValue(getClient(item)?.full_name, item?.client?.full_name);
+  return firstValue(getClient(item)?.full_name, item?.client?.full_name, item?.client?.name);
 }
 
 function getClientEmail(item) {
@@ -212,6 +217,7 @@ function buildEditForm(item) {
       Number(String(getPurchasePrice(item) || "").replace(/[^\d.]/g, "")) || ""
     ),
     owned_at: String(getOwnedAt(item) || ""),
+    status: item?.status || "active",
     attachments: [],
   };
 }
@@ -253,6 +259,7 @@ export default function LegalSalesPage() {
   const clientsList = clientsState.items || [];
 
   const [search, setSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedItem, setSelectedItem] = useState(null);
   const [clientUnitsOpen, setClientUnitsOpen] = useState(false);
   const [clientUnitsOwner, setClientUnitsOwner] = useState("");
@@ -266,6 +273,7 @@ export default function LegalSalesPage() {
     client_id: "",
     purchase_price: "",
     owned_at: "",
+    status: "active",
     attachments: [],
   });
 
@@ -311,9 +319,15 @@ export default function LegalSalesPage() {
 
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return items;
 
     return items.filter((item) => {
+      const statusMeta = getOwnershipStatusMeta(item);
+      const matchesStatus =
+        statusFilter === "all" ||
+        item.status === statusFilter ||
+        (statusFilter === "active" && statusMeta.type === "ok") ||
+        (statusFilter === "inactive" && statusMeta.type === "off");
+
       const searchable = [
         getClientName(item),
         getClientEmail(item),
@@ -334,9 +348,11 @@ export default function LegalSalesPage() {
         .join(" ")
         .toLowerCase();
 
-      return searchable.includes(q);
+      const matchesSearch = !q || searchable.includes(q);
+
+      return matchesSearch && matchesStatus;
     });
-  }, [items, search]);
+  }, [items, search, statusFilter]);
 
   const selectedFirstImage = getFirstImage(selectedItem);
 
@@ -352,6 +368,7 @@ export default function LegalSalesPage() {
       client_id: "",
       purchase_price: "",
       owned_at: "",
+      status: "active",
       attachments: [],
     });
     if (editFileRef.current) editFileRef.current.value = "";
@@ -449,13 +466,9 @@ export default function LegalSalesPage() {
     formData.append("status", createForm.status || "active");
     formData.append("owned_at", String(createForm.owned_at || ""));
 
-    if (createForm.attachments[0]) {
-      formData.append(
-        "attachments[0]",
-        createForm.attachments[0],
-        createForm.attachments[0].name
-      );
-    }
+    createForm.attachments.forEach((file, index) => {
+      formData.append(`attachments[${index}]`, file, file.name);
+    });
 
     const resultAction = await dispatch(
       createSoldUnitOwnership({
@@ -491,6 +504,9 @@ export default function LegalSalesPage() {
     formData.append("client_id", String(editForm.client_id));
     formData.append("purchase_price", String(cleanPrice));
     formData.append("owned_at", String(editForm.owned_at || ""));
+    if (editForm.status) {
+      formData.append("status", String(editForm.status));
+    }
 
     editForm.attachments.forEach((file, index) => {
       formData.append(`attachments[${index}]`, file, file.name);
@@ -536,54 +552,66 @@ export default function LegalSalesPage() {
   };
 
   return (
-    <div className="legal-sales-page">
-      {/* Stat Cards Grid */}
-      <section className="legal-sales-stats-grid">
+    <div className="legal-sales-page" dir="rtl">
+      {/* شبكة الإحصائيات الموحدة */}
+      <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard
             key={item.title}
             title={item.title}
             value={item.value}
-            note={item.note}
             icon={item.icon}
           />
         ))}
       </section>
 
-      <section className="legal-sales-panel">
-        <div className="legal-sales-panel-head">
-          <div>
-            <h2>{t("legal_sales.title")}</h2>
-            <Button className="legal-sales-primary-btn" onClick={openCreate}>
-              <Plus size={18} />
-              <span>{t("legal_sales.add_sale")}</span>
-            </Button>
-          </div>
+      {/* شريط الأدوات الموحد مع واجهة المواعيد والخدمات */}
+      <div className="exact-toolbar-card" dir="rtl">
+        
+        <div className="exact-select-wrapper">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">{t("legal_slots.status_all")}</option>
+            <option value="active">{t("legal_sales.status_active")}</option>
+            <option value="inactive">{t("legal_sales.status_inactive")}</option>
+          </select>
+          <ChevronDown size={16} className="exact-select-chevron" />
         </div>
 
-        <div className="legal-sales-toolbar">
-          <div className="legal-sales-search">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder={t("legal_sales.search_placeholder")}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+        <div className="exact-filter-label">
+          <SlidersHorizontal size={16} />
+          <span>تصفية</span>
         </div>
 
+        <div className="exact-search-field">
+          <input
+            type="text"
+            placeholder={t("legal_sales.search_placeholder")}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Search size={18} className="exact-search-icon" />
+        </div>
+      </div>
+
+      {/* بطاقة جدول المبيعات بنفس تصميم TableCard */}
+      <TableCard
+        title={t("legal_sales.title")}
+        count={filteredItems.length}
+      >
         {loading ? (
-          <div className="legal-sales-empty">{t("legal_sales.loading_sales")}</div>
+          <div className="table-state">{t("legal_sales.loading_sales")}</div>
         ) : error ? (
-          <div className="legal-sales-error">
+          <div className="table-state is-error">
             {typeof error === "string" ? error : JSON.stringify(error)}
           </div>
         ) : filteredItems.length === 0 ? (
-          <div className="legal-sales-empty">{t("legal_sales.no_results_found")}</div>
+          <div className="table-state">{t("legal_sales.no_results_found")}</div>
         ) : (
-          <div className="legal-sales-table-wrap">
-            <table className="legal-sales-table">
+          <div className="table-scroll">
+            <table className="legal-table">
               <thead>
                 <tr>
                   <th>{t("legal_sales.client")}</th>
@@ -612,23 +640,24 @@ export default function LegalSalesPage() {
                       }
                     >
                       <td>
-                        <div className="legal-sales-client-cell">
-                          <div className="legal-sales-row-avatar">
-                            <Users2 size={14} />
+                        <div className="services-item-cell">
+                          <div className="services-thumb-placeholder">
+                            <Users2 size={16} />
                           </div>
-
-                          <button
-                            type="button"
-                            className="legal-sales-client-main"
-                            onClick={() => openClientUnits(item)}
-                            title={t("legal_sales.view_client_units")}
-                          >
-                            <strong>{getClientName(item)}</strong>
-                            <span>
+                          <div className="services-item-info">
+                            <button
+                              type="button"
+                              className="legal-sales-client-link"
+                              onClick={() => openClientUnits(item)}
+                              title={t("legal_sales.view_client_units")}
+                            >
+                              <strong>{getClientName(item)}</strong>
+                            </button>
+                            <span className="services-date">
                               {getClientEmail(item)} ·{" "}
                               {clientId ? `ID ${clientId}` : "—"}
                             </span>
-                          </button>
+                          </div>
                         </div>
                       </td>
 
@@ -673,7 +702,7 @@ export default function LegalSalesPage() {
                       </td>
 
                       <td>
-                        <span className="legal-sales-price">
+                        <span className="services-price">
                           {getPurchasePrice(item)}
                         </span>
                       </td>
@@ -685,29 +714,38 @@ export default function LegalSalesPage() {
                         />
                       </td>
 
-                      <td className="legal-sales-date">{getOwnedAt(item)}</td>
+                      <td className="services-date">{getOwnedAt(item)}</td>
 
-                      <td className="legal-sales-date">{getCreatedAt(item)}</td>
+                      <td className="services-date">{getCreatedAt(item)}</td>
 
                       <td>
-                        <div className="legal-sales-row-actions">
+                        <div className="row-actions">
                           <button
                             type="button"
-                            className="legal-sales-icon-btn"
-                            onClick={() => openEdit(item)}
-                            title={t("legal_sales.edit")}
+                            className="icon-action-btn"
+                            onClick={() => openDetails(item)}
+                            title={t("legal_sales.view_details")}
                           >
-                            <PencilLine size={14} />
+                            <Eye size={16} />
                           </button>
 
                           <button
                             type="button"
-                            className="legal-sales-icon-btn danger"
+                            className="icon-action-btn"
+                            onClick={() => openEdit(item)}
+                            title={t("legal_sales.edit")}
+                          >
+                            <Pencil size={16} />
+                          </button>
+
+                          <button
+                            type="button"
+                            className="icon-action-btn danger"
                             onClick={() => handleDelete(item)}
                             title={t("legal_sales.delete")}
                             disabled={deleting}
                           >
-                            <Trash2 size={14} />
+                            <Trash2 size={16} />
                           </button>
                         </div>
                       </td>
@@ -718,322 +756,327 @@ export default function LegalSalesPage() {
             </table>
           </div>
         )}
-      </section>
+      </TableCard>
 
-      {/* ================= MODAL: Add New Sale ================= */}
-      {createOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setCreateOpen(false);
-            resetCreateForm();
-          }}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{t("legal_sales.add_new_sale")}</h3>
-              <button
-                type="button"
-                className="close-btn"
-                onClick={() => {
-                  setCreateOpen(false);
-                  resetCreateForm();
-                }}
-              >
-                <X size={20} />
-              </button>
+      {/* ================= MODAL: إضافة بيع جديد (مكون Modal الموحد) ================= */}
+      <Modal
+        open={createOpen}
+        onClose={() => {
+          setCreateOpen(false);
+          resetCreateForm();
+        }}
+        title={t("legal_sales.add_new_sale")}
+        size="md"
+      >
+        <form onSubmit={submitCreate} className="modal-form" noValidate>
+          <div className="modal-grid">
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.unit_id")}</label>
+              <div className="exact-select-wrapper">
+                <select
+                  name="unit_id"
+                  value={createForm.unit_id}
+                  onChange={handleCreateChange}
+                  required
+                >
+                  <option value="">{t("legal_sales.select_unit")}</option>
+                  {unitsList.map((unit, index) => {
+                    const unitId = unit?.id ?? unit?.unit_id;
+                    const unitNum = unit?.unit_number || unitId;
+
+                    return (
+                      <option key={unitId || index} value={unitId || ""}>
+                        {unitNum ? `${t("legal_sales.unit_number_prefix")} ${unitNum}` : `${t("legal_sales.unit_prefix")} ${unitId}`}
+                        {unit?.type ? ` (${unit.type})` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <ChevronDown size={16} className="exact-select-chevron" />
+              </div>
             </div>
 
-            <form onSubmit={submitCreate} className="modal-form" noValidate>
-              <div className="form-row">
-                <div className="form-group">
-  <label>{t("legal_sales.unit_id")}</label>
-  <select
-    name="unit_id"
-    className="input-field"
-    value={createForm.unit_id}
-    onChange={handleCreateChange}
-    required
-  >
-    <option value="">اختر الوحدة...</option>
-    {unitsList.map((unit, index) => {
-      const unitId = unit?.id ?? unit?.unit_id;
-      const unitNum = unit?.unit_number || unitId;
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.client_id")}</label>
+              <div className="exact-select-wrapper">
+                <select
+                  name="client_id"
+                  value={createForm.client_id}
+                  onChange={handleCreateChange}
+                  required
+                >
+                  <option value="">{t("legal_sales.select_client")}</option>
+                  {clientsList.map((client, index) => {
+                    const clientId =
+                      client?.id ??
+                      client?.client_id ??
+                      client?.additional_info?.client_id ??
+                      client?.account?.id;
 
-      return (
-        <option key={unitId || index} value={unitId || ""}>
-          {unitNum ? `وحدة رقم ${unitNum}` : `وحدة ${unitId}`}
-          {unit?.type ? ` (${unit.type})` : ""}
-        </option>
-      );
-    })}
-  </select>
-</div>
+                    const clientName =
+                      client?.account?.full_name ||
+                      client?.full_name ||
+                      client?.name ||
+                      `${t("legal_sales.client_prefix")} ${clientId}`;
 
-                <div className="form-group">
-  <label>{t("legal_sales.client_id")}</label>
-  <select
-    name="client_id"
-    className="input-field"
-    value={createForm.client_id}
-    onChange={handleCreateChange}
-    required
-  >
-    <option value="">اختر العميل...</option>
-    {clientsList.map((client, index) => {
-      // استخراج المعرف الآمن من أكثر من مسار متوقع للبيانات
-      const clientId =
-        client?.id ??
-        client?.client_id ??
-        client?.additional_info?.client_id ??
-        client?.account?.id;
+                    const clientPhone = client?.account?.phone || client?.phone || "";
 
-      const clientName =
-        client?.account?.full_name ||
-        client?.full_name ||
-        client?.name ||
-        `عميل ${clientId}`;
-
-      const clientPhone = client?.account?.phone || client?.phone || "";
-
-      return (
-        <option key={clientId || index} value={clientId || ""}>
-          {clientName} {clientPhone ? `(${clientPhone})` : ""} {clientId ? `[ID: ${clientId}]` : ""}
-        </option>
-      );
-    })}
-  </select>
-</div>
+                    return (
+                      <option key={clientId || index} value={clientId || ""}>
+                        {clientName} {clientPhone ? `(${clientPhone})` : ""} {clientId ? `[ID: ${clientId}]` : ""}
+                      </option>
+                    );
+                  })}
+                </select>
+                <ChevronDown size={16} className="exact-select-chevron" />
               </div>
+            </div>
+          </div>
 
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("legal_sales.purchase_price")}</label>
-                  <input
-                    type="text"
-                    name="purchase_price"
-                    className="input-field"
-                    placeholder={t("legal_sales.enter_purchase_price")}
-                    value={createForm.purchase_price}
-                    onChange={handleCreateChange}
-                    required
-                  />
-                </div>
+          <div className="modal-grid">
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.purchase_price")}</label>
+              <input
+                type="text"
+                name="purchase_price"
+                className="input-field"
+                placeholder={t("legal_sales.enter_purchase_price")}
+                value={createForm.purchase_price}
+                onChange={handleCreateChange}
+                required
+              />
+            </div>
 
-                <div className="form-group">
-                  <label>{t("legal_sales.ownership_date")}</label>
-                  <input
-                    type="date"
-                    name="owned_at"
-                    className="input-field"
-                    value={createForm.owned_at}
-                    onChange={handleCreateChange}
-                    required
-                  />
-                </div>
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.ownership_date")}</label>
+              <input
+                type="date"
+                name="owned_at"
+                className="input-field"
+                value={createForm.owned_at}
+                onChange={handleCreateChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="field-group">
+            <label className="field-label">{t("legal_sales.status")}</label>
+            <div className="exact-select-wrapper">
+              <select
+                name="status"
+                value={createForm.status}
+                onChange={handleCreateChange}
+              >
+                <option value="active">{t("legal_sales.status_active")}</option>
+                <option value="inactive">{t("legal_sales.status_inactive")}</option>
+              </select>
+              <ChevronDown size={16} className="exact-select-chevron" />
+            </div>
+          </div>
+
+          <div className="field-group">
+            <label className="field-label">{t("legal_sales.attachments_label")}</label>
+            <label className="file-upload-box">
+              <Upload size={18} />
+              <span>{t("legal_sales.choose_files")}</span>
+              <input
+                type="file"
+                name="attachments"
+                ref={createFileRef}
+                onChange={handleCreateChange}
+                accept="image/*,application/pdf"
+                multiple
+                style={{ display: "none" }}
+              />
+            </label>
+
+            {createForm.attachments.length > 0 && (
+              <div className="attachments-list">
+                {createForm.attachments.map((file, idx) => (
+                  <div key={idx} className="attachment-chip">
+                    <span>{file.name}</span>
+                    <X
+                      size={14}
+                      onClick={() => removeCreateAttachment(idx)}
+                    />
+                  </div>
+                ))}
               </div>
+            )}
+          </div>
 
-              <div className="form-group">
-                <label>{t("legal_sales.status")}</label>
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={() => {
+                setCreateOpen(false);
+                resetCreateForm();
+              }}
+              disabled={creating}
+            >
+              {t("legal_sales.cancel")}
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={creating}
+            >
+              <Plus size={16} />
+              <span>{creating ? t("legal_sales.saving") : t("legal_sales.save_sale")}</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ================= MODAL: تعديل بيع (مكون Modal الموحد) ================= */}
+      <Modal
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          resetEditForm();
+        }}
+        title={t("legal_sales.edit_sale")}
+        size="md"
+      >
+        <form onSubmit={submitEdit} className="modal-form" noValidate>
+          <div className="modal-grid">
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.client_id")}</label>
+              <div className="exact-select-wrapper">
+                <select
+                  name="client_id"
+                  value={editForm.client_id}
+                  onChange={handleEditChange}
+                  required
+                >
+                  <option value="">{t("legal_sales.select_client")}</option>
+                  {clientsList.map((client, index) => {
+                    const clientId =
+                      client?.id ??
+                      client?.client_id ??
+                      client?.additional_info?.client_id ??
+                      client?.account?.id;
+
+                    const clientName =
+                      client?.account?.full_name ||
+                      client?.full_name ||
+                      client?.name ||
+                      `${t("legal_sales.client_prefix")} ${clientId}`;
+
+                    return (
+                      <option key={clientId || index} value={clientId || ""}>
+                        {clientName}
+                      </option>
+                    );
+                  })}
+                </select>
+                <ChevronDown size={16} className="exact-select-chevron" />
+              </div>
+            </div>
+
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.purchase_price")}</label>
+              <input
+                type="text"
+                name="purchase_price"
+                className="input-field"
+                placeholder={t("legal_sales.enter_purchase_price")}
+                value={editForm.purchase_price}
+                onChange={handleEditChange}
+                required
+              />
+            </div>
+          </div>
+
+          <div className="modal-grid">
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.ownership_date")}</label>
+              <input
+                type="date"
+                name="owned_at"
+                className="input-field"
+                value={editForm.owned_at}
+                onChange={handleEditChange}
+                required
+              />
+            </div>
+
+            <div className="field-group">
+              <label className="field-label">{t("legal_sales.status")}</label>
+              <div className="exact-select-wrapper">
                 <select
                   name="status"
-                  className="input-field"
-                  value={createForm.status}
-                  onChange={handleCreateChange}
+                  value={editForm.status}
+                  onChange={handleEditChange}
                 >
                   <option value="active">{t("legal_sales.status_active")}</option>
                   <option value="inactive">{t("legal_sales.status_inactive")}</option>
                 </select>
+                <ChevronDown size={16} className="exact-select-chevron" />
               </div>
-
-              <div className="form-group">
-                <label>{t("legal_sales.attachments_label")}</label>
-                <label className="file-upload-box">
-                  <Upload size={18} />
-                  <span>{t("legal_sales.choose_files")}</span>
-                  <input
-                    type="file"
-                    name="attachments"
-                    ref={createFileRef}
-                    onChange={handleCreateChange}
-                    accept="image/*,application/pdf"
-                    multiple
-                    style={{ display: "none" }}
-                  />
-                </label>
-
-                {createForm.attachments.length > 0 && (
-                  <div className="attachments-list">
-                    {createForm.attachments.map((file, idx) => (
-                      <div key={idx} className="attachment-chip">
-                        <span>{file.name}</span>
-                        <X
-                          size={14}
-                          onClick={() => removeCreateAttachment(idx)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setCreateOpen(false);
-                    resetCreateForm();
-                  }}
-                >
-                  {t("legal_sales.cancel")}
-                </button>
-
-                <button
-                  type="submit"
-                  className="legal-sales-primary-btn"
-                  disabled={creating}
-                >
-                  <Plus size={16} />
-                  <span>{creating ? t("legal_sales.saving") : t("legal_sales.save_sale")}</span>
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ================= MODAL: Edit Sale ================= */}
-      {editOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setEditOpen(false);
-            resetEditForm();
-          }}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>{t("legal_sales.edit_sale")}</h3>
-              <button
-                type="button"
-                className="close-btn"
-                onClick={() => {
-                  setEditOpen(false);
-                  resetEditForm();
-                }}
-              >
-                <X size={20} />
-              </button>
             </div>
-
-            <form onSubmit={submitEdit} className="modal-form" noValidate>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>{t("legal_sales.client_id")}</label>
-                  <select
-                    name="client_id"
-                    className="input-field"
-                    value={editForm.client_id}
-                    onChange={handleEditChange}
-                    required
-                  >
-                    <option value="">اختر العميل...</option>
-                    {clientsList.map((client) => {
-                      const clientName = client?.account?.full_name || client?.full_name || `عميل ${client.id}`;
-                      return (
-                        <option key={client.id} value={client.id}>
-                          {clientName}
-                        </option>
-                      );
-                    })}
-                  </select>
-                </div>
-
-                <div className="form-group">
-                  <label>{t("legal_sales.purchase_price")}</label>
-                  <input
-                    type="text"
-                    name="purchase_price"
-                    className="input-field"
-                    placeholder={t("legal_sales.enter_purchase_price")}
-                    value={editForm.purchase_price}
-                    onChange={handleEditChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>{t("legal_sales.ownership_date")}</label>
-                <input
-                  type="date"
-                  name="owned_at"
-                  className="input-field"
-                  value={editForm.owned_at}
-                  onChange={handleEditChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t("legal_sales.add_new_attachments")}</label>
-                <label className="file-upload-box">
-                  <Upload size={18} />
-                  <span>{t("legal_sales.choose_files")}</span>
-                  <input
-                    type="file"
-                    name="attachments"
-                    ref={editFileRef}
-                    onChange={handleEditChange}
-                    accept="image/*,application/pdf"
-                    multiple
-                    style={{ display: "none" }}
-                  />
-                </label>
-
-                {editForm.attachments.length > 0 && (
-                  <div className="attachments-list">
-                    {editForm.attachments.map((file, idx) => (
-                      <div key={idx} className="attachment-chip">
-                        <span>{file.name}</span>
-                        <X
-                          size={14}
-                          onClick={() => removeEditAttachment(idx)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setEditOpen(false);
-                    resetEditForm();
-                  }}
-                >
-                  {t("legal_sales.cancel")}
-                </button>
-
-                <button
-                  type="submit"
-                  className="legal-sales-primary-btn"
-                  disabled={updating}
-                >
-                  <PencilLine size={16} />
-                  <span>{updating ? t("legal_sales.updating") : t("legal_sales.save_changes")}</span>
-                </button>
-              </div>
-            </form>
           </div>
-        </div>
-      )}
 
-      {/* ================= MODAL: Sale Details ================= */}
+          <div className="field-group">
+            <label className="field-label">{t("legal_sales.add_new_attachments")}</label>
+            <label className="file-upload-box">
+              <Upload size={18} />
+              <span>{t("legal_sales.choose_files")}</span>
+              <input
+                type="file"
+                name="attachments"
+                ref={editFileRef}
+                onChange={handleEditChange}
+                accept="image/*,application/pdf"
+                multiple
+                style={{ display: "none" }}
+              />
+            </label>
+
+            {editForm.attachments.length > 0 && (
+              <div className="attachments-list">
+                {editForm.attachments.map((file, idx) => (
+                  <div key={idx} className="attachment-chip">
+                    <span>{file.name}</span>
+                    <X
+                      size={14}
+                      onClick={() => removeEditAttachment(idx)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={() => {
+                setEditOpen(false);
+                resetEditForm();
+              }}
+              disabled={updating}
+            >
+              {t("legal_sales.cancel")}
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={updating}
+            >
+              <Pencil size={16} />
+              <span>{updating ? t("legal_sales.updating") : t("legal_sales.save_changes")}</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
+
+      {/* ================= MODAL: تفاصيل البيع ================= */}
       <Modal
         open={Boolean(selectedItem)}
         onClose={() => setSelectedItem(null)}
@@ -1096,7 +1139,7 @@ export default function LegalSalesPage() {
         ) : null}
       </Modal>
 
-      {/* ================= MODAL: Client Units ================= */}
+      {/* ================= MODAL: وحدات العميل ================= */}
       <Modal
         open={clientUnitsOpen}
         onClose={() => {
@@ -1113,14 +1156,14 @@ export default function LegalSalesPage() {
       >
         <div className="legal-sales-client-units">
           {clientUnitsLoading ? (
-            <div className="legal-sales-empty">{t("legal_sales.loading_units")}</div>
+            <div className="table-state">{t("legal_sales.loading_units")}</div>
           ) : clientUnitsError ? (
-            <div className="legal-sales-error">{clientUnitsError}</div>
+            <div className="table-state is-error">{clientUnitsError}</div>
           ) : clientUnits.length === 0 ? (
-            <div className="legal-sales-empty">{t("legal_sales.no_units_found")}</div>
+            <div className="table-state">{t("legal_sales.no_units_found")}</div>
           ) : (
-            <div className="legal-sales-client-units-table-wrap">
-              <table className="legal-sales-client-units-table">
+            <div className="table-scroll">
+              <table className="legal-table">
                 <thead>
                   <tr>
                     <th>{t("legal_sales.unit")}</th>

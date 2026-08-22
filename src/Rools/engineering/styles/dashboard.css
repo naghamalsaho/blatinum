@@ -1,49 +1,156 @@
 @import "@/shared/constants/colors.css";
 
-.engineering-page {
-  display: grid;
+/* 📐 Layout & Base */
+.engineering-page,
+.engineering-map-page {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
   padding: 8px 0 20px;
+  direction: rtl;
 }
 
-.engineering-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
+.engineering-page > *,
+.engineering-map-page > * {
+  animation: fade-up 0.34s ease both;
 }
 
-.engineering-stats-grid {
+.engineering-page > *:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.engineering-page > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+/* 📊 كاردات الإحصائيات والحالات (مطابقة لتصميم المهندسين) */
+.engineering-stats-grid,
+.stats-grid-container,
+.legal-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 16px;
+  direction: rtl;
 }
 
-.engineering-toolbar {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: center;
-  padding: 14px 16px;
+.stat-card {
+  padding: 18px 20px;
   border: 1px solid var(--dash-line);
-  border-radius: 20px;
-  background: var(--dash-topbar-bg);
-  backdrop-filter: blur(14px);
-  box-shadow: var(--dash-shadow);
+  border-radius: 16px;
+  background: var(--dash-surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-line-2, var(--dash-accent));
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06);
+}
+
+.stat-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+}
+
+.stat-icon-sky {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+}
+
+.stat-icon-amber {
+  background: rgba(217, 119, 6, 0.1);
+  color: var(--warning, #d97706);
+}
+
+.stat-icon-emerald {
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success, #10b981);
+}
+
+.stat-icon-indigo {
+  background: rgba(79, 70, 229, 0.1);
+  color: #4f46e5;
+}
+
+.stat-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.stat-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dash-muted);
+}
+
+.stat-card-value {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--dash-text);
+  line-height: 1.2;
+}
+
+.stat-card-note {
+  font-size: 11px;
+  color: var(--dash-muted);
+  font-weight: 600;
+}
+
+/* 🛠️ شريط البحث والفلترة وزر الإسناد */
+.engineering-toolbar,
+.engineering-toolbar--map {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  flex-wrap: wrap;
+  direction: rtl;
+}
+
+.toolbar-right-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+  max-width: 720px;
 }
 
 .engineering-toolbar .toolbar-search {
   flex: 1;
-  min-width: 0;
-  height: 44px;
+  height: 42px;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 0 14px;
   border: 1px solid var(--dash-line);
-  border-radius: 14px;
-  background: var(--dash-input-bg);
-  color: var(--dash-accent);
+  border-radius: 12px;
+  background: var(--dash-surface);
+  color: var(--dash-muted);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.engineering-toolbar .toolbar-search:focus-within {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
 }
 
 .engineering-toolbar .toolbar-search input {
@@ -52,11 +159,18 @@
   outline: 0;
   background: transparent;
   color: var(--dash-text);
-  font-size: 14px;
+  font-size: 13.5px;
+  text-align: right;
 }
 
 .engineering-toolbar .toolbar-search input::placeholder {
   color: var(--dash-muted);
+}
+
+.engineering-toolbar .toolbar-search .search-icon,
+.engineering-toolbar .toolbar-search svg {
+  color: var(--dash-accent);
+  flex-shrink: 0;
 }
 
 .engineering-toolbar .toolbar-filters {
@@ -66,86 +180,109 @@
 }
 
 .engineering-toolbar .toolbar-select {
-  height: 44px;
-  min-width: 170px;
+  height: 42px;
+  min-width: 140px;
   padding: 0 14px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
+  background: var(--dash-surface);
   color: var(--dash-text);
-  font-size: 14px;
-  font-weight: 600;
-  outline: none;
-}
-
-.engineering-page .primary-action-btn {
-  height: 46px;
-  padding: 0 16px;
-  border: 1px solid var(--dash-line);
-  border-radius: 16px;
-  background: linear-gradient(180deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-text);
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
+  font-size: 13.5px;
   font-weight: 700;
+  outline: none;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: border-color 0.2s ease;
 }
 
-.engineering-page .row-actions {
+.engineering-toolbar .toolbar-select:hover,
+.engineering-toolbar .toolbar-select:focus {
+  border-color: var(--dash-accent);
+}
+
+.toolbar-assign-btn,
+.primary-action-btn {
+  height: 42px;
+  padding: 0 20px;
+  border: 1px solid var(--dash-accent-strong, var(--dash-accent));
+  border-radius: 12px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong, var(--dash-accent));
   display: inline-flex;
   align-items: center;
   gap: 8px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13.5px;
+  white-space: nowrap;
+  transition: background 0.2s ease, transform 0.1s ease;
 }
 
-.engineering-page .icon-action-btn {
-  width: 36px;
-  height: 36px;
+.toolbar-assign-btn:hover,
+.primary-action-btn:hover {
+  background: var(--dash-accent-soft);
+  transform: translateY(-1px);
+}
+
+.ghost-filter-btn {
+  height: 40px;
+  padding: 0 14px;
   border-radius: 12px;
   border: 1px solid var(--dash-line);
-  background: var(--dash-icon-bg);
-  color: var(--dash-accent);
-  display: grid;
-  place-items: center;
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
-.engineering-page .icon-action-btn:hover {
-  background: var(--dash-icon-hover-bg);
-}
-
-.engineering-page .icon-action-btn.danger {
-  color: var(--dash-accent-strong);
-}
-
+/* ⚠️ Empty State */
 .project-empty-state {
-  padding: 18px;
+  padding: 32px 24px;
   border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: var(--dash-blank-bg);
+  border-radius: 16px;
+  background: var(--dash-surface);
   color: var(--dash-muted);
   text-align: center;
+  font-size: 14px;
+  font-weight: 600;
 }
 
+.project-empty-state.error-state,
+.project-empty-state--error {
+  color: var(--danger, #ef4444);
+  background: rgba(239, 68, 68, 0.05);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+/* 🗺️ Leaflet Map Board */
 .engineering-map-shell {
   display: grid;
-  gap: 16px;
+  gap: 20px;
 }
 
 .engineering-map-board {
   padding: 16px;
   border: 1px solid var(--dash-line);
-  border-radius: 22px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
+  border-radius: 20px;
+  background: var(--dash-surface);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .engineering-map-board-header,
 .engineering-section-head {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-bottom: 12px;
+}
+
+.engineering-section-head--compact {
+  margin-bottom: 16px;
 }
 
 .engineering-map-board-header h2,
@@ -156,190 +293,280 @@
   color: var(--dash-text);
 }
 
-.engineering-map-board-header p,
-.engineering-section-head p {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
 .engineering-map-board-header span,
 .engineering-section-head span {
   color: var(--dash-muted);
   font-size: 13px;
+  font-weight: 600;
 }
 
 .engineering-map-board--compact .engineering-map-real {
-  height: 360px;
+  height: 440px;
 }
 
-.engineering-map-real {
-  height: 360px;
+.engineering-map-real,
+.engineering-map-real--overlay {
   border: 1px solid var(--dash-line);
-  border-radius: 18px;
+  border-radius: 16px;
   overflow: hidden;
-  background: var(--dash-blank-bg);
+  background: var(--dash-surface);
   position: relative;
 }
 
-.leaflet-container {
+.leaflet-container,
+.engineering-map-container {
   width: 100%;
   height: 100%;
   z-index: 1;
 }
 
-.map-popup {
-  min-width: 220px;
-  display: grid;
-  gap: 10px;
+/* 📍 Map Markers */
+.project-pin-marker, 
+.building-pin-marker {
+  background: transparent !important;
+  border: none !important;
 }
 
-.map-popup h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 800;
-  color: var(--dash-text);
-}
-
-.map-popup p {
-  margin: 0;
-  color: var(--dash-muted);
-  font-size: 13px;
+.map-pin-inner {
+  width: 30px;
+  height: 30px;
+  border-radius: 50% 50% 50% 0;
+  transform: rotate(-45deg);
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
+  color: #ffffff;
+  font-weight: 800;
+  font-size: 13px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  border: 2px solid #ffffff;
 }
 
-.popup-details-btn {
-  border: 0;
-  border-radius: 12px;
-  padding: 10px 12px;
+.map-pin-inner > * {
+  transform: rotate(45deg);
+}
+
+.project-pin-marker .map-pin-inner {
   background: var(--dash-accent);
-  color: var(--dash-surface);
-  font-weight: 700;
-  cursor: pointer;
 }
 
-.popup-details-btn:hover {
-  background: var(--dash-accent-strong);
+.building-pin-marker .map-pin-inner {
+  background: var(--warning, #d97706);
 }
 
-.engineering-engineers-section {
-  display: grid;
-  gap: 12px;
+.map-project-circle {
+  stroke: var(--dash-accent);
+  stroke-width: 2;
+  fill: var(--dash-accent);
+  fill-opacity: 0.15;
 }
 
-.engineering-section-head--compact {
-  align-items: center;
+.map-building-circle {
+  stroke: var(--warning, #d97706);
+  stroke-width: 2;
+  fill: var(--warning, #d97706);
+  fill-opacity: 0.2;
 }
 
-.engineering-engineers-strip {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: minmax(280px, 340px);
-  gap: 12px;
-  overflow-x: auto;
-  padding-bottom: 6px;
+/* 📱 Side Panel (Google Maps Style) */
+.google-maps-side-panel {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  width: 360px;
+  background-color: var(--dash-surface);
+  border-left: 1px solid var(--dash-line);
+  box-shadow: -4px 0 24px rgba(0, 0, 0, 0.12);
+  overflow-y: auto;
+  direction: rtl;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
 }
 
-.engineer-compact-card {
+.google-maps-side-panel-header {
   padding: 16px;
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-  display: grid;
-  gap: 14px;
+  border-bottom: 1px solid var(--dash-line);
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
 }
 
-.engineer-compact-top {
+.google-maps-side-panel-header-content {
+  flex: 1;
+}
+
+.google-maps-side-panel-title {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--dash-text);
+}
+
+.google-maps-side-panel-subtitle {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--dash-muted);
+}
+
+.google-maps-side-panel-close {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 12px;
+  justify-content: center;
+  font-size: 14px;
+  transition: background 0.2s ease;
 }
 
-.engineer-compact-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 16px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-text);
-  font-weight: 800;
+.google-maps-side-panel-close:hover {
+  background: var(--dash-hover-bg);
 }
 
-.engineer-compact-main {
-  flex: 1;
-  min-width: 0;
+.google-maps-side-panel-body {
+  padding: 16px;
 }
 
-.engineer-name-btn {
-  border: 0;
-  background: transparent;
-  padding: 0;
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 18px;
-  font-weight: 800;
-  cursor: pointer;
-  text-align: right;
+.google-maps-side-panel-image-shell {
+  width: 100%;
+  height: 160px;
+  background-color: var(--dash-pill-bg);
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
 }
 
-.engineer-compact-meta {
-  margin: 4px 0 0;
-  color: var(--dash-muted);
-  font-size: 12px;
+.google-maps-side-panel-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.engineer-compact-info {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+.google-maps-side-panel-content {
+  margin-top: 14px;
 }
 
-.engineer-compact-info strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--dash-text);
-  font-size: 12px;
-}
-
-.engineer-compact-info p {
-  margin: 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.engineer-compact-footer {
+.google-maps-side-panel-meta-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 10px;
 }
 
-.project-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 7px 11px;
-  border: 1px solid var(--dash-line);
+.google-maps-side-panel-meta-label {
+  font-size: 13px;
+  color: var(--dash-muted);
+  font-weight: 600;
+}
+
+.google-maps-side-panel-status {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
   border-radius: 999px;
+}
+
+.google-maps-side-panel-status--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--success, #16a34a);
+}
+
+.google-maps-side-panel-status--inactive {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--danger, #dc2626);
+}
+
+.google-maps-side-panel-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.google-maps-side-panel-action-btn,
+.btn-ghost {
+  flex: 1;
+  padding: 9px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
   background: var(--dash-pill-bg);
   color: var(--dash-text);
   font-size: 12px;
   font-weight: 700;
+  cursor: pointer;
+  text-align: center;
+  transition: background 0.2s ease;
 }
 
-.project-chip-row--spaced {
-  margin-top: 8px;
+.google-maps-side-panel-action-btn:hover,
+.btn-ghost:hover {
+  background: var(--dash-hover-bg);
+}
+
+.google-maps-side-panel-divider {
+  border: none;
+  border-top: 1px solid var(--dash-line);
+  margin: 14px 0;
+}
+
+.google-maps-side-panel-section {
+  font-size: 13px;
+}
+
+.google-maps-side-panel-section strong {
+  display: block;
+  color: var(--dash-text);
+}
+
+.google-maps-side-panel-section-text {
+  color: var(--dash-muted);
+  margin-top: 4px;
+  line-height: 1.5;
+}
+
+.google-maps-side-panel-section-block {
+  margin-top: 12px;
+}
+
+/* 🎴 Project Cards Section */
+.engineering-engineers-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.project-modal-engineer-projects {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(310px, 1fr));
+  gap: 14px;
+}
+
+.engineer-project-card {
+  padding: 16px;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: var(--dash-surface);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.mini-project-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .project-card-action-row {
   display: flex;
   gap: 6px;
-  flex-wrap: wrap;
   margin-bottom: 8px;
 }
 
@@ -347,28 +574,32 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 10px;
+  padding: 5px 12px;
   border: 1px solid var(--dash-line);
   border-radius: 999px;
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
-}
-
-.dashboard-inline-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: var(--dash-shadow);
+  transition: all 0.2s ease;
 }
 
 .dashboard-inline-btn--primary {
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
+  background: var(--dash-accent);
+  color: #ffffff;
+  border-color: var(--dash-accent);
+}
+
+.dashboard-inline-btn--primary:hover {
+  background: var(--dash-accent-hover, var(--dash-accent));
 }
 
 .dashboard-inline-btn--ghost {
-  background: var(--dash-blank-bg);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+}
+
+.dashboard-inline-btn--ghost:hover {
+  background: var(--dash-hover-bg);
 }
 
 .project-title-btn {
@@ -383,12 +614,12 @@
   transition: color 0.2s ease;
 }
 
-.project-title-btn:hover {
-  color: var(--dash-accent);
+.project-title-btn--small {
+  font-size: 14.5px;
 }
 
-.project-title-btn--small {
-  font-size: 15px;
+.project-title-btn:hover {
+  color: var(--dash-accent);
 }
 
 .project-location-line {
@@ -400,1179 +631,419 @@
   font-size: 12px;
 }
 
-.project-empty-state--error {
-  color: red;
-}
-
-.engineering-map-real--overlay {
-  position: relative;
-}
-
-.engineering-map-container {
-  width: 100%;
-  height: 100%;
-}
-
-.engineering-map-popup {
-  min-width: 160px;
-}
-
-.engineering-map-popup-title {
-  margin: 0 0 4px 0;
-}
-
-.engineering-map-popup-subtitle {
-  margin: 0 0 6px 0;
-  font-size: 12px;
-  opacity: 0.8;
-}
-
-.engineering-map-popup-actions {
-  margin-top: 10px;
-}
-
-.google-maps-side-panel {
-  position: absolute;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 1000;
-  width: 360px;
-  background-color: var(--dash-topbar-bg, #ffffff);
-  border-right: 1px solid var(--dash-line, #e0d6cc);
-  box-shadow: 2px 0 24px rgba(0, 0, 0, 0.12);
-  overflow-y: auto;
-  direction: rtl;
-  text-align: right;
-  display: flex;
-  flex-direction: column;
-}
-
-.google-maps-side-panel-header {
-  padding: 16px;
-  border-bottom: 1px solid var(--dash-line);
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.google-maps-side-panel-header-content {
-  flex: 1;
-}
-
-.google-maps-side-panel-title {
-  margin: 0;
-  font-size: 18px;
-}
-
-.google-maps-side-panel-subtitle {
-  margin-top: 6px;
-  font-size: 13px;
-  color: var(--dash-muted);
-}
-
-.google-maps-side-panel-close {
-  width: 36px;
-  height: 36px;
-  border-radius: 18px;
-  border: none;
-  background: rgba(0, 0, 0, 0.06);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.google-maps-side-panel-body {
-  padding: 16px;
-}
-
-.google-maps-side-panel-image-shell {
-  width: 100%;
-  height: 180px;
-  background-color: var(--dash-line);
-  overflow: hidden;
-  border-radius: 8px;
-}
-
-.google-maps-side-panel-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.google-maps-side-panel-content {
-  margin-top: 12px;
-}
-
-.google-maps-side-panel-meta-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.google-maps-side-panel-meta-label {
-  font-size: 13px;
-  color: var(--dash-muted);
-}
-
-.google-maps-side-panel-status {
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.google-maps-side-panel-status--active {
-  color: #137333;
-}
-
-.google-maps-side-panel-status--inactive {
-  color: #c5221f;
-}
-
-.google-maps-side-panel-actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-.google-maps-side-panel-action-btn {
-  padding: 8px 12px;
-  border-radius: 8px;
-  border: 1px solid var(--dash-line);
-  background: #fbf9f6;
-  cursor: pointer;
-}
-
-.google-maps-side-panel-divider {
-  border: none;
-  border-top: 1px solid var(--dash-line);
-  margin: 12px 0;
-}
-
-.google-maps-side-panel-section {
-  font-size: 13px;
-}
-
-.google-maps-side-panel-section strong {
-  display: block;
-}
-
-.google-maps-side-panel-section-text {
-  color: var(--dash-muted);
-  margin-top: 6px;
-}
-
-.google-maps-side-panel-section-block {
-  margin-top: 10px;
-}
-
-.project-modal-layout--map,
-.engineer-modal-layout {
-  display: grid;
-  gap: 14px;
-  max-height: 72vh;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.project-modal-hero {
-  position: relative;
-  height: 210px;
-  border-radius: 20px;
-  overflow: hidden;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-blank-bg);
-}
-
-.project-modal-hero-map {
-  width: 100%;
-  height: 100%;
-  display: grid;
-  place-items: center;
-  gap: 8px;
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-muted);
-}
-
-.project-modal-map-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-radius: 999px;
-  background: var(--dash-card-bg);
-  color: var(--dash-text);
-  font-weight: 700;
-}
-
-.project-modal-map-coords {
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.project-modal-hero-overlay {
-  position: absolute;
-  inset: 12px 12px auto auto;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.project-modal-hero-chip {
-  padding: 8px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-card-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.project-modal-grid {
-  display: grid;
-  grid-template-columns: 1.05fr 0.95fr;
-  gap: 14px;
-}
-
-.project-modal-panel {
-  padding: 16px;
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.project-modal-info-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.project-modal-info-card {
-  padding: 12px 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 14px;
-  background: var(--dash-blank-bg);
-}
-
-.project-modal-info-card strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--dash-text);
-  font-size: 12px;
-}
-
-.project-modal-info-card p {
-  margin: 0;
+.building-description {
+  margin: 10px 0;
   color: var(--dash-muted);
   font-size: 13px;
   line-height: 1.5;
 }
 
-.project-modal-engineer-list,
-.project-modal-engineer-projects,
-.building-card-grid {
-  display: grid;
-  gap: 12px;
-}
-
-.modal-engineer-row,
-.engineer-project-card,
-.building-card,
-.mini-project-card {
-  width: 100%;
-  padding: 12px 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 16px;
-  background: var(--dash-blank-bg);
-}
-
-.modal-engineer-row {
-  display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 12px;
-  align-items: center;
-  text-align: right;
-  cursor: pointer;
-}
-
-.modal-engineer-badge {
-  width: 42px;
-  height: 42px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-text);
-  font-weight: 800;
-}
-
-.modal-engineer-info strong,
-.building-card h3 {
-  display: block;
-  color: var(--dash-text);
-  font-size: 14px;
-}
-
-.modal-engineer-info p,
-.modal-engineer-info span,
-.building-description {
-  margin: 4px 0 0;
-  color: var(--dash-muted);
-  font-size: 12px;
-  line-height: 1.6;
-}
-
-.building-card-head,
-.mini-project-card-head {
+.project-chip-row {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.attachment-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-  gap: 10px;
+.project-chip-row--spaced {
   margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--dash-line);
 }
 
-.attachment-card {
-  display: grid;
-  gap: 8px;
-  text-decoration: none;
-  border: 1px solid var(--dash-line);
-  border-radius: 14px;
-  padding: 10px;
-  background: var(--dash-blank-bg);
-}
-
-.attachment-thumb {
-  width: 100%;
-  aspect-ratio: 1 / 1;
-  object-fit: cover;
-  border-radius: 10px;
-}
-
-.attachment-thumb--file {
-  display: grid;
-  place-items: center;
-  border: 1px dashed var(--dash-line);
-  color: var(--dash-muted);
-  background: var(--dash-card-bg);
-}
-
-.attachment-name {
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.engineering-map-pagination {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-}
-
-.pagination-btn {
-  height: 40px;
-  padding: 0 14px;
-  border-radius: 12px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
+.project-chip {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  font-weight: 700;
-}
-
-.pagination-btn:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-.pagination-info {
-  color: var(--dash-muted);
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.engineering-map-page .engineering-map-board,
-.engineering-map-page .engineering-map-real,
-.engineering-map-page .project-modal-panel,
-.engineering-map-page .project-modal-hero,
-.engineering-map-page .project-modal-info-card,
-.engineering-map-page .engineer-compact-card,
-.engineering-map-page .attachment-card,
-.engineering-map-page .building-card,
-.engineering-map-page .mini-project-card,
-.engineering-map-page .modal-engineer-row,
-.engineering-map-page .pagination-btn {
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
+  gap: 6px;
+  padding: 4px 10px;
   border: 1px solid var(--dash-line);
-  box-shadow: var(--dash-shadow);
+  border-radius: 999px;
+  background: var(--dash-pill-bg);
   color: var(--dash-text);
+  font-size: 11px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease;
 }
 
-.engineering-map-page .project-chip {
+button.project-chip:hover {
+  background: var(--dash-hover-bg);
+  border-color: var(--dash-line-2);
+}
+
+/* 🖼️ Modals & Details Dialogs Styling */
+.project-modal-layout,
+.project-modal-layout--map,
+.engineer-modal-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  direction: rtl;
+  text-align: right;
+}
+
+.project-modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.project-modal-panel {
   background: var(--dash-hover-bg);
   border: 1px solid var(--dash-line);
-  color: var(--dash-text);
-  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.engineering-map-page .leaflet-popup-content-wrapper,
-.engineering-map-page .leaflet-popup-tip {
-  background: var(--dash-surface);
-  color: var(--dash-text);
-  border: 1px solid var(--dash-line);
-  box-shadow: var(--dash-shadow);
-}
-
-.engineering-map-page .map-popup h3 {
-  color: var(--dash-text);
-}
-
-.engineering-map-page .map-popup p {
-  color: var(--dash-muted);
-}
-
-.engineering-map-page .leaflet-control-zoom a {
-  background: var(--dash-surface) !important;
-  color: var(--dash-text) !important;
-  border-color: var(--dash-line) !important;
-}
-
-.engineering-map-page .leaflet-control-attribution {
-  background: var(--dash-topbar-bg) !important;
-  color: var(--dash-muted) !important;
-}
-
-.engineering-map-page .leaflet-control-attribution a {
-  color: var(--dash-accent) !important;
-}
-
-@media (max-width: 1100px) {
-  .engineering-stats-grid,
-  .project-modal-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .engineering-engineers-strip {
-    grid-auto-columns: minmax(260px, 320px);
-  }
-}
-
-@media (max-width: 768px) {
-  .engineering-page-header,
-  .engineering-toolbar,
-  .engineering-map-board-header,
-  .engineering-section-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .engineering-toolbar .toolbar-select {
-    width: 100%;
-    min-width: 0;
-  }
-
-  .engineering-map-board--compact .engineering-map-real {
-    height: 320px;
-  }
-
-  .project-modal-info-grid,
-  .engineer-compact-info {
-    grid-template-columns: 1fr;
-  }
-
-  .modal-engineer-row {
-    grid-template-columns: 1fr;
-    justify-items: start;
-  }
-
-  .engineer-compact-top {
-    align-items: flex-start;
-  }
-}
 .engineering-summary-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  margin-bottom: 4px;
 }
 
 .engineering-summary-head h2 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 800;
+  color: var(--dash-text);
+  margin: 0;
 }
 
 .engineering-summary-head span {
+  font-size: 12px;
   color: var(--dash-muted);
-  font-size: 13px;
   font-weight: 600;
+  background: var(--dash-surface);
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--dash-line);
 }
+
+.project-modal-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.project-modal-info-card {
+  background: var(--dash-surface);
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+}
+
+.project-modal-info-card strong {
+  display: block;
+  font-size: 11.5px;
+  color: var(--dash-muted);
+  margin-bottom: 4px;
+}
+
+.project-modal-info-card p {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--dash-text);
+  word-break: break-word;
+}
+
+/* قائمة المهندسين بداخل الديالوغ */
+.project-modal-engineer-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 280px;
+  overflow-y: auto;
+  padding-left: 4px;
+}
+
+.modal-engineer-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  text-align: right;
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.modal-engineer-row:hover {
+  border-color: var(--dash-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.modal-engineer-badge {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.modal-engineer-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+}
+
+.modal-engineer-info strong {
+  font-size: 13px;
+  color: var(--dash-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-engineer-info p {
+  margin: 0;
+  font-size: 11px;
+  color: var(--dash-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.modal-engineer-info span {
+  font-size: 10.5px;
+  color: var(--dash-accent);
+  font-weight: 700;
+}
+
+/* شبكة كروت الأبنية بداخل الديالوغ */
+.building-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.building-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.building-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.building-card-head p {
+  margin: 2px 0 0;
+  font-size: 11.5px;
+  color: var(--dash-muted);
+}
+
+/* المرفقات */
+.attachment-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.attachment-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-decoration: none;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 8px;
+  padding: 6px;
+  transition: border-color 0.2s ease;
+}
+
+.attachment-card:hover {
+  border-color: var(--dash-accent);
+}
+
+.attachment-thumb {
+  width: 100%;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+}
+
+.attachment-thumb--file {
+  background: var(--dash-pill-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--dash-muted);
+}
+
+.attachment-name {
+  font-size: 10px;
+  color: var(--dash-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* كارد بروفايل المهندس */
+.engineer-profile-card {
+  background: var(--dash-surface);
+}
+
 .engineer-profile-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--dash-line);
 }
 
 .engineer-profile-avatar {
-  width: 56px;
-  height: 56px;
+  width: 52px;
+  height: 52px;
   border-radius: 16px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-text);
+  background: var(--dash-accent);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
   font-weight: 800;
   flex-shrink: 0;
 }
 
 .engineer-profile-name {
   margin: 0;
-  color: var(--dash-text);
   font-size: 18px;
   font-weight: 800;
+  color: var(--dash-text);
 }
 
 .engineer-profile-sub {
-  margin: 4px 0 0;
+  margin: 2px 0 0;
+  font-size: 12.5px;
   color: var(--dash-muted);
-  font-size: 13px;
-}
-.assign-select-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
-.assign-label {
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--text-primary);
+/* ================= TABLE & DATA STYLES ================= */
+
+.project-table-wrap {
+  overflow: auto;
 }
 
-.assign-select {
+.engineering-table {
   width: 100%;
-  min-height: 52px;
-  border-radius: 16px;
-  border: 1px solid var(--border-color);
-  background: var(--card-bg);
-  padding: 0 16px;
-  color: var(--text-primary);
-  font-size: 14px;
-  outline: none;
+  border-collapse: collapse;
+  min-width: 800px;
 }
 
-.assign-select:focus {
-  border-color: var(--primary-color);
-}
-
-.assign-buildings-section {
-  margin-top: 28px;
-  border-top: 1px solid var(--border-color);
-  padding-top: 22px;
-}
-
-.assign-buildings-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 18px;
-  gap: 14px;
-}
-
-.assign-buildings-head h3 {
-  font-size: 18px;
-  font-weight: 700;
-}
-
-.assign-all-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-  font-size: 14px;
-}
-
-.assign-buildings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 14px;
-}
-
-.assign-building-card {
-  border: 1px solid var(--border-color);
-  background: var(--card-bg);
-  border-radius: 18px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  cursor: pointer;
-  transition: 0.25s ease;
-}
-
-.assign-building-card:hover {
-  transform: translateY(-2px);
-}
-
-.assign-building-card.active {
-  border-color: var(--primary-color);
-  background: rgba(var(--primary-rgb), 0.1);
-}
-
-.assign-building-card h4 {
-  font-size: 15px;
-  font-weight: 700;
-  margin-bottom: 6px;
-}
-
-.assign-building-card p {
-  font-size: 13px;
-  opacity: 0.75;
-}
-.assign-modern-form {
-  display: grid;
-  gap: 26px;
-}
-
-.assign-modern-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 18px;
-}
-
-.assign-modern-field {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.assign-modern-field label {
-  color: var(--dash-text);
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.assign-modern-select,
-.assign-modern-input {
-  width: 100%;
-  height: 54px;
-  border-radius: 18px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-surface);
-  color: var(--dash-text);
-  padding: 0 18px;
-  outline: none;
-  font-size: 14px;
-  transition: 0.2s;
-}
-
-.assign-modern-select:focus,
-.assign-modern-input:focus {
-  border-color: var(--dash-accent);
-  box-shadow: 0 0 0 4px rgba(80, 120, 255, 0.12);
-}
-
-.assign-buildings-wrapper {
-  border: 1px solid var(--dash-line);
-  border-radius: 24px;
-  padding: 22px;
-  background: linear-gradient(
-    180deg,
-    var(--dash-surface),
-    var(--dash-surface-2)
-  );
-}
-
-.assign-buildings-top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 22px;
-}
-
-.assign-buildings-top h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.assign-buildings-top p {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.assign-all-toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: var(--dash-text);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.assign-buildings-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 16px;
-}
-
-.assign-building-modern-card {
-  border: 1px solid var(--dash-line);
-  border-radius: 20px;
-  background: var(--dash-blank-bg);
-  padding: 18px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: 0.25s ease;
+.engineering-table th,
+.engineering-table td {
+  padding: 14px 16px;
   text-align: right;
-}
-
-.assign-building-modern-card:hover {
-  transform: translateY(-3px);
-}
-
-.assign-building-modern-card.active {
-  border-color: var(--dash-accent);
-  background: rgba(88, 101, 242, 0.12);
-  box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.1);
-}
-
-.assign-building-modern-card h4 {
-  margin: 0 0 6px;
+  border-bottom: 1px solid var(--dash-line);
   color: var(--dash-text);
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 14px;
+  vertical-align: middle;
 }
 
-.assign-building-modern-card p {
-  margin: 0;
+.engineering-table th {
+  font-size: 12px;
   color: var(--dash-muted);
-  font-size: 13px;
+  font-weight: 700;
 }
 
-.assign-modern-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 12px;
-  margin-top: 8px;
+.engineering-table tbody tr {
+  transition: background 0.16s ease;
 }
 
-@media (max-width: 900px) {
-  .assign-modern-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .assign-buildings-top {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-.engineer-modal-layout {
-  display: grid;
-  gap: 14px;
-  max-height: 74vh;
-  overflow-y: auto;
-  padding-right: 6px;
+.engineering-table tbody tr:hover {
+  background: var(--dash-hover-bg);
 }
 
-.engineer-profile-card {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
+.fw-semibold {
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.badge-spec {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong, var(--dash-accent));
   border: 1px solid var(--dash-line);
-  border-radius: 20px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
 }
 
-.engineer-profile-header {
-  display: flex;
+/* ================= ROW ACTIONS ================= */
+
+.row-actions {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
+  gap: 7px;
 }
 
-.engineer-profile-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
+.icon-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg, var(--dash-surface));
+  color: var(--dash-accent);
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, var(--dash-shell-glow-1), var(--dash-shell-glow-2));
-  color: var(--dash-text);
-  font-weight: 800;
-  font-size: 18px;
-  border: 1px solid var(--dash-line);
-}
-
-.engineer-profile-name {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.engineer-profile-sub {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.engineer-modal-map-card {
-  border: 1px solid var(--dash-line);
-  border-radius: 20px;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.engineer-modal-map-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--dash-line);
-}
-
-.engineer-modal-map-head h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.engineer-modal-map-head span {
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.engineer-modal-map-box {
-  height: 260px;
-  background: var(--dash-blank-bg);
-}
-
-.engineer-modal-section {
-  padding: 16px;
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.engineer-modal-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.engineer-modal-info {
-  padding: 12px 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 14px;
-  background: var(--dash-blank-bg);
-}
-
-.engineer-modal-info strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--dash-text);
-  font-size: 12px;
-}
-
-.engineer-modal-info p {
-  margin: 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.engineer-project-card {
-  padding: 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: var(--dash-blank-bg);
-}
-
-.engineer-project-card .project-title-btn {
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.engineer-project-card .project-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-}
-.engineer-modal-layout {
-  display: grid;
-  gap: 16px;
-  max-height: 74vh;
-  overflow-y: auto;
-  padding-right: 6px;
-}
-
-.engineer-profile-card {
-  display: grid;
-  gap: 16px;
-  padding: 18px;
-  border: 1px solid var(--dash-line);
-  border-radius: 22px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.engineer-profile-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 14px;
-  flex-wrap: wrap;
-}
-
-.engineer-profile-avatar {
-  width: 60px;
-  height: 60px;
-  border-radius: 18px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(
-    135deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-  color: var(--dash-text);
-  font-weight: 800;
-  font-size: 18px;
-  border: 1px solid var(--dash-line);
-}
-
-.engineer-profile-name {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 20px;
-  font-weight: 800;
-}
-
-.engineer-profile-sub {
-  margin: 6px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.engineer-modal-section {
-  padding: 16px;
-  border: 1px solid var(--dash-line);
-  border-radius: 18px;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.engineer-modal-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.engineer-modal-info {
-  padding: 12px 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 14px;
-  background: var(--dash-blank-bg);
-}
-
-.engineer-modal-info strong {
-  display: block;
-  margin-bottom: 4px;
-  color: var(--dash-text);
-  font-size: 12px;
-}
-
-.engineer-modal-info p {
-  margin: 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.engineer-modal-map-card {
-  border: 1px solid var(--dash-line);
-  border-radius: 20px;
-  overflow: hidden;
-  background: linear-gradient(180deg, var(--dash-surface), var(--dash-surface-2));
-  box-shadow: var(--dash-shadow);
-}
-
-.engineer-modal-map-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 14px 16px;
-  border-bottom: 1px solid var(--dash-line);
-}
-
-.engineer-modal-map-head h3 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 16px;
-  font-weight: 800;
-}
-
-.engineer-modal-map-head span {
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-.engineer-modal-map-box {
-  height: 260px;
-  background: var(--dash-blank-bg);
-}
-
-/* ==================== اِستبدلي هذا الجزء في ملف الـ CSS ==================== */
-
-/* تحويل الحاوية إلى شبكة متجاوبة تعرض الكروت بجانب بعضها */
-.project-modal-engineer-projects {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); /* لتوزيع الكروت بجانب بعضها تلقائياً حسب الشاشة */
-  gap: 12px;
-  padding: 4px;
-}
-
-/* تعديل الكرت ليكون مدمجاً وصغير الحجم */
-.engineer-project-card {
-  padding: 12px 14px;
-  border: 1px solid var(--dash-line);
-  border-radius: 16px;
-  background: var(--dash-blank-bg);
-  box-shadow: var(--dash-shadow);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  gap: 8px; /* تقليص المسافات الداخلية لتصغير حجم الكرت */
-}
-
-/* تصغير الخطوط داخل الكرت ليتناسب مع الحجم المدمج */
-.engineer-project-card .project-title-btn {
-  border: 0;
-  padding: 0;
-  background: transparent;
-  color: var(--dash-text);
-  font-size: 14px; /* جعل العنوان ناعم وصغير */
-  font-weight: 700;
-  text-align: right;
   cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
 }
 
-.engineer-project-card .project-location-line {
-  margin: 4px 0 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  color: var(--dash-muted);
-  font-size: 12px;
+.icon-action-btn:hover:not(:disabled) {
+  background: var(--dash-hover-bg);
+  border-color: var(--dash-line-2);
+  transform: translateY(-1px);
 }
 
-.engineer-project-card .building-description {
-  margin: 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-  line-height: 1.7;
+.icon-action-btn.danger {
+  color: var(--danger, #ef4444);
 }
 
-.engineer-project-card .project-chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.engineer-project-card .project-chip {
-  padding: 7px 11px;
-  border-radius: 999px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-pill-bg);
-  color: var(--dash-text);
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.project-modal-engineer-projects .project-empty-state {
-  margin: 0;
-}
-
-@media (max-width: 768px) {
-  .engineer-modal-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .engineer-profile-header {
-    align-items: flex-start;
-  }
-
-  .engineer-modal-map-box {
-    height: 220px;
-  }
-
-  .engineer-project-card .mini-project-card-head {
-    flex-direction: column;
-    align-items: stretch;
-  }
-}
-
-/* ==========================================================================
-   تنسيقات مودال الإسناد المطور - بتصميم هندسي احترافي
-   ========================================================================== */
-.modern-form-container {
-  display: flex;
-  flex-direction: column;
+/* 📝 Forms */
+.modern-form-container,
+.engineering-form {
+  display: grid;
   gap: 18px;
-  padding: 8px 4px;
-  text-align: right;
   direction: rtl;
+  text-align: right;
 }
 
 .form-subtitle-desc {
   margin: 0;
-  font-size: 13.5px;
   color: var(--dash-muted);
-  line-height: 1.6;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
-.form-grid-layout {
+.form-grid-layout,
+.engineering-form-grid {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 20px;
-}
-
-@media (min-width: 640px) {
-  .form-grid-layout {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
 }
 
 .form-group-field {
@@ -1584,131 +1055,188 @@
 .form-group-field label {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 14px;
+  gap: 8px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--dash-text);
 }
 
-.form-group-field label svg {
-  color: var(--dash-muted);
-}
-
 .required-star {
-  color: #ef4444;
-  margin-right: 2px;
+  color: var(--danger, #ef4444);
 }
 
-/* تخصيص وتجميل حقول الاختيار والتاريخ */
 .select-input-wrapper select,
 .modern-date-picker {
   width: 100%;
   height: 44px;
-  padding: 0 12px;
-  font-size: 14px;
-  font-family: inherit;
-  color: var(--dash-text);
-  background-color: var(--dash-topbar-bg);
-  border: 1px solid var(--dash-line);
+  padding: 0 14px;
   border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  font-size: 13px;
   outline: none;
-  transition: all 0.2s ease-in-out;
-  cursor: pointer;
+  transition: border-color 0.2s ease;
 }
 
 .select-input-wrapper select:focus,
 .modern-date-picker:focus {
-  border-color: var(--dash-project-pin, #00d4ff);
-  box-shadow: 0 0 0 3px rgba(0, 212, 255, 0.15);
-}
-
-.field-hint-text {
-  font-size: 11.5px;
-  color: var(--dash-muted);
-  line-height: 1.4;
-  margin-top: 2px;
+  border-color: var(--dash-accent);
 }
 
 .disabled-opacity {
-  opacity: 0.55;
+  opacity: 0.5;
   pointer-events: none;
 }
 
-/* ذيل الاستمارة والأزرار */
-.form-actions-footer {
+.field-hint-text {
+  font-size: 11px;
+  color: var(--dash-muted);
+}
+
+.form-actions-footer,
+.modal-actions {
   display: flex;
   justify-content: flex-end;
-  align-items: center;
-  gap: 12px;
-  margin-top: 14px;
-  padding-top: 16px;
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 14px;
   border-top: 1px solid var(--dash-line);
 }
 
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 📱 Responsive Adjustments */
+@media (max-width: 1024px) {
+  .engineering-page .legal-stats-grid,
+  .engineering-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .form-grid-layout,
+  .engineering-form-grid,
+  .project-modal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .google-maps-side-panel {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
+}
+
+@media (max-width: 768px) {
+  .engineering-toolbar,
+  .engineering-toolbar--map {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar-right-group {
+    flex-direction: column;
+    max-width: 100%;
+  }
+
+  .engineering-toolbar .toolbar-search {
+    width: 100%;
+    order: 4;
+  }
+
+  .engineering-toolbar .toolbar-select {
+    width: 100%;
+  }
+
+  .toolbar-assign-btn,
+  .primary-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .engineering-page .legal-stats-grid,
+  .engineering-stats-grid {
+    grid-template-columns: 1fr;
+  }
+}
+/* الحاوية الرئيسية لأزرار الديالوغ والنموذج */
+.modal-actions,
+.form-actions-footer {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--dash-line);
+  direction: rtl;
+}
+
+/* تنسيق عام لأي زر داخل الديالوغ أو النموذج */
+.modal-actions button,
 .form-actions-footer button {
-  min-width: 110px;
   height: 42px;
-  border-radius: 10px;
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/* 1. زر الإسناد / الحفظ الرئيسي */
+.modal-actions .primary-action-btn,
+.modal-actions button[type="submit"],
+.modal-actions button.btn-primary,
+.form-actions-footer button[type="submit"] {
+  padding: 0 24px;
+  background: var(--dash-accent);
+  color: #ffffff;
+  border: 1px solid var(--dash-accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.modal-actions .primary-action-btn:hover,
+.modal-actions button[type="submit"]:hover,
+.modal-actions button.btn-primary:hover,
+.form-actions-footer button[type="submit"]:hover {
+  background: var(--dash-accent-strong, var(--dash-accent));
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+
+/* 2. زر الإلغاء / العودة */
+.modal-actions .ghost-filter-btn,
+.modal-actions button[type="button"]:not(.primary-action-btn),
+.modal-actions button.btn-secondary,
+.form-actions-footer button[type="button"] {
+  padding: 0 20px;
+  background: var(--dash-pill-bg, var(--dash-surface));
+  color: var(--dash-muted);
+  border: 1px solid var(--dash-line);
   font-weight: 600;
-  font-size: 14px;
-}
-/* ==========================================================================
-   تنسيقات دوائر الخريطة (SVG Circle Paths) - فصل كامل للألوان
-   ========================================================================== */
-
-/* دائرة المشروع */
-.map-project-circle {
-  stroke: var(--dash-project-pin, #00d4ff) !important;       /* لون الحدود */
-  fill: var(--dash-project-pin, #00d4ff) !important;         /* لون التعبئة الداخلي */
-  fill-opacity: 0.1 !important;                               /* درجة الشفافية */
-  stroke-width: 1.5 !important;                               /* سماكة الخط */
 }
 
-/* دائرة المبنى */
-.map-building-circle {
-  stroke: var(--dash-building-pin, #f59e0b) !important;      /* لون الحدود */
-  fill: var(--dash-building-pin, #f59e0b) !important;        /* لون التعبئة الداخلي */
-  fill-opacity: 0.1 !important;                               /* درجة الشفافية */
-  stroke-width: 1.5 !important;                               /* سماكة الخط */
-}
-/* ==========================================================================
-   دعم الدارك مود للخريطة بالكامل عبر الـ CSS (Clean Code)
-   ========================================================================== */
-
-/* ==========================================================================
-   الحل الجذري لتحويل أرضية الخريطة (Background/Tiles) إلى الدارك مود
-   ========================================================================== */
-
-/* 1. استهداف صور الأرضية مباشرة مع دعم كلاس الدارك أو الـ attribute لضمان الانعكاس */
-.dark .engineering-map-container .leaflet-tile-container img,
-[data-theme="dark"] .engineering-map-container .leaflet-tile-container img,
-.dark .engineering-map-container .leaflet-tile,
-[data-theme="dark"] .engineering-map-container .leaflet-tile {
-  filter: invert(100%) hue-rotate(180deg) brightness(92%) contrast(88%) !important;
-}
-
-/* 2. تغيير خلفية حاوية الخريطة لمنع ظهور وميض أبيض أثناء تنقل أو تحميل الصور */
-.dark .engineering-map-container,
-[data-theme="dark"] .engineering-map-container {
-  background-color: #1b1b1f !important; /* لون داكن يتناسب مع التصميم */
-}
-
-/* 3. حماية عناصر التحكم (أزرار التكبير/التصغير وقائمة الطبقات) من الانعكاس */
-.dark .engineering-map-container .leaflet-control-zoom a,
-[data-theme="dark"] .engineering-map-container .leaflet-control-zoom a,
-.dark .engineering-map-container .leaflet-control-layers,
-[data-theme="dark"] .engineering-map-container .leaflet-control-layers {
-  background-color: var(--dash-topbar-bg, #27272a) !important;
-  color: var(--dash-text, #ffffff) !important;
-  border-color: var(--dash-line, #3f3f46) !important;
-}
-/* تأكيد ألوان الدوائر في الدارك مود اعتماداً على متغيراتكِ الملوثة سابقاً */
-.dark .map-project-circle {
-  stroke: var(--dash-project-pin, #00d4ff) !important;
-  fill: var(--dash-project-pin, #00d4ff) !important;
-}
-
-.dark .map-building-circle {
-  stroke: var(--dash-building-pin, #f59e0b) !important;
-  fill: var(--dash-building-pin, #f59e0b) !important;
+.modal-actions .ghost-filter-btn:hover,
+.modal-actions button[type="button"]:not(.primary-action-btn):hover,
+.modal-actions button.btn-secondary:hover,
+.form-actions-footer button[type="button"]:hover {
+  background: var(--dash-hover-bg);
+  color: var(--dash-text);
+  border-color: var(--dash-line-2, var(--dash-line));
 }

@@ -1,0 +1,339 @@
+@import "@/shared/constants/colors.css";
+
+/* Grid Layout */
+.reports-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+}
+
+/* Card Styling */
+.report-card {
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.report-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--dash-line-2, var(--dash-line));
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.06);
+}
+
+/* Card Header */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.project-title-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.project-icon {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.project-title-group h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin: 0 0 4px 0;
+  color: var(--dash-text);
+}
+
+.report-date {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--dash-muted);
+}
+
+/* Status Badges */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.status-on-track {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.status-delayed {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.status-completed {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  border: 1px solid var(--dash-line);
+}
+
+/* Meta Pill */
+.card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.meta-pill,
+.engineer-pill {
+  background: var(--dash-pill-bg, var(--dash-hover-bg));
+  border: 1px solid var(--dash-line);
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  color: var(--dash-text);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.eng-avatar {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--dash-accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: bold;
+}
+
+/* Progress Bars */
+.progress-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+  background: var(--dash-hover-bg);
+  border: 1px solid var(--dash-line);
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.progress-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.progress-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--dash-muted);
+}
+
+.progress-label strong {
+  color: var(--dash-text);
+}
+
+.progress-bar-bg {
+  height: 7px;
+  background: var(--dash-line);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  border-radius: 10px;
+  transition: width 0.4s ease;
+}
+
+.progress-bar-fill.primary {
+  background: var(--dash-accent);
+}
+
+.progress-bar-fill.success {
+  background: #10b981;
+}
+
+/* Description */
+.card-description {
+  font-size: 13px;
+  color: var(--dash-text);
+  background: var(--dash-hover-bg);
+  border: 1px solid var(--dash-line);
+  padding: 10px 12px;
+  border-radius: 8px;
+  margin-bottom: 16px;
+}
+
+.card-description p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Attachments */
+.attachments-section {
+  margin-bottom: 16px;
+}
+
+.section-subtitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--dash-muted);
+  display: block;
+  margin-bottom: 8px;
+}
+
+.attachments-grid {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.attachment-thumb {
+  width: 58px;
+  height: 58px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.attachment-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.2s;
+}
+
+.attachment-thumb:hover img {
+  transform: scale(1.08);
+}
+
+/* Card Footer */
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 12px;
+  border-top: 1px solid var(--dash-line);
+  margin-top: auto;
+}
+
+.timestamp-text {
+  font-size: 11px;
+  color: var(--dash-muted);
+}
+
+.view-details-btn {
+  background: transparent;
+  border: none;
+  color: var(--dash-accent-strong, var(--dash-accent));
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.16s ease;
+}
+
+.view-details-btn:hover {
+  background: var(--dash-accent-soft);
+}
+
+/* Pagination */
+.pagination-wrapper {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 24px;
+}
+
+.page-btn {
+  padding: 8px 14px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: all 0.16s ease;
+}
+
+.page-btn.active {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  border-color: var(--dash-accent-strong);
+  font-weight: 700;
+}
+
+.modal-preview-img {
+  width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+  border-radius: 8px;
+}
+.card-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  background-color: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+
+.export-btn:hover {
+  background-color: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
+}
+
+.export-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.export-btn:hover svg {
+  transform: translateY(-1px);
+}

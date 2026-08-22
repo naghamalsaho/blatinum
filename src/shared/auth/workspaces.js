@@ -6,7 +6,7 @@ const normalize = (value) =>
 
 const roleName = (role) =>
   typeof role === "object"
-    ? role?.name || role?.title || role?.display_name || role?.role?.name || role?.role || ""
+    ? role?.slug || role?.name || role?.title || role?.display_name || role?.role?.name || role?.role || ""
     : role;
 
 const roleId = (role) =>
@@ -45,24 +45,102 @@ export function extractAvailableRoles(payload = {}) {
     payload?.data?.user?.account?.roles,
   ].map(asRoleArray).filter((roles) => roles.length);
 
-  const selected = candidates.find((roles) => roles.some((role) => roleId(role) != null)) || candidates[0] || [];
-  return selected.map((role) => ({
-    id: roleId(role),
-    name: roleName(role),
-  })).filter((role) => role.name);
+  const selected =
+    candidates.find((roles) => roles.some((role) => roleId(role) != null)) ||
+    candidates[0] ||
+    [];
+
+  return selected
+    .map((role) => ({
+      id: roleId(role),
+      name: roleName(role),
+      slug: role?.slug || roleName(role),
+    }))
+    .filter((role) => role.name);
 }
 
+// ------------------------------------------------------
+// تعريف مساحات العمل مع دعم المسميات العربية والإنجليزية
+// ------------------------------------------------------
 export const WORKSPACES = [
-  { key: "admin", labelKey: "workspace_admin", path: "/admin", roles: ["admin", "administrator"] },
+  {
+    key: "admin",
+    labelKey: "workspace_admin",
+    path: "/admin",
+    roles: ["admin", "administrator", "مدير", "ادمن"],
+  },
   {
     key: "customer-service",
     labelKey: "workspace_customer_service",
     path: "/customer-service",
-    roles: ["customer_service", "customer_service_staff", "customer_support", "support"],
+    roles: [
+      "customer_service",
+      "customer_service_staff",
+      "customer_support",
+      "support",
+      "خدمة_العملاء",
+      "خدمة العملاء",
+      "خدمه العملاء",
+      "عملاء",
+    ],
   },
-  { key: "engineering", labelKey: "workspace_engineering", path: "/engineering", roles: ["engineering", "engineer", "engineering_staff"] },
-  { key: "marketing", labelKey: "workspace_marketing", path: "/marketing", roles: ["marketing", "marketing_staff"] },
-  { key: "legal", labelKey: "workspace_legal", path: "/legal", roles: ["legal", "law", "legal_staff"] },
+  {
+    key: "engineering",
+    labelKey: "workspace_engineering",
+    path: "/engineering",
+    roles: [
+      "engineering",
+      "engineer",
+      "engineering_staff",
+      "هندسة",
+      "هندسه",
+      "مهندس",
+    ],
+  },
+  {
+    key: "financial",
+    labelKey: "workspace_financial",
+    path: "/financial",
+    roles: [
+      "finance",
+      "financial",
+      "finance_staff",
+      "financial_staff",
+      "accounting",
+      "accountant",
+      "مالية",
+      "مالي",
+      "محاسب",
+      "محاسبة",
+      "محاسبه",
+    ],
+  },
+  {
+    key: "marketing",
+    labelKey: "workspace_marketing",
+    path: "/marketing",
+    roles: [
+      "marketing",
+      "marketer",
+      "marketing_staff",
+      "تسويق",
+      "مسوق",
+    ],
+  },
+  {
+    key: "legal",
+    labelKey: "workspace_legal",
+    path: "/legal/slots",
+    roles: [
+      "legal",
+      "law",
+      "legal_staff",
+      "قانون",
+      "قانوني",
+      "محامي",
+      "مكتب_قانوني",
+    ],
+  },
 ];
 
 export function extractAssignedRoles(user) {
@@ -72,32 +150,66 @@ export function extractAssignedRoles(user) {
     ...(Array.isArray(user?.data?.user?.account?.roles) ? user.data.user.account.roles : []),
     user?.role,
     user?.type,
+    user?.position,
+    user?.job_title,
+    user?.department?.slug,
+    user?.department?.name,
   ];
 
   return [...new Set(candidates.map(roleName).map(normalize).filter(Boolean))];
 }
 
 export function getAssignedWorkspaces(user) {
-  const roles = extractAssignedRoles(user);
+  const userRoles = extractAssignedRoles(user);
   return WORKSPACES.filter((workspace) =>
-    workspace.roles.some((role) => roles.includes(normalize(role)))
+    workspace.roles.some((workspaceRole) => {
+      const normalizedWsRole = normalize(workspaceRole);
+      return userRoles.some(
+        (userRole) =>
+          userRole === normalizedWsRole ||
+          userRole.includes(normalizedWsRole) ||
+          normalizedWsRole.includes(userRole)
+      );
+    })
   );
 }
 
 export function getWorkspaceForRole(role) {
-  const normalizedRole = normalize(roleName(role));
-  return WORKSPACES.find((workspace) =>
-    workspace.roles.some((candidate) => normalize(candidate) === normalizedRole)
-  ) || null;
+  const rawName = roleName(role);
+  const normalizedRole = normalize(rawName);
+
+  if (!normalizedRole) return null;
+
+  return (
+    WORKSPACES.find((workspace) =>
+      workspace.roles.some((candidate) => {
+        const normalizedCandidate = normalize(candidate);
+        return (
+          normalizedRole === normalizedCandidate ||
+          normalizedRole.includes(normalizedCandidate) ||
+          normalizedCandidate.includes(normalizedRole)
+        );
+      })
+    ) || null
+  );
 }
 
 export function hasAssignedRole(user, allowedRoles = []) {
-  const roles = extractAssignedRoles(user);
-  return allowedRoles.map(normalize).some((role) => roles.includes(role));
+  const userRoles = extractAssignedRoles(user);
+  const normalizedAllowed = allowedRoles.map(normalize);
+
+  return userRoles.some((userRole) =>
+    normalizedAllowed.some(
+      (allowed) => userRole === allowed || userRole.includes(allowed)
+    )
+  );
 }
 
 export function getWorkspaceByPath(pathname = "") {
-  return WORKSPACES.find((workspace) =>
-    pathname === workspace.path || pathname.startsWith(`${workspace.path}/`)
+  return WORKSPACES.find(
+    (workspace) =>
+      pathname === workspace.path ||
+      pathname.startsWith(`${workspace.path}/`) ||
+      (workspace.key === "legal" && pathname.startsWith("/legal"))
   );
 }

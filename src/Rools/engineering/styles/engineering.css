@@ -1,365 +1,309 @@
 @import "@/shared/constants/colors.css";
 
-/* =========================
-   ENGINEERING PAGE
-========================= */
+/* ================= PAGE CONTAINER & ANIMATIONS ================= */
 
 .engineering-page {
   display: grid;
-  gap: 20px;
-  padding: 8px 0 20px;
-}
-
-/* =========================
-   HEADER
-========================= */
-
-.engineering-page .engineering-page-header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
   gap: 16px;
+  padding: 4px 0 20px;
 }
 
-/* =========================
-   STATS
-========================= */
+.engineering-page > * {
+  animation: fade-up 0.34s ease both;
+}
 
-.engineering-page .engineering-stats-grid {
+.engineering-page > *:nth-child(2) {
+  animation-delay: 0.04s;
+}
+
+.engineering-page > *:nth-child(3) {
+  animation-delay: 0.08s;
+}
+
+/* ================= STATS GRID ================= */
+
+.engineering-page .legal-stats-grid {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
 }
 
-/* =========================
-   TOOLBAR
-========================= */
+/* ================= TOOLBAR & FILTERS ================= */
 
-.engineering-page .engineering-toolbar {
+.engineering-toolbar {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 14px;
-  align-items: center;
-
-  padding: 14px 16px;
-
-  border: 1px solid var(--dash-line);
-
-  border-radius: 20px;
-
-  background: var(--dash-topbar-bg);
-
-  box-shadow: var(--dash-shadow);
-}
-
-.engineering-page .toolbar-search {
-  flex: 1;
-
-  min-width: 0;
-
-  height: 44px;
-
-  display: flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  padding: 0 14px;
-
-  border: 1px solid var(--dash-line);
-
-  border-radius: 14px;
-
-  background: var(--dash-input-bg);
-}
-
-.engineering-page .toolbar-search input {
-  flex: 1;
-
-  border: 0;
-
-  outline: 0;
-
-  background: transparent;
-
-  color: var(--dash-text);
-}
-
-.engineering-page .toolbar-select {
-  height: 44px;
-
-  min-width: 170px;
-
-  padding: 0 14px;
-
-  border-radius: 14px;
-
-  border: 1px solid var(--dash-line);
-
-  background: var(--dash-pill-bg);
-
-  color: var(--dash-text);
-}
-
-/* =========================
-   TABLE
-========================= */
-
-.engineering-page .project-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.engineering-page .engineering-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.engineering-page .engineering-table th,
-.engineering-page .engineering-table td {
-  padding: 14px 16px;
-
-  text-align: right;
-
-  border-bottom: 1px solid var(--dash-line);
-
-  white-space: nowrap;
-}
-
-.engineering-page .engineering-table th {
-  color: var(--dash-muted);
-
-  font-size: 13px;
-}
-
-/* =========================
-   BUTTONS
-========================= */
-
-.engineering-page .primary-action-btn {
-  height: 46px;
-
-  padding: 0 16px;
-
-  border-radius: 16px;
-
-  border: 1px solid var(--dash-line);
-
-  background: linear-gradient(
-    180deg,
-    var(--dash-shell-glow-1),
-    var(--dash-shell-glow-2)
-  );
-
-  color: var(--dash-text);
-
-  display: inline-flex;
-
-  align-items: center;
-
-  gap: 10px;
-
-  cursor: pointer;
-
-  font-weight: 700;
-}
-
-.engineering-page .icon-action-btn {
-  width: 36px;
-  height: 36px;
-
-  border-radius: 12px;
-
-  border: 1px solid var(--dash-line);
-
-  background: var(--dash-icon-bg);
-
-  display: grid;
-
-  place-items: center;
-
-  cursor: pointer;
-}
-
-/* =========================
-   EMPTY
-========================= */
-
-.engineering-page .project-empty-state {
-  padding: 18px;
-
-  border-radius: 18px;
-
-  border: 1px solid var(--dash-line);
-
-  background: var(--dash-blank-bg);
-
-  text-align: center;
-
-  color: var(--dash-muted);
-}
-
-/* =========================
-   MAP
-========================= */
-
-.engineering-map-page .engineering-map-board {
-  padding: 16px;
-
-  border-radius: 22px;
-
-  border: 1px solid var(--dash-line);
-
-  background: linear-gradient(
-    180deg,
-    var(--dash-surface),
-    var(--dash-surface-2)
-  );
-
-  box-shadow: var(--dash-shadow);
-}
-
-.engineering-map-page .engineering-map-real {
-  height: 360px;
-
-  border-radius: 18px;
-
-  overflow: hidden;
-
-  border: 1px solid var(--dash-line);
-}
-
-.engineering-map-page .leaflet-container {
-  width: 100%;
-  height: 100%;
-}
-
-/* =========================
-   POPUP
-========================= */
-
-.engineering-map-page .leaflet-popup-content-wrapper,
-.engineering-map-page .leaflet-popup-tip {
+  padding: 12px 16px;
   background: var(--dash-surface);
-
   border: 1px solid var(--dash-line);
-
-  color: var(--dash-text);
-
-  box-shadow: var(--dash-shadow);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-/* =========================
-   ENGINEERS CARDS
-========================= */
-
-.engineering-page .engineer-compact-card {
-  padding: 16px;
-
-  border-radius: 18px;
-
-  border: 1px solid var(--dash-line);
-
-  background: linear-gradient(
-    180deg,
-    var(--dash-surface),
-    var(--dash-surface-2)
-  );
-
-  box-shadow: var(--dash-shadow);
-}
-
-/* =========================
-   MODAL
-========================= */
-
-.engineering-page .project-modal-panel,
-.engineering-page .project-modal-info-card,
-.engineering-page .attachment-card,
-.engineering-page .building-card,
-.engineering-page .mini-project-card,
-.engineering-page .modal-engineer-row {
-  border-radius: 18px;
-
-  border: 1px solid var(--dash-line);
-
-  background: linear-gradient(
-    180deg,
-    var(--dash-surface),
-    var(--dash-surface-2)
-  );
-
-  box-shadow: var(--dash-shadow);
-}
-
-/* =========================
-   RESPONSIVE
-========================= */
-
-@media (max-width: 1100px) {
-  .engineering-page .engineering-stats-grid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 768px) {
-  .engineering-page .engineering-toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .engineering-page .toolbar-select {
-    width: 100%;
-    min-width: 0;
-  }
-}
-/* =======================================================
-   تعديلات خاصة لتصغير حجم مودال إضافة المهندس وضغط الحقول
-   ======================================================= */
-
-/* تحديد العرض الأقصى للـ Modal المتوسط والصغير وضبط الهوامش الداعمة */
-.engineering-page .engineering-form {
-  max-width: 650px;
-  margin: 0 auto;
-  padding: 8px 4px;
-}
-
-/* تصغير المسافة بين حقول الإدخال */
-.engineering-form-grid {
-  gap: 12px !important; 
-}
-
-/* ضبط حجم الفراغات للأزرار السفلية */
-.modal-actions {
-  margin-top: 18px;
+.engineering-toolbar .toolbar-search {
+  position: relative;
+  flex: 1;
   display: flex;
-  justify-content: flex-end;
-  gap: 10px;
+  align-items: center;
 }
 
-/* دعم التجاوب على الشاشات الصغيرة ليصبح عمودياً تلقائياً دون خروج عن الشاشة */
-@media (max-width: 600px) {
-  .engineering-form-grid {
-    grid-template-columns: 1fr !important;
-  }
-}
-.project-table-wrap {
+.engineering-toolbar .toolbar-search input {
   width: 100%;
-  overflow-x: auto; /* يتيح التمرير الأفقي للجدول فقط دون تدمير بقية أجزاء اللوحة */
-  -webkit-overflow-scrolling: touch; /* تمرير ناعم على هواتف الـ iPhone */
+  height: 42px;
+  padding: 0 16px 0 42px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  color: var(--dash-text);
+  font-size: 13.5px;
+  text-align: right;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.engineering-toolbar .toolbar-search input::placeholder {
+  color: var(--dash-muted);
+}
+
+.engineering-toolbar .toolbar-search input:focus {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.engineering-toolbar .toolbar-search svg {
+  position: absolute;
+  left: 14px;
+  color: var(--dash-accent);
+  pointer-events: none;
+}
+
+.engineering-toolbar .toolbar-filters {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.engineering-toolbar .toolbar-select {
+  height: 42px;
+  padding: 0 36px 0 16px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease;
+}
+
+.engineering-toolbar .toolbar-select:focus {
+  border-color: var(--dash-accent);
+}
+
+/* ================= BUTTONS & ACTIONS ================= */
+
+.primary-action-btn {
+  height: 42px;
+  padding: 0 18px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  border: 1px solid var(--dash-accent-strong);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
+  flex-shrink: 0;
+}
+
+.primary-action-btn:hover {
+  background: var(--dash-accent-soft);
+  transform: translateY(-1px);
+}
+
+.ghost-filter-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-pill-bg);
+  color: var(--dash-text);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+/* ================= TABLE & DATA STYLES ================= */
+
+.project-table-wrap {
+  overflow: auto;
 }
 
 .engineering-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 800px; /* يجبر الجدول على الحفاظ على هيبته وتنسيقه الداخلي، وعند صغر الشاشة يظهر الـ Scrollbar داخل الكرت نفسه */
+  min-width: 800px;
 }
-/* الكروت ستعيد ترتيب نفسها تلقائياً؛ كل كرت لا يقل عن 250px، وإذا تيسرت مساحة أكبر يتمدد لملئها */
-.engineering-stats-grid, 
-.assign-buildings-grid,
-.warehouses-grid {
+
+.engineering-table th,
+.engineering-table td {
+  padding: 14px 16px;
+  text-align: right;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.engineering-table th {
+  font-size: 12px;
+  color: var(--dash-muted);
+  font-weight: 700;
+}
+
+.engineering-table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.engineering-table tbody tr:hover {
+  background: var(--dash-hover-bg);
+}
+
+.fw-semibold {
+  font-weight: 700;
+  color: var(--dash-text);
+}
+
+.badge-spec {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  border: 1px solid var(--dash-line);
+}
+
+/* ================= ROW ACTIONS ================= */
+
+.row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.icon-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 16px;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.icon-action-btn:hover:not(:disabled) {
+  background: var(--dash-icon-hover-bg);
+  border-color: var(--dash-line-2);
+  transform: translateY(-1px);
+}
+
+.icon-action-btn.danger {
+  color: var(--danger, #ef4444);
+}
+
+/* ================= MODAL & FORMS ================= */
+
+.engineering-form {
+  display: grid;
+  gap: 14px;
+}
+
+.engineering-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* ================= EMPTY & ERROR STATES ================= */
+
+.project-empty-state {
+  padding: 18px;
+  text-align: center;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.project-empty-state.error-state {
+  color: var(--danger, #ef4444);
+}
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
+
+@media (max-width: 1024px) {
+  .engineering-page .legal-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .engineering-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .engineering-toolbar .toolbar-search {
+    width: 100%;
+    order: 4;
+  }
+
+  .primary-action-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .engineering-form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .engineering-page .legal-stats-grid {
+    grid-template-columns: 1fr;
+  }
 }

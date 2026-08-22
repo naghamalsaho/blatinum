@@ -1,9 +1,12 @@
+import { useState, useEffect } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 
 import DashboardLayout from "@/app/layouts/DashboardLayout";
-
 import { marketingSidebar } from "@/shared/config/sidebar/marketingSidebar";
+
+// استيراد الدوال من ملف الترجمة الخاص بك
+import { getLanguage, setLanguage, t } from "@/shared/i18n";
 
 import { Bell, Globe, LogOut } from "lucide-react";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
@@ -13,6 +16,21 @@ import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
 export default function MarketingLayout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  // حالة محلية لإجبار المكون على التحديث عند تغيير اللغة
+  const [currentLang, setCurrentLang] = useState(getLanguage());
+
+  // إعطاء الاتجاه واللغة للعنصر HTML عند بدء التحميل
+  useEffect(() => {
+    setLanguage(currentLang);
+  }, [currentLang]);
+
+  // دالة تبديل اللغة والاتجاه
+  const handleLanguageToggle = () => {
+    const nextLang = currentLang === "ar" ? "en" : "ar";
+    setLanguage(nextLang); // تحديث الاتجاه و localStorage
+    setCurrentLang(nextLang); // إعادة رسم الواجهة
+  };
 
   const handleLogout = async () => {
     try {
@@ -29,6 +47,7 @@ export default function MarketingLayout() {
       navigate("/", { replace: true });
     }
   };
+
   return (
     <DashboardLayout
       sidebarConfig={marketingSidebar}
@@ -49,12 +68,11 @@ export default function MarketingLayout() {
             icon: Bell,
             onClick: () => {},
           },
-
           {
             key: "lang",
-            label: "اللغة",
+            label: currentLang === "ar" ? "English" : "العربية",
             icon: Globe,
-            onClick: () => {},
+            onClick: handleLanguageToggle,
           },
         ],
 

@@ -4,70 +4,83 @@ import {
   createAvailableSlot,
   updateAvailableSlot,
   deleteAvailableSlot,
+  fetchAppointments,
+  fetchOrderDetails,
 } from "./availableSlot.thunks";
 
 const initialState = {
-  items: [],
-  loading: false,
+  slots: { items: [], loading: false, error: null },
+  appointments: { items: [], loading: false, error: null },
+  orderDetails: { data: null, loading: false, error: null },
   actionLoading: false,
-  error: null,
 };
 
 const availableSlotSlice = createSlice({
   name: "availableSlots",
   initialState,
-  reducers: {},
+  reducers: {
+    clearOrderDetails: (state) => {
+      state.orderDetails = { data: null, loading: false, error: null };
+    },
+  },
   extraReducers: (builder) => {
     builder
+      // 🎯 جلب الفترات المتاحة (Slots)
       .addCase(fetchAvailableSlots.pending, (state) => {
-        state.loading = true;
-        state.error = null;
+        state.slots.loading = true;
+        state.slots.error = null;
       })
       .addCase(fetchAvailableSlots.fulfilled, (state, action) => {
-        state.loading = false;
-        state.items = action.payload;
+        state.slots.loading = false;
+        state.slots.items = action.payload;
       })
       .addCase(fetchAvailableSlots.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload || "Failed to load available slots";
+        state.slots.loading = false;
+        state.slots.error = action.payload || "Failed to load available slots";
       })
 
-      .addCase(createAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-        state.error = null;
+      // 🎯 جلب الحجوزات (Appointments)
+      .addCase(fetchAppointments.pending, (state) => {
+        state.appointments.loading = true;
+        state.appointments.error = null;
       })
-      .addCase(createAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
+      .addCase(fetchAppointments.fulfilled, (state, action) => {
+        state.appointments.loading = false;
+        state.appointments.items = action.payload;
       })
-      .addCase(createAvailableSlot.rejected, (state, action) => {
-        state.actionLoading = false;
-        state.error = action.payload || "Failed to create available slot";
-      })
-
-      .addCase(updateAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-        state.error = null;
-      })
-      .addCase(updateAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
-      })
-      .addCase(updateAvailableSlot.rejected, (state, action) => {
-        state.actionLoading = false;
-        state.error = action.payload || "Failed to update available slot";
+      .addCase(fetchAppointments.rejected, (state, action) => {
+        state.appointments.loading = false;
+        state.appointments.error = action.payload || "Failed to load appointments";
       })
 
-      .addCase(deleteAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-        state.error = null;
+      // 🎯 إدارة العمليات (إضافة/تحديث/حذف)
+      .addCase(createAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(createAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(createAvailableSlot.rejected, (state) => { state.actionLoading = false; })
+
+      .addCase(updateAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(updateAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(updateAvailableSlot.rejected, (state) => { state.actionLoading = false; })
+
+      .addCase(deleteAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(deleteAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(deleteAvailableSlot.rejected, (state) => { state.actionLoading = false; })
+
+      // 🎯 جلب تفاصيل طلب محدد
+      .addCase(fetchOrderDetails.pending, (state) => {
+        state.orderDetails.loading = true;
+        state.orderDetails.error = null;
       })
-      .addCase(deleteAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
+      .addCase(fetchOrderDetails.fulfilled, (state, action) => {
+        state.orderDetails.loading = false;
+        state.orderDetails.data = action.payload;
       })
-      .addCase(deleteAvailableSlot.rejected, (state, action) => {
-        state.actionLoading = false;
-        state.error = action.payload || "Failed to delete available slot";
+      .addCase(fetchOrderDetails.rejected, (state, action) => {
+        state.orderDetails.loading = false;
+        state.orderDetails.error = action.payload || "فشل في جلب تفاصيل الطلب";
       });
   },
 });
 
+export const { clearOrderDetails } = availableSlotSlice.actions;
 export default availableSlotSlice.reducer;

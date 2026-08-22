@@ -2,8 +2,7 @@ import { api } from "@/shared/api/crud";
 
 export const contractApi = {
   createContract: (formData) => api.postForm("/contract", formData),
-   getOrders: () =>
-    api.get("/order"),
+   getOrders: () => api.get("/order/ordersWithoutContracts"),
     getContracts: (page = 1) =>
     api.get("/contract", { page }),
       getContractById: (id) =>

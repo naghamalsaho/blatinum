@@ -1,297 +1,341 @@
 @import "@/shared/constants/colors.css";
 
-/* ==========================================
-   قواعد إخفاء شريط التمرير عامةً
-   ========================================== */
-*,
-*::-webkit-scrollbar {
-  -ms-overflow-style: none !important;
-  scrollbar-width: none !important;
-}
-
-*::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-}
+/* ================= PAGE CONTAINER & ANIMATIONS ================= */
 
 .financial-exceptions-page {
-  --financial-accent: var(--dash-accent);
-  --financial-accent-strong: var(--dash-accent-strong);
-  --financial-soft: var(--dash-shell-glow-1);
-
   display: grid;
-  gap: 22px;
-  width: 100%;
-}
-
-/* ==========================================
-   STAT CARDS (بطاقات الإحصائيات)
-   ========================================== */
-.financial-exceptions-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
   gap: 16px;
-  margin-bottom: 24px;
-  width: 100%;
+  padding: 4px 0 20px;
 }
 
-.financial-exceptions-stats-grid > * {
-  background: var(--dash-surface, #0b111e);
-  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
-  border-radius: 16px;
-  padding: 16px 20px;
-  box-shadow: var(--dash-shadow);
-  position: relative !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-  min-height: 86px;
-  transition: all 0.2s ease;
+.financial-exceptions-page > * {
+  animation: fade-up 0.34s ease both;
 }
 
-.financial-exceptions-stats-grid > *:hover {
-  border-color: var(--dash-accent);
-  transform: translateY(-2px);
+.financial-exceptions-page > *:nth-child(2) {
+  animation-delay: 0.04s;
 }
 
-.financial-exceptions-stats-grid > * > div:not(:has(svg)) {
-  width: 100% !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
-  text-align: center !important;
+.financial-exceptions-page > *:nth-child(3) {
+  animation-delay: 0.08s;
 }
 
-.financial-exceptions-stats-grid > * > div > *:first-child {
-  color: #94a3b8 !important;
-  font-size: 13.5px !important;
-  font-weight: 600 !important;
-  margin: 0 0 6px 0 !important;
-  display: block !important;
-  text-align: center !important;
-}
+/* ================= STATS GRID ================= */
 
-.financial-exceptions-stats-grid > * > div > *:nth-child(2),
-.financial-exceptions-stats-grid strong,
-.financial-exceptions-stats-grid h2 {
-  color: var(--dash-text) !important;
-  font-size: 22px !important;
-  font-weight: 800 !important;
-  line-height: 1.2 !important;
-  margin: 0 !important;
-  display: block !important;
-  text-align: center !important;
-}
-
-.financial-exceptions-stats-grid > * > svg,
-.financial-exceptions-stats-grid > * > div:has(svg) {
-  position: absolute !important;
-  right: 20px !important;
-  top: 50% !important;
-  transform: translateY(-50%) !important;
-  color: #94a3b8 !important;
-  opacity: 0.85;
-  margin: 0 !important;
-}
-
-/* ==========================================
-   اللوحة الرئيسية (Panel Container)
-   ========================================== */
-.financial-panel {
-  background: var(--dash-surface, #0b111e);
-  border: 1px solid var(--dash-line, rgba(255, 255, 255, 0.08));
-  border-radius: 20px;
-  padding: 22px;
-  box-shadow: var(--dash-shadow);
-  min-width: 0;
-  width: 100%;
-  max-height: calc(100vh - 220px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.financial-panel-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--dash-line);
-}
-
-.financial-panel-head h2 {
-  margin: 0;
-  color: var(--dash-text);
-  font-size: 18px;
-  font-weight: 800;
-}
-
-.financial-panel-head p {
-  margin: 4px 0 0;
-  color: var(--dash-muted);
-  font-size: 13px;
-}
-
-/* ==========================================
-   TOOLBAR & FILTER SYSTEM
-   ========================================== */
-.financial-exceptions-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.financial-exceptions-page .legal-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
-  width: 100%;
 }
 
-.financial-search-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  width: 100%;
-  max-width: 640px;
-  margin: 0 auto;
-}
+/* ================= EXACT TOOLBAR (MATCHING APPOINTMENTS & SERVICES) ================= */
 
-.financial-search {
-  flex: 1;
-  height: 44px;
+.exact-toolbar-card {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 0 16px;
-  border-radius: 14px;
+  gap: 14px;
+  padding: 12px 16px;
+  background: var(--dash-surface);
   border: 1px solid var(--dash-line);
-  background: var(--dash-input-bg);
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
-.financial-search svg {
-  color: var(--dash-muted);
+/* 1. زر الإضافة رئيسي */
+.exact-primary-btn {
+  height: 42px;
+  padding: 0 18px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  border: 1px solid var(--dash-accent-strong);
+  border-radius: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.18s ease;
   flex-shrink: 0;
 }
 
-.financial-search input {
-  width: 100%;
-  border: 0;
+.exact-primary-btn:hover {
+  background: var(--dash-accent-soft);
+  transform: translateY(-1px);
+}
+
+/* 2. القائمة المنسدلة */
+.exact-select-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.exact-select-wrapper select {
+  height: 42px;
+  padding: 0 36px 0 16px;
+  background: var(--dash-surface);
+  color: var(--dash-text);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  font-size: 13.5px;
+  font-weight: 600;
   outline: none;
-  background: transparent;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color 0.2s ease;
+}
+
+.exact-select-wrapper select:focus {
+  border-color: var(--dash-accent);
+}
+
+.exact-select-chevron {
+  position: absolute;
+  left: 12px;
+  color: var(--dash-muted);
+  pointer-events: none;
+}
+
+/* 3. عنوان التصفية */
+.exact-filter-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--dash-text);
+  font-size: 13.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.exact-filter-label svg {
+  color: var(--dash-muted);
+}
+
+/* 4. حقل البحث المماد */
+.exact-search-field {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.exact-search-field input {
+  width: 100%;
+  height: 42px;
+  padding: 0 16px 0 42px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
   color: var(--dash-text);
   font-size: 13.5px;
   text-align: right;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.financial-status-dropdown {
-  position: relative;
-  flex-shrink: 0;
+.exact-search-field input::placeholder {
+  color: var(--dash-muted);
 }
 
-.financial-status-trigger {
-  height: 44px;
-  padding: 0 16px;
-  border-radius: 14px;
+.exact-search-field input:focus {
+  border-color: var(--dash-accent);
+  box-shadow: 0 0 0 3px var(--dash-accent-soft);
+}
+
+.exact-search-icon {
+  position: absolute;
+  left: 14px;
+  color: var(--dash-accent);
+  pointer-events: none;
+}
+
+/* ================= BUTTONS & FORM STYLES ================= */
+
+.ghost-filter-btn {
+  height: 40px;
+  padding: 0 14px;
+  border-radius: 12px;
   border: 1px solid var(--dash-line);
-  background: var(--dash-input-bg);
+  background: var(--dash-pill-bg);
   color: var(--dash-text);
-  font-size: 13px;
-  font-weight: 700;
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
+  font-size: 13.5px;
+  font-weight: 600;
 }
 
-.financial-status-trigger:hover {
+.modal-form {
+  display: grid;
+  gap: 14px;
+}
+
+.modal-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.modal-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.field-group {
+  display: grid;
+  gap: 6px;
+}
+
+.field-label {
+  color: var(--dash-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.financial-textarea {
+  width: 100%;
+  min-height: 90px;
+  padding: 10px 14px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  border-radius: 12px;
+  color: var(--dash-text);
+  font-size: 13.5px;
+  outline: none;
+  resize: vertical;
+  transition: border-color 0.2s ease;
+}
+
+.financial-textarea:focus {
   border-color: var(--dash-accent);
+}
+
+/* ================= TABLE & TABLE CARD ================= */
+
+.financial-exceptions-page .table-scroll {
+  overflow: auto;
+}
+
+.financial-exceptions-page .legal-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 920px;
+}
+
+.financial-exceptions-page .legal-table th,
+.financial-exceptions-page .legal-table td {
+  padding: 14px 16px;
+  text-align: right;
+  border-bottom: 1px solid var(--dash-line);
+  color: var(--dash-text);
+  font-size: 14px;
+  vertical-align: middle;
+}
+
+.financial-exceptions-page .legal-table th {
+  font-size: 12px;
+  color: var(--dash-muted);
+  font-weight: 700;
+}
+
+.financial-exceptions-page .legal-table tbody tr {
+  transition: background 0.16s ease;
+}
+
+.financial-exceptions-page .legal-table tbody tr:hover {
   background: var(--dash-hover-bg);
 }
 
-.financial-status-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 50;
-  min-width: 160px;
-  padding: 6px;
-  border-radius: 14px;
-  border: 1px solid var(--dash-line);
-  background: var(--dash-surface);
-  box-shadow: var(--dash-shadow);
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+/* ================= CELL COMPONENTS ================= */
 
-/* ==========================================
-   حاوية وصفوف الجدول
-   ========================================== */
-.financial-exceptions-table-wrap {
-  width: 100%;
-  overflow-x: auto;
-}
-
-.financial-exceptions-table th:nth-child(1), .financial-exceptions-table td:nth-child(1) { width: 22%; }
-.financial-exceptions-table th:nth-child(2), .financial-exceptions-table td:nth-child(2) { width: 14%; }
-.financial-exceptions-table th:nth-child(3), .financial-exceptions-table td:nth-child(3) { width: 18%; }
-.financial-exceptions-table th:nth-child(4), .financial-exceptions-table td:nth-child(4) { width: 14%; }
-.financial-exceptions-table th:nth-child(5), .financial-exceptions-table td:nth-child(5) { width: 12%; }
-.financial-exceptions-table th:nth-child(6), .financial-exceptions-table td:nth-child(6) { width: 10%; }
-.financial-exceptions-table th:nth-child(7), .financial-exceptions-table td:nth-child(7) { 
-  width: 10%; 
-  min-width: 130px; 
-}
-
-.financial-exception-title-cell {
+.services-item-cell {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   min-width: 0;
 }
 
-.financial-exception-title {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  color: var(--dash-text);
-  font-size: 11px;
-  font-weight: 700;
-}
-
-.financial-exception-icon-box {
-  width: 40px;
-  height: 40px;
-  border: 1px solid var(--dash-line);
-  border-radius: 12px;
-  background: var(--dash-card-bg);
-  color: var(--dash-accent);
+.services-thumb-placeholder {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
   display: grid;
   place-items: center;
+  color: var(--dash-accent);
+  background: var(--dash-input-bg);
+  border: 1px solid var(--dash-line);
   flex-shrink: 0;
 }
 
-.financial-icon-btn.review {
+.services-item-info {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.services-item-info strong {
+  color: var(--dash-text);
+  font-size: 13.5px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.services-date {
+  color: var(--dash-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+/* ================= ROW ACTIONS ================= */
+
+.financial-exceptions-page .row-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.financial-exceptions-page .icon-action-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: 1px solid var(--dash-line);
+  background: var(--dash-icon-bg);
+  color: var(--dash-accent);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.financial-exceptions-page .icon-action-btn:hover:not(:disabled) {
+  background: var(--dash-icon-hover-bg);
+  border-color: var(--dash-line-2);
+  transform: translateY(-1px);
+}
+
+.financial-exceptions-page .icon-action-btn.review {
   color: #38bdf8;
 }
 
-.financial-icon-btn.review:hover {
-  background: rgba(56, 189, 248, 0.15);
+.financial-exceptions-page .icon-action-btn.danger {
+  color: var(--danger);
 }
 
-/* ==========================================
-   المراجعة والخيارات الخاصة بالاعتماد
-   ========================================== */
+/* ================= PREVIEW & REVIEW MODALS ================= */
+
 .financial-review-context {
-  background: var(--dash-blank-bg);
+  background: var(--dash-blank-bg, var(--dash-input-bg));
   padding: 14px;
-  border-radius: 14px;
+  border-radius: 12px;
   border: 1px solid var(--dash-line);
   display: flex;
   flex-direction: column;
@@ -311,11 +355,12 @@
   padding: 12px 16px;
   border-radius: 12px;
   border: 1px solid var(--dash-line);
-  background: var(--dash-input-bg);
+  background: var(--dash-surface);
   cursor: pointer;
   transition: all 0.2s ease;
   font-weight: 700;
   font-size: 13px;
+  color: var(--dash-text);
 }
 
 .review-option input {
@@ -334,21 +379,125 @@
   color: #ef4444;
 }
 
-/* تجاوب الشاشات */
-@media (max-width: 1180px) {
-  .financial-exceptions-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+.financial-preview-modal {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.financial-preview-card {
+  background: var(--dash-input-bg);
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px solid var(--dash-line);
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.financial-preview-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.financial-preview-row .label {
+  color: var(--dash-muted);
+  font-weight: 600;
+}
+
+.financial-preview-row .value {
+  color: var(--dash-text);
+  font-weight: 700;
+}
+
+.financial-preview-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.financial-preview-title {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: var(--dash-text);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.financial-preview-desc {
+  font-size: 13px;
+  color: var(--dash-muted);
+  line-height: 1.6;
+  margin: 0;
+  background: var(--dash-input-bg);
+  padding: 12px;
+  border-radius: 10px;
+  border: 1px solid var(--dash-line);
+}
+
+/* ================= TABLE STATES ================= */
+
+.financial-exceptions-page .table-state,
+.financial-exceptions-page .empty-cell {
+  padding: 18px;
+  text-align: center;
+  color: var(--dash-muted);
+  font-size: 13px;
+}
+
+.financial-exceptions-page .table-state.is-error {
+  color: var(--danger);
+}
+
+/* ================= ANIMATIONS ================= */
+
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ================= RESPONSIVE DESIGN ================= */
+
+@media (max-width: 1024px) {
+  .financial-exceptions-page .legal-stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 768px) {
-  .financial-exceptions-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .exact-toolbar-card {
+    flex-wrap: wrap;
+  }
+
+  .exact-search-field {
+    width: 100%;
+    order: 4;
+  }
+
+  .exact-primary-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .modal-grid,
+  .financial-preview-card,
+  .financial-review-options {
+    grid-template-columns: 1fr;
   }
 }
 
 @media (max-width: 480px) {
-  .financial-exceptions-stats-grid {
+  .financial-exceptions-page .legal-stats-grid {
     grid-template-columns: 1fr;
   }
 }

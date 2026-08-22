@@ -9,6 +9,7 @@ import {
   LockKeyhole,
   Mail,
   Moon,
+  RotateCcw,
   ShieldCheck,
   SunMedium,
 } from "lucide-react";
@@ -36,14 +37,12 @@ import { getLanguage, setLanguage, t } from "@/shared/i18n";
 import { useTheme } from "@/shared/theme/useTheme";
 import "@/shared/ui/login.css";
 
-
 // ======================================================
 // منطق استخراج ومطابقة الأدوار والمسارات
 // ======================================================
 
 const normalizeText = (value) =>
   String(value || "").trim().toLowerCase();
-
 
 const collectUserText = (user = {}, availableRoles = []) => {
   const rolesText = availableRoles
@@ -77,222 +76,87 @@ const collectUserText = (user = {}, availableRoles = []) => {
     .join(" ");
 };
 
-
 const hasAnyMatch = (value, words) =>
   words.some((word) => value.includes(word));
-
 
 // ======================================================
 // تحديد المسار المناسب بعد تسجيل الدخول
 // ======================================================
 
 const getLoginPath = (payload = {}) => {
-  const user =
-    payload.user ||
-    payload.data?.user ||
-    {};
-
-  const permissions =
-    payload.permissions ||
-    payload.user?.permissions ||
-    payload.data?.permissions ||
-    [];
-
-  const availableRoles =
-    payload.available_roles ||
-    payload.data?.available_roles ||
-    [];
-
-  // ------------------------------------------------------
-  // إذا كان لدى المستخدم أكثر من Workspace
-  // ------------------------------------------------------
+  const user = payload.user || payload.data?.user || {};
+  const permissions = payload.permissions || payload.user?.permissions || payload.data?.permissions || [];
+  const availableRoles = payload.available_roles || payload.data?.available_roles || [];
 
   try {
     const assigned = getAssignedWorkspaces(user);
-
     if (assigned && assigned.length > 1) {
       return "/choose-workspace";
     }
   } catch (error) {
-    console.warn(
-      "Workspaces resolution fallback:",
-      error
-    );
+    console.warn("Workspaces resolution fallback:", error);
   }
 
+  const userText = collectUserText(user, availableRoles);
 
-  // ------------------------------------------------------
-  // التحقق حسب بيانات المستخدم والـ Roles
-  // ------------------------------------------------------
-
-  const userText = collectUserText(
-    user,
-    availableRoles
-  );
-
-
-  // Engineering
-  if (
-    hasAnyMatch(userText, [
-      "engineering",
-      "engineer",
-      "engineering_staff",
-      "هندسة",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["engineering", "engineer", "engineering_staff", "هندسة", "هندسه"])) {
     return "/engineering";
   }
 
-
-  // Finance
-  if (
-    hasAnyMatch(userText, [
-      "finance_staff",
-      "finance",
-      "financial",
-      "accounting",
-      "مالية",
-      "مالي",
-      "محاسب",
-      "محاسبة",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["finance_staff", "finance", "financial", "accounting", "مالية", "مالي", "محاسب", "محاسبة"])) {
     return "/financial";
   }
 
-
-  // Customer Service
-  if (
-    hasAnyMatch(userText, [
-      "customer_service_staff",
-      "customer_service",
-      "customer service",
-      "support",
-      "خدمة العملاء",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["customer_service_staff", "customer_service", "customer service", "support", "خدمة العملاء", "خدمة_العملاء"])) {
     return "/customer-service";
   }
 
-
-  // Marketing
-  if (
-    hasAnyMatch(userText, [
-      "marketing_staff",
-      "marketing",
-      "marketer",
-      "تسويق",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["marketing_staff", "marketing", "marketer", "تسويق"])) {
     return "/marketing";
   }
 
-
-  // Legal
-  if (
-    hasAnyMatch(userText, [
-      "legal",
-      "law",
-      "قانون",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["legal", "law", "قانون", "قانوني"])) {
     return "/legal/slots";
   }
 
-
-  // Admin
-  if (
-    hasAnyMatch(userText, [
-      "admin",
-      "administrator",
-      "مدير",
-    ])
-  ) {
+  if (hasAnyMatch(userText, ["admin", "administrator", "مدير"])) {
     return "/admin";
   }
-
-
-  // ------------------------------------------------------
-  // التحقق حسب Permissions
-  // ------------------------------------------------------
 
   const permissionsText = permissions
     .map((permission) =>
       typeof permission === "string"
         ? permission
-        : permission?.name ||
-          permission?.key ||
-          permission?.slug ||
-          ""
+        : permission?.name || permission?.key || permission?.slug || ""
     )
     .map(normalizeText)
     .join(" ");
 
-
-  // Engineering permissions
-  if (
-    hasAnyMatch(permissionsText, [
-      "engineering",
-      "engineer",
-      "engineering_staff",
-      "هندسة",
-    ])
-  ) {
+  if (hasAnyMatch(permissionsText, ["engineering", "engineer", "engineering_staff", "هندسة"])) {
     return "/engineering";
   }
 
-
-  // Finance permissions
-  if (
-    hasAnyMatch(permissionsText, [
-      "payment",
-      "finance",
-      "contract-exception",
-      "مالية",
-      "مالي",
-    ])
-  ) {
+  if (hasAnyMatch(permissionsText, ["payment", "finance", "contract-exception", "مالية", "مالي"])) {
     return "/financial";
   }
 
-
-  // Customer Service permissions
-  if (
-    hasAnyMatch(permissionsText, [
-      "read.client",
-      "create.client",
-      "read.appointment",
-      "create.appointment",
-      "read.order",
-      "update.order",
-      "customer_service_staff",
-      "client",
-      "appointment",
-    ])
-  ) {
+  if (hasAnyMatch(permissionsText, ["read.client", "create.client", "read.appointment", "customer_service_staff", "client"])) {
     return "/customer-service";
   }
 
+  if (hasAnyMatch(permissionsText, ["marketing", "marketer", "marketing_staff", "تسويق"])) {
+    return "/marketing";
+  }
 
-  // Legal permissions
-  if (
-    hasAnyMatch(permissionsText, [
-      "legal",
-      "law",
-      "قانون",
-    ])
-  ) {
+  if (hasAnyMatch(permissionsText, ["legal", "law", "قانون"])) {
     return "/legal/slots";
   }
 
-
-  // fallback
-  return "/admin";
+  return null;
 };
 
-
 // ======================================================
-// Login Page
+// مكون صفحة تسجيل الدخول
 // ======================================================
 
 export default function LoginPage() {
@@ -308,70 +172,28 @@ export default function LoginPage() {
     verifiedByBackend,
   } = useSelector((state) => state.auth);
 
-  const {
-    theme,
-    toggleTheme,
-  } = useTheme();
+  const { theme, toggleTheme } = useTheme();
 
+  const [showPassword, setShowPassword] = useState(false);
+  const [formData, setFormData] = useState({ login: "", password: "" });
+  const [fieldErrors, setFieldErrors] = useState({ login: "", password: "" });
 
-  const [showPassword, setShowPassword] =
-    useState(false);
-
-  const [formData, setFormData] =
-    useState({
-      login: "",
-      password: "",
-    });
-
-  const [fieldErrors, setFieldErrors] =
-    useState({
-      login: "",
-      password: "",
-    });
-
-
-  // ======================================================
-  // إذا كان المستخدم مسجل دخول مسبقاً
-  // ======================================================
-
-  if (token && verifiedByBackend) {
-
-    // أولاً نحاول الاعتماد على activeRole
+  // التوجيه الذكي فقط في حال وجود مسار معتمد ومطابق للحساب
+  if (token && verifiedByBackend && !error) {
     if (activeRole) {
-      const workspace =
-        getWorkspaceForRole(activeRole);
-
+      const workspace = getWorkspaceForRole(activeRole);
       if (workspace?.path) {
-        return (
-          <Navigate
-            to={workspace.path}
-            replace
-          />
-        );
+        return <Navigate to={workspace.path} replace />;
       }
     }
 
-    // fallback على المنطق القديم
-    const targetPath =
-      getLoginPath({ user });
-
-    return (
-      <Navigate
-        to={targetPath}
-        replace
-      />
-    );
+    const targetPath = getLoginPath({ user });
+    if (targetPath) {
+      return <Navigate to={targetPath} replace />;
+    }
   }
 
-
-  // ======================================================
-  // تغيير الحقول
-  // ======================================================
-
-  const handleChange = ({
-    target: { name, value },
-  }) => {
-
+  const handleChange = ({ target: { name, value } }) => {
     setFormData((current) => ({
       ...current,
       [name]: value,
@@ -383,347 +205,145 @@ export default function LoginPage() {
         [name]: "",
       }));
     }
+
+    if (error) {
+      dispatch({ type: "auth/clearError" });
+    }
   };
 
-
-  // ======================================================
-  // تسجيل الدخول
-  // ======================================================
+  const handleResetForm = () => {
+    dispatch({ type: "auth/logout" });
+    setFormData({ login: "", password: "" });
+    setFieldErrors({ login: "", password: "" });
+  };
 
   const handleLogin = async (event) => {
     event.preventDefault();
 
-
-    // ------------------------------
-    // Validation
-    // ------------------------------
-
     const nextErrors = {
-      login: validateLogin(
-        formData.login
-      ),
-      password: validatePassword(
-        formData.password
-      ),
+      login: validateLogin(formData.login),
+      password: validatePassword(formData.password),
     };
 
     setFieldErrors(nextErrors);
+    if (nextErrors.login || nextErrors.password) return;
 
+    const result = await dispatch(loginUser(formData));
 
-    if (
-      nextErrors.login ||
-      nextErrors.password
-    ) {
+    if (!loginUser.fulfilled.match(result)) {
       return;
     }
 
+    const rawPayload = result.payload || {};
+    const payloadData = rawPayload.data || rawPayload;
+    const roles = extractAvailableRoles(payloadData);
 
-    // ------------------------------
-    // Login API
-    // ------------------------------
-
-    const result =
-      await dispatch(
-        loginUser(formData)
-      );
-
-
-    // إذا فشل تسجيل الدخول
-    if (
-      !loginUser.fulfilled.match(result)
-    ) {
-      return;
-    }
-
-
-    // ------------------------------
-    // استخراج الـ Payload
-    // ------------------------------
-
-    const payload =
-      result.payload?.data ||
-      result.payload ||
-      {};
-
-
-    const roles =
-      extractAvailableRoles(payload);
-
-
-    // ====================================================
-    // أكثر من Role
-    // ====================================================
-
+    // 1. حساب يمتلك أكثر من Role
     if (roles.length > 1) {
-      navigate(
-        "/choose-workspace",
-        { replace: true }
-      );
-
+      navigate("/choose-workspace", { replace: true });
       return;
     }
 
-
-    // ====================================================
-    // Role واحدة فقط
-    // ====================================================
-
+    // 2. حساب يمتلك Role واحدة فقط
     if (roles.length === 1) {
-      const selectedRole =
-        roles[0];
-
-      const workspace =
-        getWorkspaceForRole(
-          selectedRole
-        );
-
-
-      // ------------------------------------------
-      // Role ليس لها ID
-      // ------------------------------------------
+      const selectedRole = roles[0];
+      const workspace = getWorkspaceForRole(selectedRole);
+      const fallbackPath = getLoginPath(payloadData);
+      const targetPath = workspace?.path || fallbackPath;
 
       if (selectedRole.id == null) {
-
-        dispatch(
-          activateAssignedRole(
-            selectedRole
-          )
-        );
-
-        const fallbackPath =
-          getLoginPath(
-            result.payload
-          );
-
-        navigate(
-          workspace?.path ||
-            fallbackPath,
-          { replace: true }
-        );
-
+        dispatch(activateAssignedRole(selectedRole));
+        if (targetPath) {
+          navigate(targetPath, { replace: true });
+        }
         return;
       }
 
+      const roleResult = await dispatch(selectRole(selectedRole));
 
-      // ------------------------------------------
-      // Role لها ID → Select Role API
-      // ------------------------------------------
-
-      const roleResult =
-        await dispatch(
-          selectRole(
-            selectedRole
-          )
-        );
-
-
-      if (
-        !selectRole.fulfilled.match(
-          roleResult
-        )
-      ) {
+      if (!selectRole.fulfilled.match(roleResult)) {
         return;
       }
 
+      const updatedPayload = roleResult.payload?.data || roleResult.payload || payloadData;
+      const finalPath = getWorkspaceForRole(selectedRole)?.path || getLoginPath(updatedPayload);
 
-      const fallbackPath =
-        getLoginPath(
-          result.payload
-        );
-
-
-      navigate(
-        workspace?.path ||
-          fallbackPath,
-        { replace: true }
-      );
-
+      if (finalPath) {
+        navigate(finalPath, { replace: true });
+      }
       return;
     }
 
-
-    // ====================================================
-    // إذا لم نستطع استخراج Roles
-    // نستخدم المنطق القديم
-    // ====================================================
-
-    const targetPath =
-      getLoginPath(
-        result.payload
-      );
-
-    navigate(
-      targetPath,
-      { replace: true }
-    );
+    // 3. محاولة التوجيه بـ getLoginPath
+    const targetPath = getLoginPath(payloadData);
+    if (targetPath) {
+      navigate(targetPath, { replace: true });
+    }
   };
-
-
-  // ======================================================
-  // UI
-  // ======================================================
 
   return (
     <main className="platinum-login-page">
-
       <section className="platinum-login-shell">
 
-        {/* ============================= */}
-        {/* Language + Theme */}
-        {/* ============================= */}
-
+        {/* عناصر التحكم باللغة والمظهر */}
         <div className="auth-page-controls">
-
           <button
             type="button"
             onClick={() => {
-              setLanguage(
-                getLanguage() === "ar"
-                  ? "en"
-                  : "ar"
-              );
-
+              setLanguage(getLanguage() === "ar" ? "en" : "ar");
               window.location.reload();
             }}
           >
             <Globe2 size={16} />
-
-            <span>
-              {getLanguage() === "ar"
-                ? "العربية"
-                : "English"}
-            </span>
+            <span>{getLanguage() === "ar" ? "العربية" : "English"}</span>
           </button>
 
-
-          <button
-            type="button"
-            onClick={toggleTheme}
-          >
-            {theme === "dark"
-              ? (
-                <SunMedium size={16} />
-              )
-              : (
-                <Moon size={16} />
-              )
-            }
-
+          <button type="button" onClick={toggleTheme}>
+            {theme === "dark" ? <SunMedium size={16} /> : <Moon size={16} />}
             <span>
-              {theme === "dark"
-                ? t("light_mode")
-                : t("dark_mode")}
+              {theme === "dark" ? t("light_mode") : t("dark_mode")}
             </span>
           </button>
-
         </div>
 
-
-        {/* ============================= */}
-        {/* Brand Panel */}
-        {/* ============================= */}
-
+        {/* الجانب البصري للعلامة التجارية */}
         <div className="login-brand-panel">
-
           <span className="login-orb login-orb-one" />
-
           <span className="login-orb login-orb-two" />
-
 
           <img
             src={platinumLogo}
             alt="Platinum Contracting and Construction"
           />
 
-
           <div className="login-brand-copy">
-
-            <span className="login-eyebrow">
-              PLATINUM PORTAL
-            </span>
-
-            <h1>
-              {t("login_brand_title")}
-            </h1>
-
-            <p>
-              {t("login_brand_desc")}
-            </p>
-
+            <span className="login-eyebrow">PLATINUM PORTAL</span>
+            <h1>{t("login_brand_title")}</h1>
+            <p>{t("login_brand_desc")}</p>
           </div>
-
 
           <div className="login-trust">
-
             <ShieldCheck size={20} />
-
-            <span>
-              {t("secure_access")}
-            </span>
-
+            <span>{t("secure_access")}</span>
           </div>
-
         </div>
 
-
-        {/* ============================= */}
-        {/* Login Form */}
-        {/* ============================= */}
-
+        {/* نموذج تسجيل الدخول */}
         <div className="login-form-panel">
-
           <div className="login-mobile-logo">
-
-            <img
-              src={platinumLogo}
-              alt="Platinum"
-            />
-
+            <img src={platinumLogo} alt="Platinum" />
           </div>
 
+          <span className="login-eyebrow">{t("welcome_back")}</span>
+          <h2>{t("login_title")}</h2>
+          <p className="login-intro">{t("login_subtitle")}</p>
 
-          <span className="login-eyebrow">
-            {t("welcome_back")}
-          </span>
-
-
-          <h2>
-            {t("login_title")}
-          </h2>
-
-
-          <p className="login-intro">
-            {t("login_subtitle")}
-          </p>
-
-
-          <form
-            onSubmit={handleLogin}
-            noValidate
-          >
-
-            {/* ========================= */}
-            {/* Email */}
-            {/* ========================= */}
-
+          <form onSubmit={handleLogin} noValidate>
+            {/* حقل البريد الإلكتروني */}
             <label className="modern-field">
-
-              <span>
-                {t("email")}
-              </span>
-
-
-              <div
-                className={
-                  fieldErrors.login
-                    ? "has-error"
-                    : ""
-                }
-              >
-
+              <span>{t("email")}</span>
+              <div className={fieldErrors.login ? "has-error" : ""}>
                 <Mail size={19} />
-
-
                 <input
                   type="email"
                   name="login"
@@ -732,148 +352,76 @@ export default function LoginPage() {
                   placeholder="name@company.com"
                   autoComplete="email"
                 />
-
               </div>
-
-
-              {fieldErrors.login && (
-                <small>
-                  {fieldErrors.login}
-                </small>
-              )}
-
+              {fieldErrors.login && <small>{fieldErrors.login}</small>}
             </label>
 
-
-            {/* ========================= */}
-            {/* Password */}
-            {/* ========================= */}
-
+            {/* حقل كلمة المرور */}
             <label className="modern-field">
-
-              <span>
-                {t("password")}
-              </span>
-
-
-              <div
-                className={
-                  fieldErrors.password
-                    ? "has-error"
-                    : ""
-                }
-              >
-
+              <span>{t("password")}</span>
+              <div className={fieldErrors.password ? "has-error" : ""}>
                 <LockKeyhole size={19} />
-
-
                 <input
-                  type={
-                    showPassword
-                      ? "text"
-                      : "password"
-                  }
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
-                  placeholder={
-                    t(
-                      "password_placeholder"
-                    )
-                  }
+                  placeholder={t("password_placeholder")}
                   autoComplete="current-password"
                 />
-
-
                 <button
                   type="button"
-                  onClick={() =>
-                    setShowPassword(
-                      (value) =>
-                        !value
-                    )
-                  }
-                  aria-label={
-                    t(
-                      "toggle_password"
-                    )
-                  }
+                  onClick={() => setShowPassword((val) => !val)}
+                  aria-label={t("toggle_password")}
                 >
-
-                  {showPassword
-                    ? (
-                      <EyeOff
-                        size={18}
-                      />
-                    )
-                    : (
-                      <Eye
-                        size={18}
-                      />
-                    )
-                  }
-
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
-
               </div>
-
-
-              {fieldErrors.password && (
-                <small>
-                  {
-                    fieldErrors.password
-                  }
-                </small>
-              )}
-
+              {fieldErrors.password && <small>{fieldErrors.password}</small>}
             </label>
 
-
-            {/* ========================= */}
-            {/* Backend Error */}
-            {/* ========================= */}
-
+            {/* عرض الخطأ ومتاح معه زر إعادة الإدخال بحساب آخر */}
             {error && (
-              <div
-                className="login-error"
-                role="alert"
-              >
-                {error}
+              <div className="login-error-wrapper" style={{ marginBottom: "16px" }}>
+                <div className="login-error" role="alert" style={{ marginBottom: "8px" }}>
+                  {error}
+                </div>
+                <button
+                  type="button"
+                  onClick={handleResetForm}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    color: "var(--primary-color, #c5a059)",
+                    cursor: "pointer",
+                    fontSize: "0.85rem",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    padding: "0",
+                  }}
+                >
+                  <RotateCcw size={14} />
+                  <span>تحديث وإعادة إدخال البيانات</span>
+                </button>
               </div>
             )}
 
-
-            {/* ========================= */}
-            {/* Login Button */}
-            {/* ========================= */}
-
+            {/* زر تسجيل الدخول */}
             <button
               className="platinum-login-button"
               type="submit"
               disabled={loading}
             >
-
-              <span>
-                {loading
-                  ? t("loading")
-                  : t("login")}
-              </span>
-
+              <span>{loading ? t("loading") : t("login")}</span>
               <ArrowLeft size={19} />
-
             </button>
-
           </form>
 
-
-          <p className="login-help">
-            {t("login_help")}
-          </p>
-
+          <p className="login-help">{t("login_help")}</p>
         </div>
 
       </section>
-
     </main>
   );
 }

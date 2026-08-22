@@ -9,7 +9,6 @@ import {
   CalendarDays,
   MapPinned,
   Paperclip,
- 
 } from "lucide-react";
 import { divIcon } from "leaflet";
 import { MapContainer, TileLayer, Marker, Circle, LayersControl, useMap } from "react-leaflet";
@@ -17,11 +16,9 @@ import PropTypes from "prop-types";
 import "../styles/dashboard.css";
 
 import PageHeader from "@/shared/components/PageHeader";
-import StatCard from "@/shared/components/StatCard";
 import Modal from "@/shared/components/Modal";
 import Button from "@/shared/components/Button";
 import StatusBadge from "@/shared/components/StatusBadge";
-
 
 import {
   fetchProjectEngineers,
@@ -31,11 +28,12 @@ import {
   assignEngineerProject,
   fetchAllProjects,
   fetchAllBuildings,
-  fetchAllEngineers
+  fetchAllEngineers,
 } from "../features/engineerProjects/model/engineerProject.thunks";
 
 const STATUS_META = {
   in_progress: { label: "قيد التنفيذ", type: "ok" },
+  active: { label: "قيد التنفيذ", type: "ok" },
   stopped: { label: "متوقف", type: "busy" },
   completed: { label: "منجز", type: "off" },
   planned: { label: "مخطط", type: "busy" },
@@ -144,9 +142,7 @@ function createMapPinIcon(kind = "project") {
   const isBuilding = kind === "building";
 
   return divIcon({
-    // إسناد كلاس مخصص يلغي افتراضيات Leaflet وكلاس فرعي لتحديد النوع
     className: isBuilding ? "building-pin-marker" : "project-pin-marker",
-    // تمرير البنية الهيكلية فقط وتطبيق التنسيق الداخلي عبر كلاس map-pin-inner
     html: `<div class="map-pin-inner">${isBuilding ? "B" : "P"}</div>`,
     iconSize: [30, 30],
     iconAnchor: [15, 30],
@@ -161,21 +157,19 @@ function groupProjects(assignments = []) {
     const project = relation?.project;
     if (!project?.id) return;
 
-    // تخطي السجل فوراً إذا لم يكن كائن المهندس الحقيقي موجوداً
     if (!relation?.engineer?.account?.full_name) return;
 
     const engineerId = relation?.engineer_id || relation?.engineer?.engineer_id || relation?.id;
     const account = relation.engineer.account;
     const additional = relation?.engineer?.additional_info || {};
 
-    // تجنب إضافة الحسابات الوهمية أو المجهولة الاسم
     if (account.full_name.includes("مهندس #")) return;
 
     if (!map.has(project.id)) {
       map.set(project.id, {
         project: {
           ...project,
-          buildings: project.buildings || [] 
+          buildings: project.buildings || [],
         },
         relations: [],
         engineers: [],
@@ -185,7 +179,7 @@ function groupProjects(assignments = []) {
     const bucket = map.get(project.id);
     bucket.relations.push(relation);
 
-    if (relation.building && !bucket.project.buildings.some(b => b.id === relation.building.id)) {
+    if (relation.building && !bucket.project.buildings.some((b) => b.id === relation.building.id)) {
       bucket.project.buildings.push(relation.building);
     }
 
@@ -209,26 +203,25 @@ function groupEngineers(assignments = []) {
   const map = new Map();
 
   assignments.forEach((relation) => {
-    // استخراج معرف المهندس بشكل مرن بناءً على البيانات المتاحة بالراوت
     const engineerId = getEngineerIdFromRelation(relation) || relation?.engineer_id || relation?.id;
     if (!engineerId) return;
 
     const project = relation?.project || {
       id: relation?.project_id,
       name: relation?.project_name || "مشروع غير مسمى",
-      status: relation?.status || "in_progress"
+      status: relation?.status || "in_progress",
     };
 
-    // تخصيص تفاصيل الإسناد لإظهار الأبنية بدقة في حال وجودها
-    const allocationDetail = relation.allocation_type === "specific_building" && relation.building_number
-      ? `[بناء: ${relation.building_number}]`
-      : "[على مستوى المشروع]";
+    const allocationDetail =
+      relation.allocation_type === "specific_building" && relation.building_number
+        ? `[بناء: ${relation.building_number}]`
+        : "[على مستوى المشروع]";
 
     const account = relation?.engineer?.account || {
       id: engineerId,
       full_name: `مهندس #${engineerId} ${allocationDetail}`,
     };
-    
+
     const additional = relation?.engineer?.additional_info || {};
 
     if (!map.has(engineerId)) {
@@ -243,7 +236,10 @@ function groupEngineers(assignments = []) {
 
     const bucket = map.get(engineerId);
     bucket.relation = relation;
-    bucket.account = bucket.account?.full_name && !bucket.account.full_name.includes("مهندس #") ? bucket.account : account;
+    bucket.account =
+      bucket.account?.full_name && !bucket.account.full_name.includes("مهندس #")
+        ? bucket.account
+        : account;
     bucket.info = additional;
 
     const exists = bucket.projects.some((p) => p.project?.id === project.id);
@@ -264,15 +260,11 @@ function groupEngineers(assignments = []) {
       account: bucket.account || {},
       info: bucket.info || {},
       projects: bucket.projects.sort((a, b) =>
-        String(a?.project?.name || "").localeCompare(
-          String(b?.project?.name || "")
-        )
+        String(a?.project?.name || "").localeCompare(String(b?.project?.name || ""))
       ),
     }))
     .sort((a, b) =>
-      String(a?.account?.full_name || "").localeCompare(
-        String(b?.account?.full_name || "")
-      )
+      String(a?.account?.full_name || "").localeCompare(String(b?.account?.full_name || ""))
     );
 }
 
@@ -285,19 +277,13 @@ function groupEngineersForProjectModal(allocations = [], projectContext = null) 
     const additional = engineer?.additional_info || item?.info || {};
 
     const engineerId =
-      additional?.engineer_id ??
-      item?.engineer_id ??
-      account?.id ??
-      item?.id ??
-      null;
+      additional?.engineer_id ?? item?.engineer_id ?? account?.id ?? item?.id ?? null;
 
     if (!engineerId) return;
 
     const building =
       item?.building ||
-      projectContext?.buildings?.find(
-        (b) => Number(b.id) === Number(item?.building_id)
-      ) ||
+      projectContext?.buildings?.find((b) => Number(b.id) === Number(item?.building_id)) ||
       null;
 
     if (!map.has(engineerId)) {
@@ -316,9 +302,7 @@ function groupEngineersForProjectModal(allocations = [], projectContext = null) 
       id: item?.id,
       allocation_type:
         item?.allocation_type ||
-        (item?.building_id || item?.building
-          ? "specific_building"
-          : "project_wide"),
+        (item?.building_id || item?.building ? "specific_building" : "project_wide"),
       building,
       project: item?.project || projectContext || null,
       start_date: item?.start_date,
@@ -327,9 +311,7 @@ function groupEngineersForProjectModal(allocations = [], projectContext = null) 
   });
 
   return Array.from(map.values()).sort((a, b) =>
-    String(a?.account?.full_name || "").localeCompare(
-      String(b?.account?.full_name || "")
-    )
+    String(a?.account?.full_name || "").localeCompare(String(b?.account?.full_name || ""))
   );
 }
 
@@ -342,11 +324,7 @@ function groupEngineersForBuildingModal(allocations = []) {
     const additional = engineer?.additional_info || item?.info || {};
 
     const engineerId =
-      additional?.engineer_id ??
-      item?.engineer_id ??
-      account?.id ??
-      item?.id ??
-      null;
+      additional?.engineer_id ?? item?.engineer_id ?? account?.id ?? item?.id ?? null;
 
     if (!engineerId) return;
 
@@ -366,9 +344,7 @@ function groupEngineersForBuildingModal(allocations = []) {
   });
 
   return Array.from(map.values()).sort((a, b) =>
-    String(a?.account?.full_name || "").localeCompare(
-      String(b?.account?.full_name || "")
-    )
+    String(a?.account?.full_name || "").localeCompare(String(b?.account?.full_name || ""))
   );
 }
 
@@ -441,9 +417,6 @@ function buildDashboardMapPoints(projectBlocks = []) {
   return points;
 }
 
-
-
-
 function getAllocationTypeLabel(type) {
   if (type === "specific_building") return "إسناد بناء محدد";
   if (type === "project_wide") return "إسناد على مستوى المشروع";
@@ -459,6 +432,17 @@ function formatAllocationLabel(allocation = {}) {
   return `${typeLabel}${buildingLabel}`;
 }
 
+function parseLocalized(value) {
+  if (value == null) return "-";
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (Array.isArray(value)) return value.map(parseLocalized).join(", ");
+  if (typeof value === "object") {
+    const candidate = value.ar ?? value.en ?? Object.values(value)[0];
+    return parseLocalized(candidate);
+  }
+  return String(value);
+}
+
 function getEngineerDisplayName(item = {}) {
   const rawName =
     item?.account?.full_name ||
@@ -466,8 +450,8 @@ function getEngineerDisplayName(item = {}) {
     item?.engineer?.account?.full_name ||
     `${item?.account?.first_name || ""} ${item?.account?.last_name || ""}`.trim() ||
     "-";
-  
-  return parseLocalized(rawName); // حماية الاسم
+
+  return parseLocalized(rawName);
 }
 
 function getEngineerDisplaySpecialization(item = {}) {
@@ -477,7 +461,7 @@ function getEngineerDisplaySpecialization(item = {}) {
     item?.engineer?.additional_info?.specialization ||
     "-";
 
-  return parseLocalized(rawSpec); // حماية التخصص (المتهم الأول في الـ ar)
+  return parseLocalized(rawSpec);
 }
 
 function getEngineerDisplayEmail(item = {}) {
@@ -507,26 +491,6 @@ function getEngineerDisplayAddress(item = {}) {
   );
 }
 
-function parseLocalized(value) {
-  if (value == null) {
-    return "-";
-  }
-
-  if (typeof value === "string" || typeof value === "number") {
-    return String(value);
-  }
-
-  if (Array.isArray(value)) {
-    return value.map(parseLocalized).join(", ");
-  }
-
-  if (typeof value === "object") {
-    const candidate = value.ar ?? value.en ?? Object.values(value)[0];
-    return parseLocalized(candidate);
-  }
-
-  return String(value);
-}
 function getEngineerDisplayExperience(item = {}) {
   return (
     item?.info?.experience_years ??
@@ -535,7 +499,6 @@ function getEngineerDisplayExperience(item = {}) {
     "-"
   );
 }
-// 🌐 مكون التحكم الذكي بحركة كاميرا الخريطة (FlyTo)
 
 function MapController({ target }) {
   const map = useMap();
@@ -552,9 +515,9 @@ function MapController({ target }) {
 MapController.propTypes = {
   target: PropTypes.arrayOf(PropTypes.number),
 };
+
 export default function EngineeringDashboardPage() {
   const dispatch = useDispatch();
- 
 
   const engineerState = useSelector(
     (state) => state.projectEngineer || state.engineerProjects || {}
@@ -585,12 +548,13 @@ export default function EngineeringDashboardPage() {
     start_date: "",
     building_id: "",
   });
-useEffect(() => {
-  dispatch(fetchAllEngineers());
-}, [dispatch]);
+
+  useEffect(() => {
+    dispatch(fetchAllEngineers());
+  }, [dispatch]);
+
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-// الحالة الجديدة لتحديد بؤرة التركيز الجغرافي الفوري
   const [mapCenterTarget, setMapCenterTarget] = useState(null);
   const [projectModalOpen, setProjectModalOpen] = useState(false);
   const [selectedProjectBlock, setSelectedProjectBlock] = useState(null);
@@ -601,79 +565,71 @@ useEffect(() => {
   const [selectedBuildingBlock, setSelectedBuildingBlock] = useState(null);
   const [selectedBuildingEngineers, setSelectedBuildingEngineers] = useState([]);
   const [buildingEngineersLoading, setBuildingEngineersLoading] = useState(false);
-// في أعلى المكون مع باقي الـ States
 
   const [engineerModalOpen, setEngineerModalOpen] = useState(false);
   const [selectedEngineerBlock, setSelectedEngineerBlock] = useState(null);
-  const [selectedEngineerAllocations, setSelectedEngineerAllocations] = useState(
-    []
-  );
- const [engineerAllocationsLoading, setEngineerAllocationsLoading] = useState(false);
-const [enrichedItems, setEnrichedItems] = useState([]);
+  const [selectedEngineerAllocations, setSelectedEngineerAllocations] = useState([]);
+  const [engineerAllocationsLoading, setEngineerAllocationsLoading] = useState(false);
+  const [enrichedItems, setEnrichedItems] = useState([]);
 
-useEffect(() => {
-  const loadDashboardData = async () => {
-    setEngineerAllocationsLoading(true);
-    try {
-      // 1. جلب السجلات الأساسية للمشاريع
-      const baseResult = await dispatch(fetchProjectEngineers()).unwrap();
+  useEffect(() => {
+    const loadDashboardData = async () => {
+      setEngineerAllocationsLoading(true);
+      try {
+        const baseResult = await dispatch(fetchProjectEngineers()).unwrap();
 
-      // 2. جلب المشاريع والأبنية العموميين من الراوتين الجدد
-      await Promise.allSettled([
-        dispatch(fetchAllProjects()),
-        dispatch(fetchAllBuildings()),
-      ]);
+        await Promise.allSettled([
+          dispatch(fetchAllProjects()),
+          dispatch(fetchAllBuildings()),
+        ]);
 
-      if (baseResult && baseResult.length > 0) {
-        // 3. استخراج معرفات المشاريع الفريدة
-        const uniqueProjectIds = Array.from(
-          new Set(baseResult.map((item) => item.project_id || item.project?.id).filter(Boolean))
-        );
-
-        // 4. جلب تفاصيل المهندسين لكل مشروع بالتوازي من الراوت الغني
-        const deepResultsArray = await Promise.all(
-          uniqueProjectIds.map(async (projectId) => {
-            try {
-              return await dispatch(fetchEngineersAllocatedToProject(projectId)).unwrap();
-            } catch (err) {
-              console.error(`Error fetching engineers for project ${projectId}:`, err);
-              return [];
-            }
-          })
-        );
-
-        const allEnrichedAllocations = deepResultsArray.flat().filter(Boolean);
-
-        // 4. الدمج الذكي والفلترة الصارمة:
-        const mergedData = baseResult.map((baseItem) => {
-          // البحث عن السجل المطابق في راوت المهندسين
-          const matchingEnriched = allEnrichedAllocations.find(
-            (enrichedItem) => enrichedItem.id === baseItem.id
+        if (baseResult && baseResult.length > 0) {
+          const uniqueProjectIds = Array.from(
+            new Set(baseResult.map((item) => item.project_id || item.project?.id).filter(Boolean))
           );
 
-          // إذا لم نجد مهندساً حقيقياً قادماً من راوت التفاصيل، نضع علم للفلترة
-          if (!matchingEnriched?.engineer?.account?.full_name) {
-            return null; 
-          }
+          const deepResultsArray = await Promise.all(
+            uniqueProjectIds.map(async (projectId) => {
+              try {
+                return await dispatch(fetchEngineersAllocatedToProject(projectId)).unwrap();
+              } catch (err) {
+                console.error(`Error fetching engineers for project ${projectId}:`, err);
+                return [];
+              }
+            })
+          );
 
-          return {
-            ...baseItem,
-            engineer: matchingEnriched.engineer
-          };
-        }).filter(Boolean); // حذف كل السجلات المجهولة التي لا تملك مهندساً حقيقياً
+          const allEnrichedAllocations = deepResultsArray.flat().filter(Boolean);
 
-        // إذا كانت القائمة المفلترة فارغة، نحتفظ بالبيانات الأساسية لكي لا يختفي المشروع
-        setEnrichedItems(mergedData.length > 0 ? mergedData : baseResult);
+          const mergedData = baseResult
+            .map((baseItem) => {
+              const matchingEnriched = allEnrichedAllocations.find(
+                (enrichedItem) => enrichedItem.id === baseItem.id
+              );
+
+              if (!matchingEnriched?.engineer?.account?.full_name) {
+                return null;
+              }
+
+              return {
+                ...baseItem,
+                engineer: matchingEnriched.engineer,
+              };
+            })
+            .filter(Boolean);
+
+          setEnrichedItems(mergedData.length > 0 ? mergedData : baseResult);
+        }
+      } catch (error) {
+        console.error("Error loading deep project engineers data:", error);
+      } finally {
+        setEngineerAllocationsLoading(false);
       }
-    } catch (error) {
-      console.error("Error loading deep project engineers data:", error);
-    } finally {
-      setEngineerAllocationsLoading(false);
-    }
-  };
+    };
 
-  loadDashboardData();
-}, [dispatch]);
+    loadDashboardData();
+  }, [dispatch]);
+
   const groupedProjects = useMemo(() => groupProjects(enrichedItems), [enrichedItems]);
   const groupedEngineers = useMemo(() => groupEngineers(enrichedItems), [enrichedItems]);
 
@@ -687,9 +643,9 @@ useEffect(() => {
     [systemProjects]
   );
 
-  const {
-  engineers: allEngineers = [],
-} = useSelector((state) => state.projectEngineer);
+  const { engineers: allEngineers = [] } = useSelector(
+    (state) => state.projectEngineer
+  );
 
   const selectedProject = useMemo(() => {
     return (
@@ -707,7 +663,9 @@ useEffect(() => {
 
     return groupedProjects.filter(({ project, engineers }) => {
       const matchesStatus =
-        statusFilter === "all" || project?.status === statusFilter;
+        statusFilter === "all" ||
+        project?.status === statusFilter ||
+        (statusFilter === "in_progress" && project?.status === "active");
 
       const searchable = [
         project?.name,
@@ -730,7 +688,6 @@ useEffect(() => {
     });
   }, [groupedProjects, searchTerm, statusFilter]);
 
-
   const rawFilteredProjects = useMemo(() => {
     if (!rawProjectBlocks.length) return [];
 
@@ -738,7 +695,9 @@ useEffect(() => {
 
     return rawProjectBlocks.filter(({ project }) => {
       const matchesStatus =
-        statusFilter === "all" || project?.status === statusFilter;
+        statusFilter === "all" ||
+        project?.status === statusFilter ||
+        (statusFilter === "in_progress" && project?.status === "active");
 
       const searchable = [
         project?.name,
@@ -795,8 +754,8 @@ useEffect(() => {
   const totalEngineers = groupedEngineers.length;
   const totalProjects = systemProjects.length || groupedProjects.length;
   const activeProjects = systemProjects.length
-    ? systemProjects.filter((project) => project?.status === "in_progress").length
-    : groupedProjects.filter((item) => item?.project?.status === "in_progress").length;
+    ? systemProjects.filter((project) => project?.status === "in_progress" || project?.status === "active").length
+    : groupedProjects.filter((item) => item?.project?.status === "in_progress" || item?.project?.status === "active").length;
 
   const projectsToShow = effectiveFilteredProjects;
 
@@ -806,7 +765,8 @@ useEffect(() => {
       (point) =>
         !projectPoints.some(
           (existing) =>
-            existing.building?.id && point.building?.id &&
+            existing.building?.id &&
+            point.building?.id &&
             existing.building.id === point.building.id
         )
     );
@@ -831,17 +791,11 @@ useEffect(() => {
     );
   }, [selectedProjectEngineers, selectedProjectBlock]);
 
-  
-
-  
-
   const selectedBuildingEngineersGrouped = useMemo(
     () => groupEngineersForBuildingModal(selectedBuildingEngineers || []),
     [selectedBuildingEngineers]
   );
 
-
-  
   const selectedEngineerProjectsGrouped = useMemo(
     () => groupProjectsFromAllocations(selectedEngineerAllocations || []),
     [selectedEngineerAllocations]
@@ -850,14 +804,14 @@ useEffect(() => {
   const showInitialLoading = loading && items.length === 0;
   const displayError = safeErrorText(error);
 
- const handleAssignChange = (e) => {
+  const handleAssignChange = (e) => {
     const { name, value } = e.target;
     setAssignData((prev) => {
       if (name === "project_id") {
         return {
           ...prev,
           project_id: value,
-          building_id: "", // تصغير المشاكل: تصفير المبنى فور تغيير المشروع لتجنب تداخل البيانات
+          building_id: "",
         };
       }
       return {
@@ -866,31 +820,27 @@ useEffect(() => {
       };
     });
   };
-const handleSubmitAssign = async (e) => {
+
+  const handleSubmitAssign = async (e) => {
     e.preventDefault();
-    
-    // التحقق من الحقول الأساسية المطلوبة
+
     if (!assignData.engineer_id || !assignData.project_id || !assignData.start_date) {
       alert("الرجاء ملء جميع الحقول الإلزامية (المهندس، المشروع، وتاريخ البدء)");
       return;
     }
 
-    // بناء الـ Payload المطهّر لمنع كراش الـ Backend
     const payload = {
       engineer_id: Number(assignData.engineer_id),
       project_id: Number(assignData.project_id),
       start_date: assignData.start_date,
-      // إذا كان الحقل فارغاً أو لم يتم اختيار مبنى، يتم إرساله كـ null بدلاً من نص فارغ ""
-      building_id: assignData.building_id && assignData.building_id !== "" 
-        ? Number(assignData.building_id) 
-        : null
+      building_id:
+        assignData.building_id && assignData.building_id !== ""
+          ? Number(assignData.building_id)
+          : null,
     };
 
     try {
-      // إطلاق عملية الحفظ عبر الـ Thunk
       await dispatch(assignEngineerProject(payload)).unwrap();
-      
-      // إغلاق الديالوغ وتصفير البيانات فور النجاح
       setAssignOpen(false);
       setAssignData({
         engineer_id: "",
@@ -898,15 +848,11 @@ const handleSubmitAssign = async (e) => {
         start_date: "",
         building_id: "",
       });
-      
-      // إعادة تحميل البيانات لتحديث الخريطة والقوائم فوراً
       dispatch(fetchProjectEngineers());
     } catch (err) {
       console.error("فشل إسناد المهندس:", err);
     }
   };
- 
- 
 
   const openProjectSidePanel = async (projectBlock) => {
     const coords = getProjectCoordinates(projectBlock.project);
@@ -936,35 +882,36 @@ const handleSubmitAssign = async (e) => {
       setProjectEngineersLoading(false);
     }
   };
-const openBuildingSidePanel = async (building, projectContext) => {
-  const coords = getProjectCoordinates(building);
-  if (coords) setMapCenterTarget([coords.lat, coords.lng]);
-  
-  setSelectedBuildingBlock({
-    building,
-    project: projectContext || selectedProjectBlock?.project || null,
-  });
-  
-  // 🎯 التحكم بالحالات: نغلق الديالوغات ونعرض الشريط الجانبي فقط
-  setBuildingModalOpen(false); 
-  setProjectModalOpen(false);
-  setEngineerModalOpen(false);
-  setSelectedProjectBlock(null);
-  setSelectedEngineerBlock(null);
-  setSelectedBuildingEngineers([]);
-  setBuildingEngineersLoading(true);
 
-  try {
-    const result = await dispatch(fetchEngineersAllocatedToBuilding(building.id));
-    if (fetchEngineersAllocatedToBuilding.fulfilled.match(result)) {
-      setSelectedBuildingEngineers(Array.isArray(result.payload) ? result.payload : []);
-    } else {
-      setSelectedBuildingEngineers([]);
+  const openBuildingSidePanel = async (building, projectContext) => {
+    const coords = getProjectCoordinates(building);
+    if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+
+    setSelectedBuildingBlock({
+      building,
+      project: projectContext || selectedProjectBlock?.project || null,
+    });
+
+    setBuildingModalOpen(false);
+    setProjectModalOpen(false);
+    setEngineerModalOpen(false);
+    setSelectedProjectBlock(null);
+    setSelectedEngineerBlock(null);
+    setSelectedBuildingEngineers([]);
+    setBuildingEngineersLoading(true);
+
+    try {
+      const result = await dispatch(fetchEngineersAllocatedToBuilding(building.id));
+      if (fetchEngineersAllocatedToBuilding.fulfilled.match(result)) {
+        setSelectedBuildingEngineers(Array.isArray(result.payload) ? result.payload : []);
+      } else {
+        setSelectedBuildingEngineers([]);
+      }
+    } finally {
+      setBuildingEngineersLoading(false);
     }
-  } finally {
-    setBuildingEngineersLoading(false);
-  }
-};
+  };
+
   const openProjectDetails = async (projectBlock) => {
     const coords = getProjectCoordinates(projectBlock.project);
     if (coords) setMapCenterTarget([coords.lat, coords.lng]);
@@ -1039,14 +986,16 @@ const openBuildingSidePanel = async (building, projectContext) => {
         fetchAllocatedLocationsForEngineer(engineerBlock.engineerId)
       );
 
-     if (fetchAllocatedLocationsForEngineer.fulfilled.match(result)) {
+      if (fetchAllocatedLocationsForEngineer.fulfilled.match(result)) {
         const payloadData = Array.isArray(result.payload) ? result.payload : [];
         setSelectedEngineerAllocations(payloadData);
-        
-        // 💡 أضيفي هذا الشرط هنا للانتقال لأول موقع تابع للمهندس
+
         if (payloadData.length > 0) {
           const firstAlloc = payloadData[0];
-          const targetObj = firstAlloc.allocation_type === "specific_building" ? firstAlloc.building : firstAlloc.project;
+          const targetObj =
+            firstAlloc.allocation_type === "specific_building"
+              ? firstAlloc.building
+              : firstAlloc.project;
           const coords = getProjectCoordinates(targetObj);
           if (coords) setMapCenterTarget([coords.lat, coords.lng]);
         }
@@ -1080,73 +1029,92 @@ const openBuildingSidePanel = async (building, projectContext) => {
     <div className="engineering-page engineering-map-page">
       <PageHeader
         kicker="القسم الهندسي"
-        title="خريطة المشاريع"
-        action={
-          <Button
-            type="button"
-            className="primary-action-btn"
-             onClick={() => {
-    console.log("CLICK");
-    setAssignOpen(true);
-  }}
-          >
-            <Plus size={18} />
-            <span>إسناد مشروع</span>
-          </Button>
-        }
+        title="إدارة المشاريع والإسناد"
       />
 
+      {/* كروت الإحصائيات مع تصميم مباشر وموثوق */}
       <div className="engineering-stats-grid">
-        <StatCard
-          title="الربطات"
-          value={totalRelations}
-          note="كل السجلات"
-          icon={FolderKanban}
-        />
-        <StatCard
-          title="المهندسون"
-          value={totalEngineers}
-          note="مهندسون مرتبطون"
-          icon={Users2}
-        />
-        <StatCard
-          title="المشاريع"
-          value={totalProjects}
-          note="مشاريع مختلفة"
-          icon={CalendarDays}
-        />
-        <StatCard
-          title="نشطة"
-          value={activeProjects}
-          note="قيد التنفيذ"
-          icon={Building2}
-        />
+        <div className="stat-card">
+          <div className="stat-card-icon stat-icon-sky">
+            <FolderKanban size={22} />
+          </div>
+          <div className="stat-card-body">
+            <span className="stat-card-title">الربطات</span>
+            <h3 className="stat-card-value">{totalRelations}</h3>
+            <span className="stat-card-note">كل السجلات</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-icon stat-icon-amber">
+            <Users2 size={22} />
+          </div>
+          <div className="stat-card-body">
+            <span className="stat-card-title">المهندسون</span>
+            <h3 className="stat-card-value">{totalEngineers}</h3>
+            <span className="stat-card-note">مهندسون مرتبطون</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-icon stat-icon-emerald">
+            <CalendarDays size={22} />
+          </div>
+          <div className="stat-card-body">
+            <span className="stat-card-title">المشاريع</span>
+            <h3 className="stat-card-value">{totalProjects}</h3>
+            <span className="stat-card-note">مشاريع مختلفة</span>
+          </div>
+        </div>
+
+        <div className="stat-card">
+          <div className="stat-card-icon stat-icon-indigo">
+            <Building2 size={22} />
+          </div>
+          <div className="stat-card-body">
+            <span className="stat-card-title">نشطة</span>
+            <h3 className="stat-card-value">{activeProjects}</h3>
+            <span className="stat-card-note">قيد التنفيذ</span>
+          </div>
+        </div>
       </div>
 
+      {/* شريط البحث والفلترة مع زر الإسناد المدمج */}
       <div className="engineering-toolbar engineering-toolbar--map">
-        <div className="toolbar-search">
-          <Search size={18} />
-          <input
-            type="text"
-            placeholder="ابحث باسم المشروع أو المهندس أو الموقع..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        <div className="toolbar-right-group">
+          <div className="toolbar-search">
+            <Search size={18} className="search-icon" />
+            <input
+              type="text"
+              placeholder="ابحث باسم المشروع أو المهندس أو الموقع..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+
+          <div className="toolbar-filters">
+            <select
+              className="toolbar-select"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">كل الحالات</option>
+              <option value="planned">مخطط</option>
+              <option value="in_progress">قيد التنفيذ</option>
+              <option value="stopped">متوقف</option>
+              <option value="completed">منجز</option>
+            </select>
+          </div>
         </div>
 
-        <div className="toolbar-filters">
-          <select
-            className="toolbar-select"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-          >
-            <option value="all">كل الحالات</option>
-            <option value="planned">مخطط</option>
-            <option value="in_progress">قيد التنفيذ</option>
-            <option value="stopped">متوقف</option>
-            <option value="completed">منجز</option>
-          </select>
-        </div>
+        <Button
+          type="button"
+          className="primary-action-btn toolbar-assign-btn"
+          onClick={() => setAssignOpen(true)}
+        >
+          <Plus size={18} />
+          <span>إسناد مشروع</span>
+        </Button>
       </div>
 
       {showInitialLoading ? (
@@ -1166,8 +1134,11 @@ const openBuildingSidePanel = async (building, projectContext) => {
             </div>
 
             <div className="engineering-map-real engineering-map-real--overlay">
-              <MapContainer center={dashboardMapCenter} zoom={12} className="engineering-map-container">
-                {/* لوحة التحكم بتبديل المظهر وقمر صناعي Esri */}
+              <MapContainer
+                center={dashboardMapCenter}
+                zoom={12}
+                className="engineering-map-container"
+              >
                 <LayersControl position="topright">
                   <LayersControl.BaseLayer checked name="قمر صناعي (Satellite View)">
                     <TileLayer
@@ -1183,44 +1154,45 @@ const openBuildingSidePanel = async (building, projectContext) => {
                   </LayersControl.BaseLayer>
                 </LayersControl>
 
-                {/* تفعيل متحكم حركة كاميرا الخريطة الفوري */}
-               <MapController target={mapCenterTarget} />
+                <MapController target={mapCenterTarget} />
 
-{dashboardMapPoints.map((point) => (
-  <div key={point.key}>
-    <Marker
-      position={[point.lat, point.lng]}
-      // إزالة الـ theme لتجنب مشاكل المتغيرات غير المستخدمة
-      icon={createMapPinIcon(point.type)} 
-      eventHandlers={{
-  click: () => {
-    setMapCenterTarget([point.lat, point.lng]);
-    if (point.type === "project") {
-      openProjectSidePanel(point);
-    } else {
-      // 🎯 استدعاء شريط الأبنية الجانبي هنا بدلاً من الديالوغ المباشر
-      openBuildingSidePanel(point.building, point.project); 
-    }
-  }
-}}
-    />
-    <Circle
-      center={[point.lat, point.lng]}
-      radius={point.radius}
-      // 🎯 الاعتماد الكلي على كلاسات CSS للتحكم بالألوان والخصائص
-      pathOptions={{
-        className: point.type === "building" ? "map-building-circle" : "map-project-circle"
-      }}
-    />
-  </div>
-))}
+                {dashboardMapPoints.map((point) => (
+                  <div key={point.key}>
+                    <Marker
+                      position={[point.lat, point.lng]}
+                      icon={createMapPinIcon(point.type)}
+                      eventHandlers={{
+                        click: () => {
+                          setMapCenterTarget([point.lat, point.lng]);
+                          if (point.type === "project") {
+                            openProjectSidePanel(point);
+                          } else {
+                            openBuildingSidePanel(point.building, point.project);
+                          }
+                        },
+                      }}
+                    />
+                    <Circle
+                      center={[point.lat, point.lng]}
+                      radius={point.radius}
+                      pathOptions={{
+                        className:
+                          point.type === "building"
+                            ? "map-building-circle"
+                            : "map-project-circle",
+                      }}
+                    />
+                  </div>
+                ))}
               </MapContainer>
 
               {selectedProjectBlock && (
                 <div className="google-maps-side-panel">
                   <div className="google-maps-side-panel-header">
                     <div className="google-maps-side-panel-header-content">
-                      <h3 className="google-maps-side-panel-title">{selectedProjectBlock.project?.name}</h3>
+                      <h3 className="google-maps-side-panel-title">
+                        {selectedProjectBlock.project?.name}
+                      </h3>
                       <div className="google-maps-side-panel-subtitle">
                         {parseLocalized(selectedProjectBlock.project?.location?.name) || "-"}
                       </div>
@@ -1239,7 +1211,10 @@ const openBuildingSidePanel = async (building, projectContext) => {
                   <div className="google-maps-side-panel-body">
                     <div className="google-maps-side-panel-image-shell">
                       <img
-                        src={selectedProjectBlock.project?.image_url || "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?q=80&w=800"}
+                        src={
+                          selectedProjectBlock.project?.image_url ||
+                          "https://images.unsplash.com/photo-1590381105924-c72589b9ef3f?q=80&w=800"
+                        }
                         alt={selectedProjectBlock.project?.name}
                         className="google-maps-side-panel-image"
                       />
@@ -1252,7 +1227,8 @@ const openBuildingSidePanel = async (building, projectContext) => {
                         </div>
                         <div
                           className={
-                            selectedProjectBlock.project?.status === "active"
+                            selectedProjectBlock.project?.status === "active" ||
+                            selectedProjectBlock.project?.status === "in_progress"
                               ? "google-maps-side-panel-status google-maps-side-panel-status--active"
                               : "google-maps-side-panel-status google-maps-side-panel-status--inactive"
                           }
@@ -1293,7 +1269,8 @@ const openBuildingSidePanel = async (building, projectContext) => {
                         <div className="google-maps-side-panel-section-block">
                           <strong>الفترة</strong>
                           <div className="google-maps-side-panel-section-text">
-                            {formatDate(selectedProjectBlock.project?.start_date)} — {selectedProjectBlock.project?.end_date || "مفتوح"}
+                            {formatDate(selectedProjectBlock.project?.start_date)} —{" "}
+                            {selectedProjectBlock.project?.end_date || "مفتوح"}
                           </div>
                         </div>
 
@@ -1322,96 +1299,96 @@ const openBuildingSidePanel = async (building, projectContext) => {
                   </div>
                 </div>
               )}
-{/* 🏢 🎯 شريط الأبنية الجانبي الجديد (بنفس أسلوب كرت المشروع تماماً) */}
-{selectedBuildingBlock && !buildingModalOpen && (
-  <div className="google-maps-side-panel">
-    <div className="google-maps-side-panel-header">
-      <div className="google-maps-side-panel-header-content">
-        <h3 className="google-maps-side-panel-title">
-          بناء رقم: {selectedBuildingBlock.building?.building_number || "-"}
-        </h3>
-        <div className="google-maps-side-panel-subtitle">
-          المشروع: {selectedBuildingBlock.project?.name || "-"}
-        </div>
-      </div>
 
-      <button
-        type="button"
-        onClick={() => setSelectedBuildingBlock(null)}
-        aria-label="إغلاق لوحة تفاصيل البناء"
-        className="google-maps-side-panel-close"
-      >
-        ✕
-      </button>
-    </div>
+              {selectedBuildingBlock && !buildingModalOpen && (
+                <div className="google-maps-side-panel">
+                  <div className="google-maps-side-panel-header">
+                    <div className="google-maps-side-panel-header-content">
+                      <h3 className="google-maps-side-panel-title">
+                        بناء رقم: {selectedBuildingBlock.building?.building_number || "-"}
+                      </h3>
+                      <div className="google-maps-side-panel-subtitle">
+                        المشروع: {selectedBuildingBlock.project?.name || "-"}
+                      </div>
+                    </div>
 
-    <div className="google-maps-side-panel-body">
-      <div className="google-maps-side-panel-image-shell">
-        <img
-          src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800"
-          alt={selectedBuildingBlock.building?.building_number}
-          className="google-maps-side-panel-image"
-        />
-      </div>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedBuildingBlock(null)}
+                      aria-label="إغلاق لوحة تفاصيل البناء"
+                      className="google-maps-side-panel-close"
+                    >
+                      ✕
+                    </button>
+                  </div>
 
-      <div className="google-maps-side-panel-content">
-        <div className="google-maps-side-panel-meta-row">
-          <div className="google-maps-side-panel-meta-label">
-            {selectedBuildingBlock.building?.floors_count || "-"} طوابق
-          </div>
-          <div className="google-maps-side-panel-status google-maps-side-panel-status--active">
-            {getStatusMeta(selectedBuildingBlock.building?.status).label}
-          </div>
-        </div>
+                  <div className="google-maps-side-panel-body">
+                    <div className="google-maps-side-panel-image-shell">
+                      <img
+                        src="https://images.unsplash.com/photo-1564013799919-ab600027ffc6?q=80&w=800"
+                        alt={selectedBuildingBlock.building?.building_number}
+                        className="google-maps-side-panel-image"
+                      />
+                    </div>
 
-        <div className="google-maps-side-panel-actions">
-          <button
-            type="button"
-            onClick={() => {
-              const coords = getProjectCoordinates(selectedBuildingBlock.building);
-              if (coords) setMapCenterTarget([coords.lat, coords.lng]);
-            }}
-            className="btn-ghost google-maps-side-panel-action-btn"
-          >
-            📍 تحديد الموقع
-          </button>
+                    <div className="google-maps-side-panel-content">
+                      <div className="google-maps-side-panel-meta-row">
+                        <div className="google-maps-side-panel-meta-label">
+                          {selectedBuildingBlock.building?.floors_count || "-"} طوابق
+                        </div>
+                        <div className="google-maps-side-panel-status google-maps-side-panel-status--active">
+                          {getStatusMeta(selectedBuildingBlock.building?.status).label}
+                        </div>
+                      </div>
 
-          {/* عند ضغط هذا الزر، يفتح الديالوغ الشامل فوراً مع بقاء البيانات المخزنة */}
-          <button
-            type="button"
-            onClick={() =>
-              openBuildingDetails(
-                selectedBuildingBlock.building,
-                selectedBuildingBlock.project
-              )
-            }
-            className="btn-ghost google-maps-side-panel-action-btn"
-          >
-            📊 التقرير الكامل
-          </button>
-        </div>
+                      <div className="google-maps-side-panel-actions">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const coords = getProjectCoordinates(selectedBuildingBlock.building);
+                            if (coords) setMapCenterTarget([coords.lat, coords.lng]);
+                          }}
+                          className="btn-ghost google-maps-side-panel-action-btn"
+                        >
+                          📍 تحديد الموقع
+                        </button>
 
-        <hr className="google-maps-side-panel-divider" />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openBuildingDetails(
+                              selectedBuildingBlock.building,
+                              selectedBuildingBlock.project
+                            )
+                          }
+                          className="btn-ghost google-maps-side-panel-action-btn"
+                        >
+                          📊 التقرير الكامل
+                        </button>
+                      </div>
 
-        <div className="google-maps-side-panel-section">
-          <strong>الوصف والتفاصيل</strong>
-          <p className="google-maps-side-panel-section-text">
-            {selectedBuildingBlock.building?.description || "لا يوجد وصف مسجل لهذا البناء."}
-          </p>
+                      <hr className="google-maps-side-panel-divider" />
 
-          <div className="google-maps-side-panel-section-block">
-            <strong>المهندسون المرتبطون</strong>
-            <div className="google-maps-side-panel-section-text">
-              {buildingEngineersLoading
-                ? "جاري تحميل قائمة المهندسين..."
-                : `${selectedBuildingEngineersGrouped.length} مهندس مسند بالبناء حلياً`}
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-)}
+                      <div className="google-maps-side-panel-section">
+                        <strong>الوصف والتفاصيل</strong>
+                        <p className="google-maps-side-panel-section-text">
+                          {selectedBuildingBlock.building?.description ||
+                            "لا يوجد وصف مسجل لهذا البناء."}
+                        </p>
+
+                        <div className="google-maps-side-panel-section-block">
+                          <strong>المهندسون المرتبطون</strong>
+                          <div className="google-maps-side-panel-section-text">
+                            {buildingEngineersLoading
+                              ? "جاري تحميل قائمة المهندسين..."
+                              : `${selectedBuildingEngineersGrouped.length} مهندس مسند بالبناء حلياً`}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
 
@@ -1447,7 +1424,11 @@ const openBuildingSidePanel = async (building, projectContext) => {
                               تحديد موقع
                             </Button>
 
-                            <Button className="dashboard-inline-btn dashboard-inline-btn--primary" size="sm" onClick={() => openProjectSidePanel(block)}>
+                            <Button
+                              className="dashboard-inline-btn dashboard-inline-btn--primary"
+                              size="sm"
+                              onClick={() => openProjectSidePanel(block)}
+                            >
                               تفاصيل
                             </Button>
                           </div>
@@ -1509,10 +1490,10 @@ const openBuildingSidePanel = async (building, projectContext) => {
         </div>
       )}
 
-      {/* ديالوغ إسناد مهندس جديد - بتصميم مطور بالكامل */}
-      <Modal 
-        open={assignOpen} 
-        onClose={() => setAssignOpen(false)} 
+      {/* نافذة إسناد مهندس */}
+      <Modal
+        open={assignOpen}
+        onClose={() => setAssignOpen(false)}
         title="إسناد مهندس لموقع عمل جديد"
       >
         <form onSubmit={handleSubmitAssign} className="modern-form-container">
@@ -1521,8 +1502,6 @@ const openBuildingSidePanel = async (building, projectContext) => {
           </p>
 
           <div className="form-grid-layout">
-            
-            {/* حقل اختيار المهندس */}
             <div className="form-group-field">
               <label htmlFor="engineer_id">
                 <Users2 size={16} /> المهندس المسؤول <span className="required-star">*</span>
@@ -1536,21 +1515,18 @@ const openBuildingSidePanel = async (building, projectContext) => {
                   required
                 >
                   <option value="">-- اختر المهندس المطلوب --</option>
-                  {allEngineers.map((eng)  => (
+                  {allEngineers.map((eng) => (
                     <option
-  key={eng.additional_info.engineer_id}
-  value={eng.additional_info.engineer_id}
->
-  {eng.account.full_name}
-  {" - "}
-  {eng.additional_info.specialization}
-</option>
+                      key={eng.additional_info.engineer_id}
+                      value={eng.additional_info.engineer_id}
+                    >
+                      {eng.account.full_name} - {eng.additional_info.specialization}
+                    </option>
                   ))}
                 </select>
               </div>
             </div>
 
-            {/* حقل اختيار المشروع */}
             <div className="form-group-field">
               <label htmlFor="project_id">
                 <FolderKanban size={16} /> المشروع المستهدف <span className="required-star">*</span>
@@ -1573,7 +1549,6 @@ const openBuildingSidePanel = async (building, projectContext) => {
               </div>
             </div>
 
-            {/* حقل اختيار البناء (يظهر أو يتفعل بشكل ديناميكي بناءً على المشروع المختار) */}
             <div className={`form-group-field ${!assignData.project_id ? "disabled-opacity" : ""}`}>
               <label htmlFor="building_id">
                 <Building2 size={16} /> نطاق العمل (بناء محدد أو شامل)
@@ -1595,13 +1570,12 @@ const openBuildingSidePanel = async (building, projectContext) => {
                 </select>
               </div>
               <span className="field-hint-text">
-                {!assignData.project_id 
-                  ? "يرجى اختيار المشروع أولاً لتظهر الأبنية التابعة له." 
+                {!assignData.project_id
+                  ? "يرجى اختيار المشروع أولاً لتظهر الأبنية التابعة له."
                   : "اتركه فارغاً إذا كنت تريد إسناد المهندس لكامل إحداثيات المشروع."}
               </span>
             </div>
 
-            {/* حقل تاريخ البدء */}
             <div className="form-group-field">
               <label htmlFor="start_date">
                 <CalendarDays size={16} /> تاريخ مباشرة العمل <span className="required-star">*</span>
@@ -1616,29 +1590,20 @@ const openBuildingSidePanel = async (building, projectContext) => {
                 className="modern-date-picker"
               />
             </div>
-
           </div>
 
-          {/* شريط أزرار التحكم السفلي */}
           <div className="form-actions-footer">
-            <Button 
-              type="button" 
-              variant="secondary" 
-              onClick={() => setAssignOpen(false)}
-            >
+            <Button type="button" variant="secondary" onClick={() => setAssignOpen(false)}>
               إلغاء الأمر
             </Button>
-            <Button 
-              type="submit" 
-              variant="primary"
-              disabled={loading}
-            >
+            <Button type="submit" variant="primary" disabled={loading}>
               {loading ? "جاري الحفظ..." : "تأكيد الإسناد الموقعي"}
             </Button>
           </div>
         </form>
       </Modal>
 
+      {/* Modal تفاصيل المشروع */}
       <Modal
         open={projectModalOpen}
         onClose={closeProjectModal}
@@ -1652,8 +1617,6 @@ const openBuildingSidePanel = async (building, projectContext) => {
       >
         {selectedProjectBlock ? (
           <div className="project-modal-layout project-modal-layout--map">
-           
-
             <div className="project-modal-grid">
               <section className="project-modal-panel">
                 <div className="engineering-summary-head">
@@ -1664,10 +1627,7 @@ const openBuildingSidePanel = async (building, projectContext) => {
                 <div className="project-modal-info-grid">
                   <div className="project-modal-info-card">
                     <strong>الوصف</strong>
-                    <p>
-                      {selectedProjectBlock.project?.description ||
-                        "لا يوجد وصف للمشروع."}
-                    </p>
+                    <p>{selectedProjectBlock.project?.description || "لا يوجد وصف للمشروع."}</p>
                   </div>
 
                   <div className="project-modal-info-card">
@@ -1794,8 +1754,7 @@ const openBuildingSidePanel = async (building, projectContext) => {
 
                         <div className="project-chip-row">
                           <span className="project-chip">
-                            Project ID:{" "}
-                            {building?.project_id || selectedProjectBlock.project.id}
+                            Project ID: {building?.project_id || selectedProjectBlock.project.id}
                           </span>
                           <span className="project-chip">
                             المرفقات: {building?.attachments?.length || 0}
@@ -1848,6 +1807,7 @@ const openBuildingSidePanel = async (building, projectContext) => {
         ) : null}
       </Modal>
 
+      {/* Modal تفاصيل البناء */}
       <Modal
         open={buildingModalOpen}
         onClose={closeBuildingModal}
@@ -1976,12 +1936,11 @@ const openBuildingSidePanel = async (building, projectContext) => {
                 </div>
               )}
             </section>
-
-            
           </div>
         ) : null}
       </Modal>
 
+      {/* Modal تفاصيل المهندس */}
       <Modal
         open={engineerModalOpen}
         onClose={closeEngineerModal}
@@ -2015,12 +1974,12 @@ const openBuildingSidePanel = async (building, projectContext) => {
                 </div>
 
                 <StatusBadge
-                  status={getStatusMeta(
-                    selectedEngineerBlock?.relation?.project?.status
-                  ).label}
-                  type={getStatusMeta(
-                    selectedEngineerBlock?.relation?.project?.status
-                  ).type}
+                  status={
+                    getStatusMeta(selectedEngineerBlock?.relation?.project?.status).label
+                  }
+                  type={
+                    getStatusMeta(selectedEngineerBlock?.relation?.project?.status).type
+                  }
                 />
               </div>
 
@@ -2064,9 +2023,7 @@ const openBuildingSidePanel = async (building, projectContext) => {
               </div>
 
               {selectedEngineerProjectsGrouped.length === 0 ? (
-                <div className="project-empty-state">
-                  لا توجد مشاريع لهذا المهندس.
-                </div>
+                <div className="project-empty-state">لا توجد مشاريع لهذا المهندس.</div>
               ) : (
                 <div className="project-modal-engineer-projects">
                   {selectedEngineerProjectsGrouped.map(({ project, relations }) => {
@@ -2110,9 +2067,7 @@ const openBuildingSidePanel = async (building, projectContext) => {
                           <span className="project-chip">
                             النهاية: {formatDate(project?.end_date) || "مفتوح"}
                           </span>
-                          <span className="project-chip">
-                            الربطات: {relations.length}
-                          </span>
+                          <span className="project-chip">الربطات: {relations.length}</span>
                         </div>
 
                         <div className="project-chip-row" style={{ marginTop: 8 }}>

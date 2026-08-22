@@ -28,7 +28,8 @@ import LegalIncomingOrdersPage from "@/Rools/legal/pages/LegalIncomingOrdersPage
 
 import EngineeringDashboardPage from "@/Rools/engineering/pages/EngineeringDashboardPage";
 import EngineeringEngineersPage from "@/Rools/engineering/pages/EngineeringEngineersPage";
-
+import EngineeringReportsPage from "@/Rools/engineering/pages/EngineeringReportsPage";
+import AiDesignPage from "@/Rools/engineering/pages/AiDesignPage";
 import MarketingDashboardPage from "@/Rools/marketing/pages/MarketingDashboardPage";
 import MarketingAdsPage from "@/Rools/marketing/pages/MarketingAdsPage";
 import MarketingProjectsPage from "@/Rools/marketing/pages/MarketingProjectsPage";
@@ -118,6 +119,8 @@ export default function AppRouter() {
           <Route element={<EngineeringLayout />}>
             <Route index element={<EngineeringDashboardPage />} />
             <Route path="engineers" element={<EngineeringEngineersPage />} />
+            <Route path="reports" element={<EngineeringReportsPage />} />
+            <Route path="ai-design" element={<AiDesignPage />} />
           </Route>
         </Route>
 

@@ -5,6 +5,7 @@ import {
   deletePaymentRequest,
   updatePaymentRequest,
   createPaymentRequest,
+  payCustomByContractRequest,
 } from "../api/payment.api";
 import { showError } from "@/shared/store/error/error.slice";
 import { handleApiError } from "@/shared/utils/errorHandler";
@@ -102,6 +103,34 @@ export const createPayment = createAsyncThunk(
       if (!response.ok) {
         dispatch(showError(response.message));
         return rejectWithValue(response.message);
+      }
+
+      return response.data?.data || response.data;
+    } catch (error) {
+      const normalized = handleApiError(error);
+      dispatch(showError(normalized.message));
+      return rejectWithValue(normalized.message);
+    }
+  }
+);
+export const payCustomByContract = createAsyncThunk(
+  "payment/payCustomByContract",
+  async ({ contractId, values, files = [] }, { rejectWithValue, dispatch }) => {
+    try {
+      const formData = new FormData();
+
+      if (values.amount) formData.append("amount", values.amount);
+      if (values.payment_method) formData.append("payment_method", values.payment_method);
+
+      files.forEach((file, index) => {
+        formData.append(`attachments[${index}][file]`, file);
+      });
+
+      const response = await payCustomByContractRequest(contractId, formData);
+
+      if (response?.data?.status === false) {
+        dispatch(showError(response.data.message));
+        return rejectWithValue(response.data.message);
       }
 
       return response.data?.data || response.data;

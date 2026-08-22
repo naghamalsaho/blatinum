@@ -1,19 +1,28 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+
 import {
   Plus,
   Trash2,
-  Pencil,
+  Ban,
   CalendarDays,
   Clock3,
   BadgeCheck,
   Search,
-  X,
   User,
-  Filter,
   BookmarkCheck,
+  SlidersHorizontal,
+  ChevronDown,
+  Eye,
+  FileText,
+  Home,
 } from "lucide-react";
 
+import StatCard from "@/shared/components/StatCard";
+import Button from "@/shared/components/Button";
+import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
+import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
 import { t } from "../../../shared/i18n";
 
@@ -23,7 +32,9 @@ import {
   updateAvailableSlot,
   deleteAvailableSlot,
   fetchAppointments,
+  fetchOrderDetails,
 } from "../features/availableSlots/model/availableSlot.thunks";
+import { clearOrderDetails } from "../features/availableSlots/model/availableSlot.slice";
 
 import "../styles/legal-available-slots.css";
 
@@ -43,58 +54,94 @@ function getEmployeeId(slot) {
   return slot?.employee?.additional_info?.employee_id ?? "—";
 }
 
+function getCustomerName(item) {
+  return (
+    item?.client?.account?.full_name ||
+    item?.client?.full_name ||
+    item?.user?.full_name ||
+    item?.order?.user?.full_name ||
+    item?.order?.client?.full_name ||
+    "—"
+  );
+}
+
 export default function LegalAvailableSlotsPage() {
   const dispatch = useDispatch();
+  const [activeTab, setActiveTab] = useState("slots");
 
-  // نظام التبويب بين الفترات والحجوزات
-  const [activeTab, setActiveTab] = useState("slots"); // 'slots' | 'appointments'
+  const STATUS_META = useMemo(
+    () => ({
+      available: { label: t("legal_slots.status_available"), type: "ok" },
+      booked: { label: t("legal_slots.status_booked"), type: "busy" },
+      cancelled: { label: t("legal_slots.status_cancelled"), type: "off" },
+      pending: { label: "قيد الانتظار", type: "busy" },
+      initially_accepted: { label: "مقبول مبدئياً", type: "ok" },
+      accepted: { label: "مقبول", type: "ok" },
+      rejected: { label: "مرفوض", type: "off" },
+    }),
+    []
+  );
 
-  const STATUS_META = useMemo(() => ({
-    available: { label: t("legal_slots.status_available"), type: "ok" },
-    booked: { label: t("legal_slots.status_booked"), type: "busy" },
-    cancelled: { label: t("legal_slots.status_cancelled"), type: "off" },
-    pending: { label: "قيد الانتظار", type: "busy" },
-  }), []);
+  const availableSlotsSlice = useSelector((state) => state.availableSlots || {});
 
-  // جلب بيانات الفترات المتاحة من Redux
-  const {
-    items: legalSlots = [],
-    loading: loadingSlots,
-    error: errorSlots,
-    actionLoading,
-  } = useSelector((state) => state.availableSlots || {});
+  const legalSlots = useMemo(() => {
+    const slotsData = availableSlotsSlice.slots || availableSlotsSlice;
+    if (Array.isArray(slotsData.items)) return slotsData.items;
+    if (Array.isArray(slotsData)) return slotsData;
+    return [];
+  }, [availableSlotsSlice]);
 
-  // جلب بيانات الحجوزات من Redux
-  const {
-    items: appointments = [],
-    loading: loadingAppointments,
-    error: errorAppointments,
-  } = useSelector((state) => state.appointments || {});
+  const loadingSlots = availableSlotsSlice.slots?.loading ?? false;
+  const errorSlots = availableSlotsSlice.slots?.error ?? null;
+  const actionLoading = availableSlotsSlice.actionLoading || false;
+
+  const appointments = useMemo(() => {
+    const appData = availableSlotsSlice.appointments;
+    if (Array.isArray(appData?.items)) return appData.items;
+    if (Array.isArray(appData)) return appData;
+    return [];
+  }, [availableSlotsSlice]);
+
+  const loadingAppointments = availableSlotsSlice.appointments?.loading ?? false;
+  const errorAppointments = availableSlotsSlice.appointments?.error ?? null;
+
+  const orderDetails = availableSlotsSlice.orderDetails?.data;
+  const loadingOrderDetails = availableSlotsSlice.orderDetails?.loading;
 
   const [createOpen, setCreateOpen] = useState(false);
-  
-  // 🟢 1. إضافة date في الـ state
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+
   const [formData, setFormData] = useState({
     date: "",
     start_time: "",
     end_time: "",
   });
 
-  const [editStatusModal, setEditStatusModal] = useState({
-    isOpen: false,
-    slotId: null,
-    status: "available",
-  });
-
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setStatusFilter("all");
+    setSearchTerm("");
+  };
 
   useEffect(() => {
     dispatch(fetchAvailableSlots());
     dispatch(fetchAppointments());
   }, [dispatch]);
 
-  // تصفية الفترات المتاحة
+  const handleOpenOrderDetails = (orderId) => {
+    if (!orderId) return;
+    setIsDetailsModalOpen(true);
+    dispatch(fetchOrderDetails(orderId));
+  };
+
+  const handleCloseOrderDetails = () => {
+    setIsDetailsModalOpen(false);
+    dispatch(clearOrderDetails());
+  };
+
   const filteredSlots = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
@@ -119,39 +166,39 @@ export default function LegalAvailableSlotsPage() {
         .join(" ")
         .toLowerCase();
 
-      const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesStatus =
-        statusFilter === "all" || slot.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return (
+        (q === "" || searchableText.includes(q)) &&
+        (statusFilter === "all" || slot.status === statusFilter)
+      );
     });
   }, [legalSlots, searchTerm, statusFilter, STATUS_META]);
 
-  // تصفية الحجوزات
   const filteredAppointments = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
 
     return appointments.filter((item) => {
+      const customerName = getCustomerName(item);
+
       const searchableText = [
         item.id,
         item.type,
         item.status,
+        customerName,
+        item.order_id,
         item.order?.id,
         item.order?.type,
         item.order?.status,
         item.slot?.date,
         item.slot?.start_time,
-        item.slot?.batch_id,
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
-      const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesStatus =
-        statusFilter === "all" || item.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return (
+        (q === "" || searchableText.includes(q)) &&
+        (statusFilter === "all" || item.status === statusFilter)
+      );
     });
   }, [appointments, searchTerm, statusFilter]);
 
@@ -159,6 +206,16 @@ export default function LegalAvailableSlotsPage() {
   const available = legalSlots.filter((slot) => slot.status === "available").length;
   const booked = legalSlots.filter((slot) => slot.status === "booked").length;
   const totalAppointments = appointments.length;
+
+  const stats = useMemo(
+    () => [
+      { title: t("legal_slots.total_slots"), value: String(total), icon: CalendarDays },
+      { title: t("legal_slots.available_slots"), value: String(available), icon: BadgeCheck },
+      { title: t("legal_slots.booked_slots"), value: String(booked), icon: Clock3 },
+      { title: "إجمالي الحجوزات", value: String(totalAppointments), icon: BookmarkCheck },
+    ],
+    [total, available, booked, totalAppointments]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -171,177 +228,137 @@ export default function LegalAvailableSlotsPage() {
 
     if (createAvailableSlot.fulfilled.match(result)) {
       setCreateOpen(false);
-      // 🟢 2. إعادة إرساء القيم الفارغة بما فيها date
       setFormData({ date: "", start_time: "", end_time: "" });
+      dispatch(fetchAvailableSlots());
     }
   };
 
-  const handleOpenEditStatus = (slot) => {
-    setEditStatusModal({
-      isOpen: true,
-      slotId: slot.id,
-      status: slot.status || "available",
-    });
-  };
+  // 🎯 دالة إلغاء الفترة مباشرة
+  const handleCancelSlot = async (slot) => {
+    if (slot.status === "cancelled") return;
 
-  const handleSaveStatus = async (e) => {
-    e.preventDefault();
-    if (!editStatusModal.slotId) return;
+    const ok = window.confirm("هل أنت تأكد من إلغاء هذه الفترة المتاحة؟");
+    if (!ok) return;
 
     const result = await dispatch(
       updateAvailableSlot({
-        id: editStatusModal.slotId,
-        payload: { status: editStatusModal.status },
+        id: slot.id,
+        payload: { status: "cancelled" },
       })
     );
 
     if (updateAvailableSlot.fulfilled.match(result)) {
-      setEditStatusModal({ isOpen: false, slotId: null, status: "available" });
+      dispatch(fetchAvailableSlots());
     }
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     const ok = window.confirm(t("legal_slots.confirm_delete"));
     if (!ok) return;
-    dispatch(deleteAvailableSlot(id));
+    const res = await dispatch(deleteAvailableSlot(id));
+    if (deleteAvailableSlot.fulfilled.match(res)) {
+      dispatch(fetchAvailableSlots());
+    }
   };
 
   return (
-    <div className="legal-slots-page">
-      {/* STATS CARDS */}
-      <section className="legal-slots-stats-grid">
-        <div className="legal-slots-stat-card">
-          <div className="legal-slots-stat-info">
-            <p>{t("legal_slots.total_slots")}</p>
-            <h3>{total}</h3>
-          </div>
-          <div className="legal-slots-stat-icon">
-            <CalendarDays size={20} />
-          </div>
-        </div>
-
-        <div className="legal-slots-stat-card">
-          <div className="legal-slots-stat-info">
-            <p>{t("legal_slots.available_slots")}</p>
-            <h3>{available}</h3>
-          </div>
-          <div className="legal-slots-stat-icon">
-            <BadgeCheck size={20} />
-          </div>
-        </div>
-
-        <div className="legal-slots-stat-card">
-          <div className="legal-slots-stat-info">
-            <p>{t("legal_slots.booked_slots")}</p>
-            <h3>{booked}</h3>
-          </div>
-          <div className="legal-slots-stat-icon">
-            <Clock3 size={20} />
-          </div>
-        </div>
-
-        <div className="legal-slots-stat-card">
-          <div className="legal-slots-stat-info">
-            <p>إجمالي الحجوزات</p>
-            <h3>{totalAppointments}</h3>
-          </div>
-          <div className="legal-slots-stat-icon">
-            <BookmarkCheck size={20} />
-          </div>
-        </div>
+    <div className="legal-slots-page" dir="rtl">
+      {/* شبكة الإحصائيات */}
+      <section className="legal-stats-grid">
+        {stats.map((item) => (
+          <StatCard
+            key={item.title}
+            title={item.title}
+            value={item.value}
+            icon={item.icon}
+          />
+        ))}
       </section>
 
-      {/* MAIN PANEL */}
-      <section className="legal-slots-panel">
-        <div className="legal-slots-panel-head">
-          <div>
-            <h2>{t("legal_slots.title")} والحجوزات</h2>
-            <p>{t("legal_slots.subtitle")}</p>
-          </div>
+      {/* تبويب الانتقال السريع */}
+      <div className="legal-slots-tabs-bar">
+        <button
+          type="button"
+          className={`legal-tab-btn ${activeTab === "slots" ? "active" : ""}`}
+          onClick={() => handleTabChange("slots")}
+        >
+          الفترات المتاحة ({legalSlots.length})
+        </button>
+        <button
+          type="button"
+          className={`legal-tab-btn ${activeTab === "appointments" ? "active" : ""}`}
+          onClick={() => handleTabChange("appointments")}
+        >
+          جدول الحجوزات ({appointments.length})
+        </button>
+      </div>
 
-          {activeTab === "slots" && (
-            <button
-              type="button"
-              className="legal-slots-primary-btn"
-              onClick={() => {
-                // 🟢 3. تصفير البيانات عند فتح المودال
-                setFormData({ date: "", start_time: "", end_time: "" });
-                setCreateOpen(true);
-              }}
-            >
-              <Plus size={18} />
-              <span>{t("legal_slots.add_slot")}</span>
-            </button>
-          )}
-        </div>
-
-        {/* TABS FOR SWITCHING */}
-        <div style={{ display: "flex", gap: "10px", marginBottom: "1rem", borderBottom: "1px solid var(--border-color, #eee)", paddingBottom: "10px" }}>
-          <button
-            type="button"
-            className={`legal-slots-primary-btn ${activeTab === "slots" ? "" : "secondary"}`}
-            style={{ opacity: activeTab === "slots" ? 1 : 0.6 }}
-            onClick={() => setActiveTab("slots")}
-          >
-            الفترات المتاحة ({legalSlots.length})
-          </button>
-          <button
-            type="button"
-            className={`legal-slots-primary-btn ${activeTab === "appointments" ? "" : "secondary"}`}
-            style={{ opacity: activeTab === "appointments" ? 1 : 0.6 }}
-            onClick={() => setActiveTab("appointments")}
-          >
-            جدول الحجوزات ({appointments.length})
-          </button>
-        </div>
-
-        {/* TOOLBAR */}
-        <div className="legal-slots-toolbar">
-          <div className="legal-slots-filter">
-            <Filter size={18} />
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-            >
-              <option value="all">{t("legal_slots.status_all")}</option>
-              {activeTab === "slots" ? (
-                <>
-                  <option value="available">{t("legal_slots.status_available")}</option>
-                  <option value="booked">{t("legal_slots.status_booked")}</option>
-                  <option value="cancelled">{t("legal_slots.status_cancelled")}</option>
-                </>
-              ) : (
-                <>
-                  <option value="pending">قيد الانتظار (pending)</option>
-                  <option value="accepted">مقبول (accepted)</option>
-                  <option value="rejected">مرفوض (rejected)</option>
-                </>
-              )}
-            </select>
-          </div>
-
-          <div className="legal-slots-search">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder={t("legal_slots.search_placeholder")}
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-        </div>
-
-        {/* TAB 1: AVAILABLE SLOTS TABLE */}
+      {/* شريط الأدوات */}
+      <div className="exact-toolbar-card" dir="rtl">
         {activeTab === "slots" && (
-          loadingSlots ? (
-            <div className="legal-slots-empty">{t("legal_slots.loading_slots")}</div>
+          <button
+            type="button"
+            className="exact-primary-btn"
+            onClick={() => {
+              setFormData({ date: "", start_time: "", end_time: "" });
+              setCreateOpen(true);
+            }}
+          >
+            <Plus size={18} />
+            <span>{t("legal_slots.add_slot")}</span>
+          </button>
+        )}
+
+        <div className="exact-select-wrapper">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+          >
+            <option value="all">{t("legal_slots.status_all")}</option>
+            {activeTab === "slots" ? (
+              <>
+                <option value="available">{t("legal_slots.status_available")}</option>
+                <option value="booked">{t("legal_slots.status_booked")}</option>
+                <option value="cancelled">{t("legal_slots.status_cancelled")}</option>
+              </>
+            ) : (
+              <>
+                <option value="pending">قيد الانتظار (pending)</option>
+                <option value="initially_accepted">مقبول مبدئياً (initially_accepted)</option>
+                <option value="accepted">مقبول (accepted)</option>
+                <option value="rejected">مرفوض (rejected)</option>
+              </>
+            )}
+          </select>
+          <ChevronDown size={16} className="exact-select-chevron" />
+        </div>
+
+        <div className="exact-filter-label">
+          <SlidersHorizontal size={16} />
+          <span>تصفية</span>
+        </div>
+
+        <div className="exact-search-field">
+          <input
+            type="text"
+            placeholder={t("legal_slots.search_placeholder")}
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <Search size={18} className="exact-search-icon" />
+        </div>
+      </div>
+
+      {/* جدول الفترات المتاحة */}
+      {activeTab === "slots" && (
+        <TableCard title={t("legal_slots.title")} count={filteredSlots.length}>
+          {loadingSlots ? (
+            <div className="table-state">{t("legal_slots.loading_slots")}</div>
           ) : errorSlots ? (
-            <div className="legal-slots-error">{errorSlots}</div>
-          ) : filteredSlots.length === 0 ? (
-            <div className="legal-slots-empty">{t("legal_slots.no_matching_slots")}</div>
+            <div className="table-state is-error">{errorSlots}</div>
           ) : (
-            <div className="legal-slots-table-wrap">
-              <table className="legal-slots-table">
+            <div className="table-scroll">
+              <table className="legal-table">
                 <thead>
                   <tr>
                     <th>{t("legal_slots.id")}</th>
@@ -357,264 +374,314 @@ export default function LegalAvailableSlotsPage() {
                     <th>{t("legal_slots.actions")}</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {filteredSlots.map((slot) => {
-                    const meta = STATUS_META[slot.status] || {
-                      label: slot.status || "—",
-                      type: "off",
-                    };
+                  {filteredSlots.length > 0 ? (
+                    filteredSlots.map((slot) => {
+                      const meta = STATUS_META[slot.status] || {
+                        label: slot.status || "—",
+                        type: "off",
+                      };
 
-                    return (
-                      <tr key={slot.id}>
-                        <td><strong>{slot.id}</strong></td>
-                        <td>
-                          <div className="legal-slots-user-cell">
-                            <div className="legal-slots-avatar">
-                              <User size={14} />
+                      return (
+                        <tr key={slot.id}>
+                          <td><strong>#{slot.id}</strong></td>
+                          <td>
+                            <div className="services-item-cell">
+                              <div className="services-thumb-placeholder">
+                                <User size={16} />
+                              </div>
+                              <div className="services-item-info">
+                                <strong>{getEmployeeName(slot)}</strong>
+                              </div>
                             </div>
-                            <strong>{getEmployeeName(slot)}</strong>
-                          </div>
-                        </td>
-                        <td>{getEmployeeId(slot)}</td>
-                        <td>{getEmployeeEmail(slot)}</td>
-                        <td>{getEmployeePhone(slot)}</td>
-                        <td>{slot.batch_id ?? "—"}</td>
-                        <td>{slot.date ?? "—"}</td>
-                        <td>
-                          {slot.start_time ?? "—"} {slot.end_time ? ` ${t("legal_slots.to")} ${slot.end_time}` : ""}
-                        </td>
-                        <td>
-                          <StatusBadge status={meta.label} type={meta.type} />
-                        </td>
-                        <td>
-                          {slot.created_at
-                            ? new Date(slot.created_at).toLocaleString()
-                            : "—"}
-                        </td>
-                        <td>
-                          <div className="actions-group">
-                            <button
-                              type="button"
-                              className="icon-btn"
-                              onClick={() => handleOpenEditStatus(slot)}
-                              title={t("legal_slots.edit_status")}
-                            >
-                              <Pencil size={15} />
-                            </button>
+                          </td>
+                          <td>{getEmployeeId(slot)}</td>
+                          <td>{getEmployeeEmail(slot)}</td>
+                          <td>{getEmployeePhone(slot)}</td>
+                          <td>{slot.batch_id ?? "—"}</td>
+                          <td>{slot.date ?? "—"}</td>
+                          <td>
+                            <span className="services-price">
+                              {slot.start_time ?? "—"}
+                              {slot.end_time ? ` ${t("legal_slots.to")} ${slot.end_time}` : ""}
+                            </span>
+                          </td>
+                          <td>
+                            <StatusBadge status={meta.label} type={meta.type} />
+                          </td>
+                          <td className="services-date">
+                            {slot.created_at ? new Date(slot.created_at).toLocaleDateString() : "—"}
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              {slot.status !== "cancelled" && (
+                                <button
+                                  type="button"
+                                  className="icon-action-btn danger"
+                                  onClick={() => handleCancelSlot(slot)}
+                                  title="إلغاء الفترة"
+                                >
+                                  <Ban size={16} />
+                                </button>
+                              )}
 
-                            <button
-                              type="button"
-                              className="icon-btn danger"
-                              onClick={() => handleDelete(slot.id)}
-                              title={t("legal_slots.delete_slot")}
-                            >
-                              <Trash2 size={15} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
+                              <button
+                                type="button"
+                                className="icon-action-btn danger"
+                                onClick={() => handleDelete(slot.id)}
+                                title={t("legal_slots.delete_slot")}
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="11" className="empty-cell">
+                        {t("legal_slots.no_matching_slots")}
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-          )
-        )}
+          )}
+        </TableCard>
+      )}
 
-        {/* TAB 2: APPOINTMENTS TABLE */}
-        {activeTab === "appointments" && (
-          loadingAppointments ? (
-            <div className="legal-slots-empty">جاري تحميل الحجوزات...</div>
+      {/* جدول الحجوزات */}
+      {activeTab === "appointments" && (
+        <TableCard title="جدول الحجوزات" count={filteredAppointments.length}>
+          {loadingAppointments ? (
+            <div className="table-state">جاري تحميل البيانات...</div>
           ) : errorAppointments ? (
-            <div className="legal-slots-error">{errorAppointments}</div>
-          ) : filteredAppointments.length === 0 ? (
-            <div className="legal-slots-empty">لا توجد حجوزات مطابقة.</div>
+            <div className="table-state is-error">{errorAppointments}</div>
           ) : (
-            <div className="legal-slots-table-wrap">
-              <table className="legal-slots-table">
+            <div className="table-scroll">
+              <table className="legal-table">
                 <thead>
                   <tr>
                     <th>رقم الحجز</th>
+                    <th>اسم الزبون</th>
                     <th>نوع الحجز</th>
-                    <th>رقم الطلب (Order)</th>
-                    <th>حالة الطلب</th>
+                    <th>حالة الحجز</th>
                     <th>تاريخ الفترة (Slot Date)</th>
                     <th>وقت البداية</th>
-                    <th>حالة الحجز</th>
                     <th>تاريخ الإنشاء</th>
+                    <th>الإجراءات</th>
                   </tr>
                 </thead>
-
                 <tbody>
-                  {filteredAppointments.map((item) => {
-                    const meta = STATUS_META[item.status] || {
-                      label: item.status || "—",
-                      type: "busy",
-                    };
+                  {filteredAppointments.length > 0 ? (
+                    filteredAppointments.map((item) => {
+                      const meta = STATUS_META[item.status] || {
+                        label: item.status || "—",
+                        type: "busy",
+                      };
 
-                    return (
-                      <tr key={item.id}>
-                        <td><strong>{item.id}</strong></td>
-                        <td style={{ textTransform: "capitalize" }}>{item.type || "—"}</td>
-                        <td>{item.order?.id ? `${item.order.id}` : "—"}</td>
-                        <td>{item.order?.status || "—"}</td>
-                        <td>{item.slot?.date || "—"}</td>
-                        <td>{item.slot?.start_time || "—"}</td>
-                        <td>
-                          <StatusBadge status={meta.label} type={meta.type} />
-                        </td>
-                        <td>{item.created_at || "—"}</td>
-                      </tr>
-                    );
-                  })}
+                      const targetOrderId = item.order_id || item.order?.id || item.id;
+
+                      return (
+                        <tr key={item.id}>
+                          <td><strong>#{item.id}</strong></td>
+                          <td>
+                            <div className="services-item-cell">
+                              <div className="services-thumb-placeholder">
+                                <User size={16} />
+                              </div>
+                              <div className="services-item-info">
+                                <strong>{getCustomerName(item)}</strong>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ textTransform: "capitalize" }}>
+                            {item.type || item.order?.type || "—"}
+                          </td>
+                          <td>
+                            <StatusBadge status={meta.label} type={meta.type} />
+                          </td>
+                          <td>{item.slot?.date || "—"}</td>
+                          <td>
+                            <span className="services-price">
+                              {item.slot?.start_time || "—"}
+                            </span>
+                          </td>
+                          <td className="services-date">
+                            {item.created_at || "—"}
+                          </td>
+                          <td>
+                            <div className="row-actions">
+                              <button
+                                type="button"
+                                className="icon-action-btn"
+                                onClick={() => handleOpenOrderDetails(targetOrderId)}
+                                title="عرض تفاصيل الطلب"
+                              >
+                                <Eye size={16} />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan="8" className="empty-cell">
+                        لا توجد حجوزات مطابقة للبحث.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
-          )
+          )}
+        </TableCard>
+      )}
+
+      {/* نافذة تفاصيل الطلب */}
+      <Modal
+        open={isDetailsModalOpen}
+        onClose={handleCloseOrderDetails}
+        title={orderDetails ? `تفاصيل الطلب #${orderDetails.id}` : "تفاصيل الطلب"}
+        size="md"
+      >
+        {loadingOrderDetails ? (
+          <div style={{ padding: "24px", textAlign: "center" }}>جاري تحميل تفاصيل الطلب...</div>
+        ) : orderDetails ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7eb", paddingBottom: "12px" }}>
+              <div>
+                <span style={{ fontSize: "12px", color: "#6b7280" }}>القسم: </span>
+                <strong style={{ color: "#111827" }}>{orderDetails.department?.name || "—"}</strong>
+              </div>
+              <StatusBadge
+                status={STATUS_META[orderDetails.status]?.label || orderDetails.status}
+                type={STATUS_META[orderDetails.status]?.type || "ok"}
+              />
+            </div>
+
+            {/* بيانات العميل */}
+            {orderDetails.client && (
+              <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <User size={16} />
+                  <span>بيانات العميل</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px" }}>
+                  <div>الاسم: {orderDetails.client.account?.full_name || "—"}</div>
+                  <div>البريد: {orderDetails.client.account?.email || "—"}</div>
+                  <div>الهاتف: {orderDetails.client.account?.phone || "—"}</div>
+                  <div>الوظيفة: {orderDetails.client.additional_info?.job_title || "—"}</div>
+                </div>
+              </div>
+            )}
+
+            {/* بيانات الوحدة العقارية */}
+            {orderDetails.unit && (
+              <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <Home size={16} />
+                  <span>بيانات الوحدة السكنية</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px" }}>
+                  <div>رقم الوحدة: {orderDetails.unit.unit_number}</div>
+                  <div>النوع: {orderDetails.unit.type}</div>
+                  <div>الطابق: {orderDetails.unit.floor}</div>
+                  <div>المساحة: {orderDetails.unit.area} م²</div>
+                  <div>السعر: {orderDetails.unit.current_price} €</div>
+                  <div>الغرف: {orderDetails.unit.rooms_count}</div>
+                </div>
+              </div>
+            )}
+
+            {/* الملاحظات */}
+            {orderDetails.notes?.length > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <FileText size={16} />
+                  <span>الملاحظات</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {orderDetails.notes.map((note) => (
+                    <div key={note.id} style={{ border: "1px solid #e5e7eb", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
+                      <div>{note.text}</div>
+                      <span style={{ color: "#6b7280", fontSize: "11px" }}>
+                        بواسطة: {note.created_by?.full_name} | {note.created_at}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
+              <Button type="button" className="ghost-filter-btn" onClick={handleCloseOrderDetails}>
+                إغلاق
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <div style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>لا تتوفر تفاصيل للطلب.</div>
         )}
-      </section>
+      </Modal>
 
-      {/* MODAL: EDIT STATUS */}
-      {editStatusModal.isOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() =>
-            setEditStatusModal({ isOpen: false, slotId: null, status: "available" })
-          }
-        >
-          <div className="modal-card status-modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
-              type="button"
-              className="close-btn"
-              onClick={() =>
-                setEditStatusModal({ isOpen: false, slotId: null, status: "available" })
-              }
-            >
-              <X size={18} />
-            </button>
+      {/* مودال إضافة فترة جديدة */}
+      <Modal
+        open={createOpen}
+        onClose={() => setCreateOpen(false)}
+        title={t("legal_slots.add_new_slot")}
+        size="md"
+      >
+        <form className="modal-form" onSubmit={handleCreate}>
+          <Field
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            label="التاريخ (Date)"
+            required
+          />
 
-            <div className="modal-header">
-              <h3>{t("legal_slots.edit_slot_status")}</h3>
-            </div>
+          <div className="modal-grid">
+            <Field
+              type="time"
+              name="start_time"
+              value={formData.start_time}
+              onChange={handleChange}
+              label={t("legal_slots.start_time")}
+              required
+            />
 
-            <form onSubmit={handleSaveStatus} className="modal-form">
-              <div className="form-group">
-                <label>{t("legal_slots.new_status")}</label>
-                <select
-                  className="input-field"
-                  value={editStatusModal.status}
-                  onChange={(e) =>
-                    setEditStatusModal((prev) => ({
-                      ...prev,
-                      status: e.target.value,
-                    }))
-                  }
-                >
-                  <option value="available">{t("legal_slots.option_available")}</option>
-                  <option value="booked">{t("legal_slots.option_booked")}</option>
-                  <option value="cancelled">{t("legal_slots.option_cancelled")}</option>
-                </select>
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? t("saving") : t("save_changes")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() =>
-                    setEditStatusModal({ isOpen: false, slotId: null, status: "available" })
-                  }
-                  disabled={actionLoading}
-                >
-                  {t("cancel")}
-                </button>
-              </div>
-            </form>
+            <Field
+              type="time"
+              name="end_time"
+              value={formData.end_time}
+              onChange={handleChange}
+              label={t("legal_slots.end_time")}
+              required
+            />
           </div>
-        </div>
-      )}
 
-      {/* ================= MODAL: CREATE SLOT ================= */}
-      {createOpen && (
-        <div className="modal-backdrop" onClick={() => setCreateOpen(false)}>
-          <div className="modal-card status-modal-card" onClick={(e) => e.stopPropagation()}>
-            <button
+          <div className="modal-actions">
+            <Button
               type="button"
-              className="close-btn"
+              className="ghost-filter-btn"
               onClick={() => setCreateOpen(false)}
+              disabled={actionLoading}
             >
-              <X size={18} />
-            </button>
+              {t("cancel")}
+            </Button>
 
-            <div className="modal-header">
-              <h3>{t("legal_slots.add_new_slot")}</h3>
-            </div>
-
-            <form onSubmit={handleCreate} className="modal-form">
-              {/* 🟢 4. إدخال حقل التاريخ المطلوب من الباك إيند */}
-              <div className="form-group">
-                <label>التاريخ (Date)</label>
-                <input
-                  type="date"
-                  name="date"
-                  className="input-field"
-                  value={formData.date}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t("legal_slots.start_time")}</label>
-                <input
-                  type="time"
-                  name="start_time"
-                  className="input-field"
-                  value={formData.start_time}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>{t("legal_slots.end_time")}</label>
-                <input
-                  type="time"
-                  name="end_time"
-                  className="input-field"
-                  value={formData.end_time}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="submit"
-                  className="btn-primary"
-                  disabled={actionLoading}
-                >
-                  {actionLoading ? t("saving") : t("legal_slots.save_slot")}
-                </button>
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => setCreateOpen(false)}
-                >
-                  {t("cancel")}
-                </button>
-              </div>
-            </form>
+            <Button type="submit" className="exact-primary-btn" disabled={actionLoading}>
+              <Plus size={16} />
+              <span>{actionLoading ? t("saving") : t("legal_slots.save_slot")}</span>
+            </Button>
           </div>
-        </div>
-      )}
+        </form>
+      </Modal>
     </div>
   );
 }

@@ -24,19 +24,15 @@ textarea {
   font-family: inherit;
 }
 
+/* تطبيق الاتجاه والخط على كامل الصفحة */
 html[dir="ltr"] {
   direction: ltr;
+  text-align: left;
   font-family: var(--font-english);
 }
 
 html[dir="rtl"] {
   direction: rtl;
+  text-align: right;
   font-family: var(--font-arabic);
-}
-
-button,
-input,
-select,
-textarea {
-  font: inherit;
 }

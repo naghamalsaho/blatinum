@@ -13,6 +13,9 @@ export const setLanguage = (lang) => {
   localStorage.setItem(LOCALE_KEY, lang);
   document.documentElement.lang = lang;
   document.documentElement.dir = getDirection(lang);
+  
+  // إرسال حدث عام لتحديث كافة مكونات واجهة المستخدم
+  window.dispatchEvent(new Event("languageChange"));
 };
 
 const DICTS = { en, ar };
@@ -21,21 +24,16 @@ export const t = (key, variables = {}) => {
   const lang = getLanguage();
   const dict = DICTS[lang] || DICTS.ar;
 
-  // يدعم المفاتيح المتداخلة مثل legal_contracts.title
   let value = key.split(".").reduce((obj, k) => obj?.[k], dict);
 
-  // fallback للإنجليزي إذا المفتاح غير موجود باللغة الحالية
   if (value == null) {
-    value = key
-      .split(".")
-      .reduce((obj, k) => obj?.[k], DICTS.en);
+    value = key.split(".").reduce((obj, k) => obj?.[k], DICTS.en);
   }
 
   if (value == null) {
     value = key;
   }
 
-  // يدعم المتغيرات مثل {name}
   return Object.entries(variables).reduce(
     (text, [name, replacement]) =>
       String(text).replaceAll(`{${name}}`, String(replacement)),

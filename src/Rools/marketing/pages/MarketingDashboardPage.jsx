@@ -4,12 +4,8 @@ import {
   Eye,
   TrendingUp,
   Activity,
- 
-  Percent,
   Home,
   Briefcase,
- 
-  CalendarDays,
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -25,9 +21,12 @@ import {
 } from "recharts";
 
 import { useDispatch, useSelector } from "react-redux";
+import { t } from "@/shared/i18n";
+import i18n from "i18next";
 
 import StatCard from "@/shared/components/StatCard";
 import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
 
 import {
   fetchAdvertisements,
@@ -69,19 +68,9 @@ const adsFallback = [
   },
 ];
 
-const MONTH_LABELS_AR = [
-  "يناير",
-  "فبراير",
-  "مارس",
-  "أبريل",
-  "مايو",
-  "يونيو",
-  "يوليو",
-  "أغسطس",
-  "سبتمبر",
-  "أكتوبر",
-  "نوفمبر",
-  "ديسمبر",
+const MONTH_KEYS = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec"
 ];
 
 const STATUS_COLORS = [
@@ -101,12 +90,10 @@ function isAdvertisementActive(advertisement) {
 
 function getAdStatus(ad) {
   const raw = ad?.status;
-
   if (raw === true || raw === 1 || raw === "1" || raw === "active") return "active";
   if (raw === false || raw === 0 || raw === "0" || raw === "draft") return "draft";
   if (raw === "scheduled") return "scheduled";
   if (raw === "review" || raw === "pending") return "pending";
-
   return "draft";
 }
 
@@ -123,30 +110,17 @@ function getAdMonthKey(ad) {
     getSafeDate(ad?.date);
 
   if (!date) return null;
-
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}`;
 }
-
-// function getFirstImage(advertisement) {
-//   return (
-//     advertisement?.attachments?.find((item) => item.type === "image")?.url ||
-//     null
-//   );
-// }
 
 function formatDate(value) {
   return value ? String(value).split(" ")[0] : "—";
 }
 
-function formatPrice(amount) {
-  if (!amount && amount !== 0) return "—";
-  return Number(amount).toLocaleString("ar-EG") + " ل.س";
-}
-
 export default function MarketingDashboardPage() {
   const dispatch = useDispatch();
+  const currentLang = i18n?.language || "ar";
 
-  // جلب الإعلانات
   const adsState = useSelector((state) => state.advertisements || {});
   const liveAdvertisements =
     adsState.advertisements ||
@@ -167,12 +141,10 @@ export default function MarketingDashboardPage() {
       ? activeAdvertisementsFromStore
       : advertisements.filter(isAdvertisementActive);
 
-  // جلب العروض
   const offersState = useSelector((state) => state.offers || state.offer || {});
   const offersList = offersState?.items || offersState?.offers || [];
   const offersLoading = offersState?.loading || false;
 
-  // أحدث 3 عروض فقط
   const latestOffers = useMemo(() => {
     return [...offersList].reverse().slice(0, 3);
   }, [offersList]);
@@ -186,9 +158,14 @@ export default function MarketingDashboardPage() {
     dispatch(fetchOffers());
   }, [dispatch]);
 
+  const formatPrice = (amount) => {
+    if (!amount && amount !== 0) return "—";
+    const locale = currentLang === "ar" ? "ar-EG" : "en-US";
+    return `${Number(amount).toLocaleString(locale)} ${t("marketing_dashboard.currency")}`;
+  };
+
   const performanceData = useMemo(() => {
     const result = [];
-
     for (let i = 5; i >= 0; i -= 1) {
       const date = new Date();
       date.setMonth(date.getMonth() - i);
@@ -204,12 +181,11 @@ export default function MarketingDashboardPage() {
 
       result.push({
         key: monthKey,
-        name: MONTH_LABELS_AR[monthIndex],
+        name: t(`marketing_dashboard.months.${MONTH_KEYS[monthIndex]}`),
         campaigns: adsInMonth.length,
         ads: adsInMonth.filter((ad) => getAdStatus(ad) === "active").length,
       });
     }
-
     return result;
   }, [advertisements]);
 
@@ -218,8 +194,8 @@ export default function MarketingDashboardPage() {
     const draft = advertisements.filter((ad) => getAdStatus(ad) === "draft").length;
 
     return [
-      { name: "نشط", value: active, count: active },
-      { name: "مسودة", value: draft, count: draft },
+      { name: t("marketing_dashboard.active"), value: active, count: active },
+      { name: t("marketing_dashboard.draft"), value: draft, count: draft },
     ];
   }, [advertisements]);
 
@@ -228,38 +204,38 @@ export default function MarketingDashboardPage() {
       (sum, ad) => sum + Number(ad.views || ad.view_count || 0),
       0
     );
-
     const totalClicks = advertisements.reduce(
       (sum, ad) => sum + Number(ad.clicks || ad.click_count || 0),
       0
     );
-
     const conversionRate =
       totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
 
+    const locale = currentLang === "ar" ? "ar-EG" : "en-US";
+
     return [
       {
-        title: "إجمالي الإعلانات",
+        title: t("marketing_dashboard.total_ads"),
         value: String(advertisements.length),
         icon: Megaphone,
       },
       {
-        title: "الإعلانات النشطة",
+        title: t("marketing_dashboard.active_ads"),
         value: String(activeAdvertisements.length),
         icon: Activity,
       },
       {
-        title: "مشاهدات هذا الشهر",
-        value: totalViews ? totalViews.toLocaleString() : "0",
+        title: t("marketing_dashboard.month_views"),
+        value: totalViews ? totalViews.toLocaleString(locale) : "0",
         icon: Eye,
       },
       {
-        title: "معدل التحويل",
+        title: t("marketing_dashboard.conversion_rate"),
         value: `${conversionRate}%`,
         icon: TrendingUp,
       },
     ];
-  }, [advertisements, activeAdvertisements.length]);
+  }, [advertisements, activeAdvertisements.length, currentLang]);
 
   const openOfferPreview = (offer) => {
     setPreviewOffer(offer);
@@ -267,30 +243,31 @@ export default function MarketingDashboardPage() {
   };
 
   return (
-    <div className="marketing-dashboard-page" dir="rtl">
-      <section className="marketing-stats-grid">
+    <div className="marketing-services-page" dir={currentLang === "ar" ? "rtl" : "ltr"}>
+      {/* 1. شبكة الإحصائيات العلوية */}
+      <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard
             key={item.title}
             title={item.title}
             value={item.value}
-            note={item.note}
             icon={item.icon}
           />
         ))}
       </section>
 
+      {/* 2. قسم التحليلات والرسوم البيانية */}
       <section className="marketing-analytics-grid">
         <article className="marketing-panel marketing-chart-panel">
           <div className="marketing-panel-head">
             <div>
-              <h2>نشاط النظام</h2>
-              <p>آخر 6 أشهر</p>
+              <h2>{t("marketing_dashboard.system_activity")}</h2>
+              <p>{t("marketing_dashboard.last_6_months")}</p>
             </div>
           </div>
 
           <div className="marketing-chart-wrap">
-            <ResponsiveContainer width="100%" height={320}>
+            <ResponsiveContainer width="99%" height={320}>
               <AreaChart
                 data={performanceData}
                 margin={{ top: 10, right: 18, left: 0, bottom: 24 }}
@@ -340,6 +317,7 @@ export default function MarketingDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="campaigns"
+                  name={t("marketing_dashboard.campaigns")}
                   stroke="var(--dash-accent)"
                   fill="url(#campaignFill)"
                   strokeWidth={3}
@@ -350,6 +328,7 @@ export default function MarketingDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="ads"
+                  name={t("marketing_dashboard.ads")}
                   stroke="var(--dash-accent-strong)"
                   fill="url(#adsFill)"
                   strokeWidth={3}
@@ -364,13 +343,13 @@ export default function MarketingDashboardPage() {
         <article className="marketing-panel marketing-donut-panel">
           <div className="marketing-panel-head">
             <div>
-              <h2>حالة الإعلانات</h2>
-              <p>توزيع سريع حسب الحالة</p>
+              <h2>{t("marketing_dashboard.ads_status")}</h2>
+              <p>{t("marketing_dashboard.status_distribution")}</p>
             </div>
           </div>
 
           <div className="marketing-donut-chart">
-            <ResponsiveContainer width="100%" height={220}>
+            <ResponsiveContainer width="99%" height={220}>
               <PieChart>
                 <Tooltip
                   contentStyle={{
@@ -416,112 +395,104 @@ export default function MarketingDashboardPage() {
         </article>
       </section>
 
-      {/* قسم أحدث العروض والخصومات بدلاً من المعرض القديم */}
-      <section className="marketing-portfolio-section">
-        <div className="marketing-panel-head marketing-section-head">
-          <div>
-            <h2>أحدث العروض والخصومات</h2>
-            
-          </div>
-        </div>
-
+      {/* 3. قسم أحدث العروض */}
+      <TableCard title={t("marketing_dashboard.latest_offers")}>
         {offersLoading ? (
-          <div className="project-empty-state">جاري تحميل العروض...</div>
+          <div className="table-state">{t("marketing_dashboard.loading_offers")}</div>
         ) : latestOffers.length === 0 ? (
-          <div className="project-empty-state">لا توجد عروض متاحة حالياً</div>
+          <div className="table-state">{t("marketing_dashboard.no_offers")}</div>
         ) : (
-          <div className="marketing-portfolio-grid">
-            {latestOffers.map((item) => {
-              const isService = !!item.item?.name;
-              const title = isService
-                ? item.item?.name
-                : item.item?.unit_number
-                ? `شقة رقم ${item.item.unit_number}`
-                : "عرض خاص";
+          <div className="table-scroll">
+            <table className="legal-table">
+              <thead>
+                <tr>
+                  <th>{t("marketing_dashboard.table.item")}</th>
+                  <th>{t("marketing_dashboard.table.type")}</th>
+                  <th>{t("marketing_dashboard.table.discount")}</th>
+                  <th>{t("marketing_dashboard.table.old_price")}</th>
+                  <th>{t("marketing_dashboard.table.new_price")}</th>
+                  <th>{t("marketing_dashboard.table.ends_at")}</th>
+                  <th>{t("marketing_dashboard.table.actions")}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {latestOffers.map((item) => {
+                  const isService = !!item.item?.name;
+                  const title = isService
+                    ? item.item?.name
+                    : item.item?.unit_number
+                    ? t("marketing_dashboard.apartment_number", { number: item.item.unit_number })
+                    : t("marketing_dashboard.special_offer");
 
-              return (
-                <article key={item.id} className="marketing-portfolio-card">
-                  <div
-                    className="marketing-portfolio-hero"
-                    style={{
-                      background: "var(--dash-shell-glow-1)",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "2rem",
-                    }}
-                  >
-                    {isService ? <Briefcase size={32} /> : <Home size={32} />}
-                  </div>
+                  const categoryLabel = isService
+                    ? t("marketing_dashboard.specialized_service")
+                    : item.item?.building_id
+                    ? t("marketing_dashboard.building_number", { number: item.item.building_id })
+                    : t("marketing_dashboard.residential_unit");
 
-                  <div className="marketing-portfolio-body">
-                    <div>
-                      <div
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          alignItems: "center",
-                        }}
-                      >
-                        <h3>{title}</h3>
-                        <span
-                          style={{
-                            background: "var(--dash-accent-soft, rgba(230, 81, 0, 0.1))",
-                            color: "var(--dash-accent)",
-                            padding: "2px 8px",
-                            borderRadius: "12px",
-                            fontSize: "12px",
-                            fontWeight: "bold",
-                            display: "flex",
-                            alignItems: "center",
-                            gap: "3px",
-                          }}
-                        >
-                          <Percent size={11} /> {item.discount_percentage}%خصم
+                  return (
+                    <tr key={item.id}>
+                      <td>
+                        <div className="services-item-cell">
+                          <button
+                            type="button"
+                            className="services-thumb-btn"
+                            onClick={() => openOfferPreview(item)}
+                            title={t("marketing_dashboard.preview_offer")}
+                          >
+                            <div className="services-thumb-placeholder">
+                              {isService ? <Briefcase size={16} /> : <Home size={16} />}
+                            </div>
+                          </button>
+                          <div className="services-item-info">
+                            <strong>{title}</strong>
+                            <span>{categoryLabel}</span>
+                          </div>
+                        </div>
+                      </td>
+
+                      <td className="services-date">
+                        {isService ? t("marketing_dashboard.service") : t("marketing_dashboard.property")}
+                      </td>
+
+                      <td>
+                        <span className="marketing-offer-badge">
+                          {t("marketing_dashboard.discount_badge", { percentage: item.discount_percentage })}
                         </span>
-                      </div>
+                      </td>
 
-                      <p style={{ marginTop: "6px", fontSize: "13px" }}>
-                        {isService
-                          ? "خدمة تخصصية"
-                          : item.item?.building_id
-                          ? `مبنى رقم ${item.item.building_id}`
-                          : "وحدة سكنية"}
-                      </p>
-                    </div>
-
-                    <div style={{ marginTop: "10px", display: "flex", gap: "10px", alignItems: "baseline" }}>
-                      <span style={{ textDecoration: "line-through", color: "var(--dash-muted)", fontSize: "12px" }}>
+                      <td className="services-date" style={{ textDecoration: "line-through" }}>
                         {formatPrice(item.old_price)}
-                      </span>
-                      <strong style={{ color: "var(--dash-accent)", fontSize: "15px" }}>
+                      </td>
+
+                      <td style={{ color: "var(--dash-accent)", fontWeight: "bold" }}>
                         {formatPrice(item.new_price)}
-                      </strong>
-                    </div>
+                      </td>
 
-                    <div className="marketing-portfolio-footer" style={{ marginTop: "12px" }}>
-                      <span className="marketing-unit-chip" style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                        <CalendarDays size={12} /> ينتهي: {formatDate(item.end_date)}
-                      </span>
+                      <td className="services-date">
+                        {formatDate(item.end_date)}
+                      </td>
 
-                      <div className="marketing-row-actions">
-                        <button
-                          type="button"
-                          className="marketing-icon-btn"
-                          onClick={() => openOfferPreview(item)}
-                          title="معاينة العرض"
-                        >
-                          <Eye size={14} />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </article>
-              );
-            })}
+                      <td>
+                        <div className="row-actions">
+                          <button
+                            type="button"
+                            className="icon-action-btn"
+                            onClick={() => openOfferPreview(item)}
+                            title={t("marketing_dashboard.preview_offer")}
+                          >
+                            <Eye size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
           </div>
         )}
-      </section>
+      </TableCard>
 
       {/* نافذة معاينة العرض */}
       <Modal
@@ -529,21 +500,25 @@ export default function MarketingDashboardPage() {
         onClose={() => setPreviewOpen(false)}
         title={
           previewOffer?.item?.name
-            ? `تفاصيل عرض الخدمة (${previewOffer.item.name})`
+            ? t("marketing_dashboard.modal.service_details", { name: previewOffer.item.name })
             : previewOffer?.item?.unit_number
-            ? `تفاصيل عرض الوحدة (${previewOffer.item.unit_number})`
-            : "معاينة العرض"
+            ? t("marketing_dashboard.modal.unit_details", { number: previewOffer.item.unit_number })
+            : t("marketing_dashboard.modal.offer_preview")
         }
         size="lg"
       >
         <div className="marketing-offers-summary-card" style={{ maxWidth: "100%" }}>
           <div className="marketing-offers-summary-head">
             <div>
-              <p>{previewOffer?.item?.name ? "نوع العرض: خدمة" : "نوع العرض: عقار"}</p>
+              <p>
+                {previewOffer?.item?.name
+                  ? t("marketing_dashboard.modal.type_service")
+                  : t("marketing_dashboard.modal.type_property")}
+              </p>
               <h3>
                 {previewOffer?.item?.name
                   ? previewOffer.item.name
-                  : `الوحدة السكنية: ${previewOffer?.item?.unit_number || "-"}`}
+                  : t("marketing_dashboard.modal.residential_unit", { number: previewOffer?.item?.unit_number || "-" })}
               </h3>
             </div>
             <div className="marketing-summary-icon">
@@ -552,32 +527,32 @@ export default function MarketingDashboardPage() {
           </div>
 
           <p style={{ color: "var(--dash-muted)", fontSize: "13px", lineHeight: "1.6", margin: "12px 0" }}>
-            {previewOffer?.item?.description || "لا يوجد وصف تفصيلي متوفر لهذا العرض."}
+            {previewOffer?.item?.description || t("marketing_dashboard.modal.no_description")}
           </p>
 
           <div className="marketing-offers-summary-metrics" style={{ marginTop: "15px" }}>
             <div>
-              <strong>السعر الأصلي</strong>
+              <strong>{t("marketing_dashboard.modal.original_price")}</strong>
               {formatPrice(previewOffer?.old_price)}
             </div>
 
             <div>
-              <strong>السعر بعد الخصم</strong>
+              <strong>{t("marketing_dashboard.modal.discounted_price")}</strong>
               {formatPrice(previewOffer?.new_price)}
             </div>
 
             <div>
-              <strong>نسبة الخصم</strong>
+              <strong>{t("marketing_dashboard.modal.discount_percentage")}</strong>
               <span>{previewOffer?.discount_percentage || 0}%</span>
             </div>
 
             <div>
-              <strong>تاريخ البداية</strong>
+              <strong>{t("marketing_dashboard.modal.start_date")}</strong>
               <span>{formatDate(previewOffer?.start_date)}</span>
             </div>
 
             <div>
-              <strong>تاريخ النهاية</strong>
+              <strong>{t("marketing_dashboard.modal.end_date")}</strong>
               <span>{formatDate(previewOffer?.end_date)}</span>
             </div>
           </div>

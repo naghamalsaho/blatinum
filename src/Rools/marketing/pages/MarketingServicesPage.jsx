@@ -2,7 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   Plus,
-  Search,
   PencilLine,
   Trash2,
   Eye,
@@ -13,11 +12,16 @@ import {
   Image as ImageIcon,
   Upload,
   X,
+  Search,
+  SlidersHorizontal,
+  ChevronDown,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
+import TableCard from "@/shared/components/TableCard";
+import Field from "@/shared/components/Field";
 
 import {
   fetchServices,
@@ -64,6 +68,7 @@ export default function MarketingServicesPage() {
   const error = servicesState.error || "";
 
   const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
   const [selectedService, setSelectedService] = useState(null);
 
   const [createOpen, setCreateOpen] = useState(false);
@@ -123,10 +128,20 @@ export default function MarketingServicesPage() {
   }, [services, latestService]);
 
   const filteredServices = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    if (!q) return sortedServices;
+    let result = sortedServices;
 
-    return sortedServices.filter((item) => {
+    // تصفية حسب الحالة (بصور / بدون صور)
+    if (filterStatus === "with_image") {
+      result = result.filter((item) => Boolean(getFirstImage(item)));
+    } else if (filterStatus === "without_image") {
+      result = result.filter((item) => !getFirstImage(item));
+    }
+
+    // تصفية حسب النص
+    const q = search.trim().toLowerCase();
+    if (!q) return result;
+
+    return result.filter((item) => {
       const searchable = [
         item.name,
         item.description,
@@ -139,7 +154,7 @@ export default function MarketingServicesPage() {
 
       return searchable.includes(q);
     });
-  }, [sortedServices, search]);
+  }, [sortedServices, search, filterStatus]);
 
   const resetForm = () => {
     setFormData({
@@ -258,54 +273,71 @@ export default function MarketingServicesPage() {
   };
 
   return (
-    <div className="services-page" dir="rtl">
-      {/* البطاقات الإحصائية المنفصلة */}
-      <section className="services-stats-grid">
+    <div className="marketing-services-page" dir="rtl">
+      {/* شبكة الإحصائيات */}
+      <section className="legal-stats-grid">
         {stats.map((item) => (
-          <div key={item.title} className="services-stat-card">
-            <StatCard
-              title={item.title}
-              value={item.value}
-              icon={item.icon}
-            />
-          </div>
+          <StatCard
+            key={item.title}
+            title={item.title}
+            value={item.value}
+            icon={item.icon}
+          />
         ))}
       </section>
 
-      {/* اللوحة الرئيسية */}
-      <section className="services-panel">
-        <div className="services-panel-head">
-          <div>
-            <h2>إدارة الخدمات</h2>
-            <p>استعرض الخدمات وابحث عنها وافتح تفاصيلها أو قم بإدارتها بسهولة</p>
-            <Button className="services-primary-btn" onClick={handleOpenCreate}>
-              <Plus size={18} />
-              <span>إضافة خدمة</span>
-            </Button>
-          </div>
+      {/* شريط الأدوات المخصص المطابق للصورة تماماً */}
+      <div className="exact-toolbar-card" dir="rtl">
+        {/* 1. زر إضافة خدمة (على أقصى اليمين) */}
+        <button
+          type="button"
+          className="exact-primary-btn"
+          onClick={handleOpenCreate}
+        >
+          <Plus size={18} />
+          <span>إضافة خدمة</span>
+        </button>
+
+        {/* 2. القائمة المنسدلة للتصفية */}
+        <div className="exact-select-wrapper">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value)}
+          >
+            <option value="all">كل الحالات</option>
+            <option value="with_image">خدمات بصور</option>
+            <option value="without_image">خدمات بدون صور</option>
+          </select>
+          <ChevronDown size={16} className="exact-select-chevron" />
         </div>
 
-        <div className="services-toolbar">
-          <div className="services-search">
-            <Search size={18} />
-            <input
-              type="text"
-              placeholder="ابحث عن خدمة، وصف، أو سعر..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
+        {/* 3. عنوان وأيقونة التصفية */}
+        <div className="exact-filter-label">
+          <SlidersHorizontal size={16} />
+          <span>تصفية</span>
         </div>
 
+        {/* 4. حقل البحث (يمتد على بقية المساحة يساراً) */}
+        <div className="exact-search-field">
+          <input
+            type="text"
+            placeholder="ابحث عن خدمة، وصف، أو سعر..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <Search size={18} className="exact-search-icon" />
+        </div>
+      </div>
+
+      {/* جدول الخدمات */}
+      <TableCard title="إدارة الخدمات" count={filteredServices.length}>
         {loading ? (
-          <div className="services-empty">جاري تحميل الخدمات...</div>
+          <div className="table-state">جاري تحميل الخدمات...</div>
         ) : error ? (
-          <div className="services-error-box">{error}</div>
-        ) : filteredServices.length === 0 ? (
-          <div className="services-empty">لا توجد خدمات مطابقة للبحث</div>
+          <div className="table-state is-error">{error}</div>
         ) : (
-          <div className="services-table-wrap">
-            <table className="services-table">
+          <div className="table-scroll">
+            <table className="legal-table">
               <thead>
                 <tr>
                   <th>الخدمة</th>
@@ -317,303 +349,257 @@ export default function MarketingServicesPage() {
               </thead>
 
               <tbody>
-                {filteredServices.map((service) => {
-                  const imageUrl = getFirstImage(service);
+                {filteredServices.length > 0 ? (
+                  filteredServices.map((service) => {
+                    const imageUrl = getFirstImage(service);
 
-                  return (
-                    <tr key={service.id}>
-                      <td>
-                        <div className="services-item-cell">
-                          <button
-                            type="button"
-                            className="services-thumb-btn"
-                            onClick={() => handleOpenDetails(service)}
-                            title="عرض التفاصيل"
-                          >
-                            {imageUrl ? (
-                              <img
-                                src={imageUrl}
-                                alt={service.name}
-                                className="services-thumb"
-                              />
-                            ) : (
-                              <div className="services-thumb-placeholder">
-                                <Sparkles size={16} />
-                              </div>
-                            )}
-                          </button>
+                    return (
+                      <tr key={service.id}>
+                        <td>
+                          <div className="services-item-cell">
+                            <button
+                              type="button"
+                              className="services-thumb-btn"
+                              onClick={() => handleOpenDetails(service)}
+                              title="عرض التفاصيل"
+                            >
+                              {imageUrl ? (
+                                <img
+                                  src={imageUrl}
+                                  alt={service.name}
+                                  className="services-thumb"
+                                />
+                              ) : (
+                                <div className="services-thumb-placeholder">
+                                  <Sparkles size={16} />
+                                </div>
+                              )}
+                            </button>
 
-                          <div className="services-item-info">
-                            <strong>{service.name}</strong>
-                            <span>{service.description || "لا يوجد وصف"}</span>
+                            <div className="services-item-info">
+                              <strong>{service.name}</strong>
+                              <span>{service.description || "لا يوجد وصف"}</span>
+                            </div>
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      <td>
-                        <span className="services-price">
-                          {formatPrice(service.price)} ل.س
-                        </span>
-                      </td>
+                        <td>
+                          <span className="services-price">
+                            {formatPrice(service.price)} ل.س
+                          </span>
+                        </td>
 
-                      <td className="services-date">{service.created_from || "—"}</td>
+                        <td className="services-date">{service.created_from || "—"}</td>
 
-                      <td className="services-date">{formatDate(service.created_at)}</td>
+                        <td className="services-date">{formatDate(service.created_at)}</td>
 
-                      <td>
-                        <div className="services-row-actions">
-                          <button
-                            type="button"
-                            className="services-icon-btn"
-                            onClick={() => handleOpenDetails(service)}
-                            title="عرض التفاصيل"
-                          >
-                            <Eye size={14} />
-                          </button>
+                        <td>
+                          <div className="row-actions">
+                            <button
+                              type="button"
+                              className="icon-action-btn"
+                              onClick={() => handleOpenDetails(service)}
+                              title="عرض التفاصيل"
+                            >
+                              <Eye size={16} />
+                            </button>
 
-                          <button
-                            type="button"
-                            className="services-icon-btn"
-                            onClick={() => handleOpenEdit(service)}
-                            title="تعديل"
-                          >
-                            <PencilLine size={14} />
-                          </button>
+                            <button
+                              type="button"
+                              className="icon-action-btn"
+                              onClick={() => handleOpenEdit(service)}
+                              title="تعديل"
+                            >
+                              <PencilLine size={16} />
+                            </button>
 
-                          <button
-                            type="button"
-                            className="services-icon-btn danger"
-                            onClick={() => handleDelete(service.id)}
-                            title="حذف"
-                            disabled={deleting}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
+                            <button
+                              type="button"
+                              className="icon-action-btn danger"
+                              onClick={() => handleDelete(service.id)}
+                              title="حذف"
+                              disabled={deleting}
+                            >
+                              <Trash2 size={16} />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td colSpan="5" className="empty-cell">
+                      لا توجد خدمات مطابقة للبحث
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
         )}
-      </section>
+      </TableCard>
 
-      {/* MODAL: إضافة خدمة جديد */}
-      {createOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setCreateOpen(false);
-            resetForm();
-          }}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>إضافة خدمة جديدة</h3>
-              <button
-                type="button"
-                className="close-btn"
-                onClick={() => {
-                  setCreateOpen(false);
-                  resetForm();
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+      {/* MODAL: إضافة خدمة جديدة */}
+      <Modal
+        open={createOpen}
+        onClose={() => {
+          setCreateOpen(false);
+          resetForm();
+        }}
+        title="إضافة خدمة جديدة"
+        size="md"
+      >
+        <form className="modal-form" onSubmit={handleCreateSubmit}>
+          <div className="modal-grid">
+            <Field
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              label="اسم الخدمة"
+              iconClass="fa-solid fa-tag"
+              required
+            />
 
-            <form onSubmit={handleCreateSubmit} className="modal-form" noValidate>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>اسم الخدمة</label>
-                  <input
-                    type="text"
-                    name="name"
-                    className="input-field"
-                    placeholder="أدخل اسم الخدمة"
-                    value={formData.name}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>السعر (ل.س)</label>
-                  <input
-                    type="number"
-                    name="price"
-                    className="input-field"
-                    placeholder="أدخل السعر"
-                    value={formData.price}
-                    onChange={handleChange}
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>الوصف</label>
-                <textarea
-                  name="description"
-                  className="input-field textarea-field"
-                  placeholder="أدخل وصف تفصيلي للخدمة"
-                  rows={3}
-                  value={formData.description}
-                  onChange={handleChange}
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>الملفات والمرفقات</label>
-                <label className="file-upload-box">
-                  <Upload size={18} />
-                  <span>اختر صور أو ملفات مرافقة</span>
-                  <input
-                    type="file"
-                    name="attachments"
-                    ref={fileInputRef}
-                    onChange={handleChange}
-                    accept="image/*,application/pdf"
-                    multiple
-                    style={{ display: "none" }}
-                  />
-                </label>
-
-                {formData.attachments.length > 0 && (
-                  <div className="attachments-list">
-                    {formData.attachments.map((file, idx) => (
-                      <div key={idx} className="attachment-chip">
-                        <span>{file.name}</span>
-                        <X
-                          size={14}
-                          onClick={() => removeAttachment(idx)}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setCreateOpen(false);
-                    resetForm();
-                  }}
-                >
-                  إلغاء
-                </button>
-
-                <button
-                  type="submit"
-                  className="services-primary-btn"
-                  disabled={creating}
-                >
-                  <Plus size={16} />
-                  <span>{creating ? "جاري الحفظ..." : "حفظ الخدمة"}</span>
-                </button>
-              </div>
-            </form>
+            <Field
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              label="السعر (ل.س)"
+              iconClass="fa-solid fa-coins"
+              required
+            />
           </div>
-        </div>
-      )}
+
+          <Field
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            label="الوصف"
+            iconClass="fa-solid fa-align-left"
+            required
+          />
+
+          <div className="field-group">
+            <label className="file-upload-box">
+              <Upload size={18} />
+              <span>اختر صور أو ملفات مرافقة</span>
+              <input
+                type="file"
+                name="attachments"
+                ref={fileInputRef}
+                onChange={handleChange}
+                accept="image/*,application/pdf"
+                multiple
+                style={{ display: "none" }}
+              />
+            </label>
+
+            {formData.attachments.length > 0 && (
+              <div className="attachments-list">
+                {formData.attachments.map((file, idx) => (
+                  <div key={idx} className="attachment-chip">
+                    <span>{file.name}</span>
+                    <X
+                      size={14}
+                      onClick={() => removeAttachment(idx)}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={() => {
+                setCreateOpen(false);
+                resetForm();
+              }}
+              disabled={creating}
+            >
+              إلغاء
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={creating}
+            >
+              <Plus size={16} />
+              <span>{creating ? "جاري الحفظ..." : "حفظ الخدمة"}</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* MODAL: تعديل خدمة */}
-      {editOpen && (
-        <div
-          className="modal-backdrop"
-          onClick={() => {
-            setEditOpen(false);
-            setEditingServiceId(null);
-            resetForm();
-          }}
-        >
-          <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-            <div className="modal-header">
-              <h3>تعديل الخدمة</h3>
-              <button
-                type="button"
-                className="close-btn"
-                onClick={() => {
-                  setEditOpen(false);
-                  setEditingServiceId(null);
-                  resetForm();
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
+      <Modal
+        open={editOpen}
+        onClose={() => {
+          setEditOpen(false);
+          setEditingServiceId(null);
+          resetForm();
+        }}
+        title="تعديل الخدمة"
+        size="md"
+      >
+        <form className="modal-form" onSubmit={handleEditSubmit}>
+          <div className="modal-grid">
+            <Field
+              name="name"
+              value={formData.name}
+              onChange={handleChange}
+              label="اسم الخدمة"
+              iconClass="fa-solid fa-tag"
+            />
 
-            <form onSubmit={handleEditSubmit} className="modal-form" noValidate>
-              <div className="form-row">
-                <div className="form-group">
-                  <label>اسم الخدمة</label>
-                  <input
-                    type="text"
-                    name="name"
-                    className="input-field"
-                    placeholder="أدخل اسم الخدمة"
-                    value={formData.name}
-                    onChange={handleChange}
-                  />
-                </div>
-
-                <div className="form-group">
-                  <label>السعر (ل.س)</label>
-                  <input
-                    type="number"
-                    name="price"
-                    className="input-field"
-                    placeholder="أدخل السعر"
-                    value={formData.price}
-                    onChange={handleChange}
-                  />
-                </div>
-              </div>
-
-              <div className="form-group">
-                <label>الوصف</label>
-                <textarea
-                  name="description"
-                  className="input-field textarea-field"
-                  placeholder="أدخل وصف الخدمة"
-                  rows={3}
-                  value={formData.description}
-                  onChange={handleChange}
-                />
-              </div>
-
-              <div className="modal-actions">
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  onClick={() => {
-                    setEditOpen(false);
-                    setEditingServiceId(null);
-                    resetForm();
-                  }}
-                >
-                  إلغاء
-                </button>
-
-                <button
-                  type="submit"
-                  className="services-primary-btn"
-                  disabled={updating}
-                >
-                  <PencilLine size={16} />
-                  <span>{updating ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
-                </button>
-              </div>
-            </form>
+            <Field
+              type="number"
+              name="price"
+              value={formData.price}
+              onChange={handleChange}
+              label="السعر (ل.س)"
+              iconClass="fa-solid fa-coins"
+            />
           </div>
-        </div>
-      )}
+
+          <Field
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            label="الوصف"
+            iconClass="fa-solid fa-align-left"
+          />
+
+          <div className="modal-actions">
+            <Button
+              type="button"
+              className="ghost-filter-btn"
+              onClick={() => {
+                setEditOpen(false);
+                setEditingServiceId(null);
+                resetForm();
+              }}
+              disabled={updating}
+            >
+              إلغاء
+            </Button>
+
+            <Button
+              type="submit"
+              className="exact-primary-btn"
+              disabled={updating}
+            >
+              <PencilLine size={16} />
+              <span>{updating ? "جاري الحفظ..." : "حفظ التعديلات"}</span>
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* MODAL: تفاصيل الخدمة */}
       <Modal
