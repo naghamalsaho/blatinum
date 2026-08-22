@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   Plus,
   Trash2,
-  Pencil,
+  Ban,
   CalendarDays,
   Clock3,
   BadgeCheck,
@@ -14,6 +14,8 @@ import {
   SlidersHorizontal,
   ChevronDown,
   Eye,
+  FileText,
+  Home,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
@@ -30,8 +32,9 @@ import {
   updateAvailableSlot,
   deleteAvailableSlot,
   fetchAppointments,
-  fetchDepartmentOrders,
+  fetchOrderDetails,
 } from "../features/availableSlots/model/availableSlot.thunks";
+import { clearOrderDetails } from "../features/availableSlots/model/availableSlot.slice";
 
 import "../styles/legal-available-slots.css";
 
@@ -79,10 +82,8 @@ export default function LegalAvailableSlotsPage() {
     []
   );
 
-  // 🎯 قراءة حالة Redux مفصولة
   const availableSlotsSlice = useSelector((state) => state.availableSlots || {});
 
-  // جلب الفترات المتاحة
   const legalSlots = useMemo(() => {
     const slotsData = availableSlotsSlice.slots || availableSlotsSlice;
     if (Array.isArray(slotsData.items)) return slotsData.items;
@@ -94,7 +95,6 @@ export default function LegalAvailableSlotsPage() {
   const errorSlots = availableSlotsSlice.slots?.error ?? null;
   const actionLoading = availableSlotsSlice.actionLoading || false;
 
-  // جلب الحجوزات
   const appointments = useMemo(() => {
     const appData = availableSlotsSlice.appointments;
     if (Array.isArray(appData?.items)) return appData.items;
@@ -105,22 +105,16 @@ export default function LegalAvailableSlotsPage() {
   const loadingAppointments = availableSlotsSlice.appointments?.loading ?? false;
   const errorAppointments = availableSlotsSlice.appointments?.error ?? null;
 
-  const [departmentOrders, setDepartmentOrders] = useState([]);
-  const [loadingDepartmentOrders, setLoadingDepartmentOrders] = useState(true);
+  const orderDetails = availableSlotsSlice.orderDetails?.data;
+  const loadingOrderDetails = availableSlotsSlice.orderDetails?.loading;
 
   const [createOpen, setCreateOpen] = useState(false);
-  const [selectedOrderDetails, setSelectedOrderDetails] = useState(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
 
   const [formData, setFormData] = useState({
     date: "",
     start_time: "",
     end_time: "",
-  });
-
-  const [editStatusModal, setEditStatusModal] = useState({
-    isOpen: false,
-    slotId: null,
-    status: "available",
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -133,25 +127,20 @@ export default function LegalAvailableSlotsPage() {
   };
 
   useEffect(() => {
-    let isMounted = true;
-
     dispatch(fetchAvailableSlots());
     dispatch(fetchAppointments());
-
-    dispatch(fetchDepartmentOrders(2))
-      .then((action) => {
-        if (isMounted && fetchDepartmentOrders.fulfilled.match(action)) {
-          setDepartmentOrders(action.payload || []);
-        }
-      })
-      .finally(() => {
-        if (isMounted) setLoadingDepartmentOrders(false);
-      });
-
-    return () => {
-      isMounted = false;
-    };
   }, [dispatch]);
+
+  const handleOpenOrderDetails = (orderId) => {
+    if (!orderId) return;
+    setIsDetailsModalOpen(true);
+    dispatch(fetchOrderDetails(orderId));
+  };
+
+  const handleCloseOrderDetails = () => {
+    setIsDetailsModalOpen(false);
+    dispatch(clearOrderDetails());
+  };
 
   const filteredSlots = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
@@ -177,10 +166,10 @@ export default function LegalAvailableSlotsPage() {
         .join(" ")
         .toLowerCase();
 
-      const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesStatus = statusFilter === "all" || slot.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return (
+        (q === "" || searchableText.includes(q)) &&
+        (statusFilter === "all" || slot.status === statusFilter)
+      );
     });
   }, [legalSlots, searchTerm, statusFilter, STATUS_META]);
 
@@ -195,21 +184,21 @@ export default function LegalAvailableSlotsPage() {
         item.type,
         item.status,
         customerName,
+        item.order_id,
         item.order?.id,
         item.order?.type,
         item.order?.status,
         item.slot?.date,
         item.slot?.start_time,
-        item.slot?.batch_id,
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase();
 
-      const matchesSearch = q === "" || searchableText.includes(q);
-      const matchesStatus = statusFilter === "all" || item.status === statusFilter;
-
-      return matchesSearch && matchesStatus;
+      return (
+        (q === "" || searchableText.includes(q)) &&
+        (statusFilter === "all" || item.status === statusFilter)
+      );
     });
   }, [appointments, searchTerm, statusFilter]);
 
@@ -218,30 +207,15 @@ export default function LegalAvailableSlotsPage() {
   const booked = legalSlots.filter((slot) => slot.status === "booked").length;
   const totalAppointments = appointments.length;
 
-  const stats = useMemo(() => {
-    return [
-      {
-        title: t("legal_slots.total_slots"),
-        value: String(total),
-        icon: CalendarDays,
-      },
-      {
-        title: t("legal_slots.available_slots"),
-        value: String(available),
-        icon: BadgeCheck,
-      },
-      {
-        title: t("legal_slots.booked_slots"),
-        value: String(booked),
-        icon: Clock3,
-      },
-      {
-        title: "إجمالي الحجوزات",
-        value: String(totalAppointments),
-        icon: BookmarkCheck,
-      },
-    ];
-  }, [total, available, booked, totalAppointments]);
+  const stats = useMemo(
+    () => [
+      { title: t("legal_slots.total_slots"), value: String(total), icon: CalendarDays },
+      { title: t("legal_slots.available_slots"), value: String(available), icon: BadgeCheck },
+      { title: t("legal_slots.booked_slots"), value: String(booked), icon: Clock3 },
+      { title: "إجمالي الحجوزات", value: String(totalAppointments), icon: BookmarkCheck },
+    ],
+    [total, available, booked, totalAppointments]
+  );
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -259,27 +233,21 @@ export default function LegalAvailableSlotsPage() {
     }
   };
 
-  const handleOpenEditStatus = (slot) => {
-    setEditStatusModal({
-      isOpen: true,
-      slotId: slot.id,
-      status: slot.status || "available",
-    });
-  };
+  // 🎯 دالة إلغاء الفترة مباشرة
+  const handleCancelSlot = async (slot) => {
+    if (slot.status === "cancelled") return;
 
-  const handleSaveStatus = async (e) => {
-    e.preventDefault();
-    if (!editStatusModal.slotId) return;
+    const ok = window.confirm("هل أنت تأكد من إلغاء هذه الفترة المتاحة؟");
+    if (!ok) return;
 
     const result = await dispatch(
       updateAvailableSlot({
-        id: editStatusModal.slotId,
-        payload: { status: editStatusModal.status },
+        id: slot.id,
+        payload: { status: "cancelled" },
       })
     );
 
     if (updateAvailableSlot.fulfilled.match(result)) {
-      setEditStatusModal({ isOpen: false, slotId: null, status: "available" });
       dispatch(fetchAvailableSlots());
     }
   };
@@ -406,7 +374,6 @@ export default function LegalAvailableSlotsPage() {
                     <th>{t("legal_slots.actions")}</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {filteredSlots.length > 0 ? (
                     filteredSlots.map((slot) => {
@@ -435,30 +402,28 @@ export default function LegalAvailableSlotsPage() {
                           <td>{slot.date ?? "—"}</td>
                           <td>
                             <span className="services-price">
-                              {slot.start_time ?? "—"}{" "}
-                              {slot.end_time
-                                ? ` ${t("legal_slots.to")} ${slot.end_time}`
-                                : ""}
+                              {slot.start_time ?? "—"}
+                              {slot.end_time ? ` ${t("legal_slots.to")} ${slot.end_time}` : ""}
                             </span>
                           </td>
                           <td>
                             <StatusBadge status={meta.label} type={meta.type} />
                           </td>
                           <td className="services-date">
-                            {slot.created_at
-                              ? new Date(slot.created_at).toLocaleDateString()
-                              : "—"}
+                            {slot.created_at ? new Date(slot.created_at).toLocaleDateString() : "—"}
                           </td>
                           <td>
                             <div className="row-actions">
-                              <button
-                                type="button"
-                                className="icon-action-btn"
-                                onClick={() => handleOpenEditStatus(slot)}
-                                title={t("legal_slots.edit_status")}
-                              >
-                                <Pencil size={16} />
-                              </button>
+                              {slot.status !== "cancelled" && (
+                                <button
+                                  type="button"
+                                  className="icon-action-btn danger"
+                                  onClick={() => handleCancelSlot(slot)}
+                                  title="إلغاء الفترة"
+                                >
+                                  <Ban size={16} />
+                                </button>
+                              )}
 
                               <button
                                 type="button"
@@ -490,7 +455,7 @@ export default function LegalAvailableSlotsPage() {
       {/* جدول الحجوزات */}
       {activeTab === "appointments" && (
         <TableCard title="جدول الحجوزات" count={filteredAppointments.length}>
-          {loadingAppointments || loadingDepartmentOrders ? (
+          {loadingAppointments ? (
             <div className="table-state">جاري تحميل البيانات...</div>
           ) : errorAppointments ? (
             <div className="table-state is-error">{errorAppointments}</div>
@@ -502,15 +467,13 @@ export default function LegalAvailableSlotsPage() {
                     <th>رقم الحجز</th>
                     <th>اسم الزبون</th>
                     <th>نوع الحجز</th>
-                    <th>حالة الطلب</th>
+                    <th>حالة الحجز</th>
                     <th>تاريخ الفترة (Slot Date)</th>
                     <th>وقت البداية</th>
-                    <th>حالة الحجز</th>
                     <th>تاريخ الإنشاء</th>
                     <th>الإجراءات</th>
                   </tr>
                 </thead>
-
                 <tbody>
                   {filteredAppointments.length > 0 ? (
                     filteredAppointments.map((item) => {
@@ -519,15 +482,7 @@ export default function LegalAvailableSlotsPage() {
                         type: "busy",
                       };
 
-                      const customerName = getCustomerName(item);
-
-                      const matchingOrder =
-                        departmentOrders.find(
-                          (ord) =>
-                            ord.id === item.order_id ||
-                            ord.id === item.order?.id ||
-                            ord.id === item.id
-                        ) || item.order;
+                      const targetOrderId = item.order_id || item.order?.id || item.id;
 
                       return (
                         <tr key={item.id}>
@@ -538,40 +493,35 @@ export default function LegalAvailableSlotsPage() {
                                 <User size={16} />
                               </div>
                               <div className="services-item-info">
-                                <strong>{customerName}</strong>
+                                <strong>{getCustomerName(item)}</strong>
                               </div>
                             </div>
                           </td>
                           <td style={{ textTransform: "capitalize" }}>
-                            {item.type || matchingOrder?.type || "—"}
+                            {item.type || item.order?.type || "—"}
                           </td>
-                          <td>{matchingOrder?.status || item.order?.status || "—"}</td>
+                          <td>
+                            <StatusBadge status={meta.label} type={meta.type} />
+                          </td>
                           <td>{item.slot?.date || "—"}</td>
                           <td>
                             <span className="services-price">
                               {item.slot?.start_time || "—"}
                             </span>
                           </td>
-                          <td>
-                            <StatusBadge status={meta.label} type={meta.type} />
-                          </td>
                           <td className="services-date">
                             {item.created_at || "—"}
                           </td>
                           <td>
                             <div className="row-actions">
-                              {matchingOrder ? (
-                                <button
-                                  type="button"
-                                  className="icon-action-btn"
-                                  onClick={() => setSelectedOrderDetails(matchingOrder)}
-                                  title="عرض تفاصيل الطلب"
-                                >
-                                  <Eye size={16} />
-                                </button>
-                              ) : (
-                                <span style={{ color: "#9ca3af" }}>—</span>
-                              )}
+                              <button
+                                type="button"
+                                className="icon-action-btn"
+                                onClick={() => handleOpenOrderDetails(targetOrderId)}
+                                title="عرض تفاصيل الطلب"
+                              >
+                                <Eye size={16} />
+                              </button>
                             </div>
                           </td>
                         </tr>
@@ -579,7 +529,7 @@ export default function LegalAvailableSlotsPage() {
                     })
                   ) : (
                     <tr>
-                      <td colSpan="9" className="empty-cell">
+                      <td colSpan="8" className="empty-cell">
                         لا توجد حجوزات مطابقة للبحث.
                       </td>
                     </tr>
@@ -593,42 +543,88 @@ export default function LegalAvailableSlotsPage() {
 
       {/* نافذة تفاصيل الطلب */}
       <Modal
-        open={Boolean(selectedOrderDetails)}
-        onClose={() => setSelectedOrderDetails(null)}
-        title={`تفاصيل الطلب #${selectedOrderDetails?.id || ""}`}
+        open={isDetailsModalOpen}
+        onClose={handleCloseOrderDetails}
+        title={orderDetails ? `تفاصيل الطلب #${orderDetails.id}` : "تفاصيل الطلب"}
         size="md"
       >
-        {selectedOrderDetails && (
+        {loadingOrderDetails ? (
+          <div style={{ padding: "24px", textAlign: "center" }}>جاري تحميل تفاصيل الطلب...</div>
+        ) : orderDetails ? (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e5e7eb", paddingBottom: "12px" }}>
-              <span style={{ fontWeight: 600, color: "#374151" }}>حالة الطلب:</span>
+              <div>
+                <span style={{ fontSize: "12px", color: "#6b7280" }}>القسم: </span>
+                <strong style={{ color: "#111827" }}>{orderDetails.department?.name || "—"}</strong>
+              </div>
               <StatusBadge
-                status={STATUS_META[selectedOrderDetails.status]?.label || selectedOrderDetails.status}
-                type={STATUS_META[selectedOrderDetails.status]?.type || "ok"}
+                status={STATUS_META[orderDetails.status]?.label || orderDetails.status}
+                type={STATUS_META[orderDetails.status]?.type || "ok"}
               />
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-              <div>
-                <span style={{ fontSize: "12px", color: "#6b7280" }}>نوع الطلب:</span>
-                <div style={{ fontWeight: 600, textTransform: "capitalize" }}>{selectedOrderDetails.type || "—"}</div>
+            {/* بيانات العميل */}
+            {orderDetails.client && (
+              <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <User size={16} />
+                  <span>بيانات العميل</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px" }}>
+                  <div>الاسم: {orderDetails.client.account?.full_name || "—"}</div>
+                  <div>البريد: {orderDetails.client.account?.email || "—"}</div>
+                  <div>الهاتف: {orderDetails.client.account?.phone || "—"}</div>
+                  <div>الوظيفة: {orderDetails.client.additional_info?.job_title || "—"}</div>
+                </div>
               </div>
-              <div>
-                <span style={{ fontSize: "12px", color: "#6b7280" }}>تاريخ الإنشاء:</span>
-                <div style={{ fontWeight: 600 }}>{selectedOrderDetails.created_at || "—"}</div>
+            )}
+
+            {/* بيانات الوحدة العقارية */}
+            {orderDetails.unit && (
+              <div style={{ background: "#f9fafb", padding: "12px", borderRadius: "8px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <Home size={16} />
+                  <span>بيانات الوحدة السكنية</span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "8px", fontSize: "13px" }}>
+                  <div>رقم الوحدة: {orderDetails.unit.unit_number}</div>
+                  <div>النوع: {orderDetails.unit.type}</div>
+                  <div>الطابق: {orderDetails.unit.floor}</div>
+                  <div>المساحة: {orderDetails.unit.area} م²</div>
+                  <div>السعر: {orderDetails.unit.current_price} €</div>
+                  <div>الغرف: {orderDetails.unit.rooms_count}</div>
+                </div>
               </div>
-            </div>
+            )}
+
+            {/* الملاحظات */}
+            {orderDetails.notes?.length > 0 && (
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px", fontWeight: 600 }}>
+                  <FileText size={16} />
+                  <span>الملاحظات</span>
+                </div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                  {orderDetails.notes.map((note) => (
+                    <div key={note.id} style={{ border: "1px solid #e5e7eb", padding: "8px", borderRadius: "6px", fontSize: "12px" }}>
+                      <div>{note.text}</div>
+                      <span style={{ color: "#6b7280", fontSize: "11px" }}>
+                        بواسطة: {note.created_by?.full_name} | {note.created_at}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "12px" }}>
-              <Button
-                type="button"
-                className="ghost-filter-btn"
-                onClick={() => setSelectedOrderDetails(null)}
-              >
+              <Button type="button" className="ghost-filter-btn" onClick={handleCloseOrderDetails}>
                 إغلاق
               </Button>
             </div>
           </div>
+        ) : (
+          <div style={{ padding: "24px", textAlign: "center", color: "#6b7280" }}>لا تتوفر تفاصيل للطلب.</div>
         )}
       </Modal>
 
@@ -679,78 +675,9 @@ export default function LegalAvailableSlotsPage() {
               {t("cancel")}
             </Button>
 
-            <Button
-              type="submit"
-              className="exact-primary-btn"
-              disabled={actionLoading}
-            >
+            <Button type="submit" className="exact-primary-btn" disabled={actionLoading}>
               <Plus size={16} />
-              <span>
-                {actionLoading ? t("saving") : t("legal_slots.save_slot")}
-              </span>
-            </Button>
-          </div>
-        </form>
-      </Modal>
-
-      {/* مودال تعديل حالة الفترة */}
-      <Modal
-        open={editStatusModal.isOpen}
-        onClose={() =>
-          setEditStatusModal({
-            isOpen: false,
-            slotId: null,
-            status: "available",
-          })
-        }
-        title={t("legal_slots.edit_slot_status")}
-        size="md"
-      >
-        <form className="modal-form" onSubmit={handleSaveStatus}>
-          <div className="field-group">
-            <label className="field-label">{t("legal_slots.new_status")}</label>
-            <div className="exact-select-wrapper" style={{ width: "100%" }}>
-              <select
-                style={{ width: "100%" }}
-                value={editStatusModal.status}
-                onChange={(e) =>
-                  setEditStatusModal((prev) => ({
-                    ...prev,
-                    status: e.target.value,
-                  }))
-                }
-              >
-                <option value="available">{t("legal_slots.option_available")}</option>
-                <option value="booked">{t("legal_slots.option_booked")}</option>
-                <option value="cancelled">{t("legal_slots.option_cancelled")}</option>
-              </select>
-              <ChevronDown size={16} className="exact-select-chevron" />
-            </div>
-          </div>
-
-          <div className="modal-actions">
-            <Button
-              type="button"
-              className="ghost-filter-btn"
-              onClick={() =>
-                setEditStatusModal({
-                  isOpen: false,
-                  slotId: null,
-                  status: "available",
-                })
-              }
-              disabled={actionLoading}
-            >
-              {t("cancel")}
-            </Button>
-
-            <Button
-              type="submit"
-              className="exact-primary-btn"
-              disabled={actionLoading}
-            >
-              <Pencil size={16} />
-              <span>{actionLoading ? t("saving") : t("save_changes")}</span>
+              <span>{actionLoading ? t("saving") : t("legal_slots.save_slot")}</span>
             </Button>
           </div>
         </form>

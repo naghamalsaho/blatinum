@@ -17,13 +17,14 @@ export const updateAvailableSlotRequest = (id, payload) => {
 export const deleteAvailableSlotRequest = (id) => {
   return api.delete(`${AVAILABLE_SLOT_ENDPOINT}/${id}`);
 };
+
 const APPOINTMENT_ENDPOINT = "/appointment";
 
 export const getAppointmentsRequest = (params) => {
   return api.get(APPOINTMENT_ENDPOINT, params);
 };
 
-const DEPARTMENT_ORDERS_ENDPOINT = "/order/departmentOrders";
-export const getDepartmentOrdersRequest = (departmentId) => {
-  return api.get(`${DEPARTMENT_ORDERS_ENDPOINT}/${departmentId}`);
+// 🎯 جلب تفاصيل طلب محدد بالمعرف GET /order/{id}
+export const getOrderDetailsRequest = (orderId) => {
+  return api.get(`/order/${orderId}`);
 };

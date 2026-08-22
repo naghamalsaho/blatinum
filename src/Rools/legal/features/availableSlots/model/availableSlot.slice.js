@@ -5,20 +5,24 @@ import {
   updateAvailableSlot,
   deleteAvailableSlot,
   fetchAppointments,
-  fetchDepartmentOrders,
+  fetchOrderDetails,
 } from "./availableSlot.thunks";
 
 const initialState = {
   slots: { items: [], loading: false, error: null },
   appointments: { items: [], loading: false, error: null },
-  departmentOrders: { items: [], loading: false, error: null },
+  orderDetails: { data: null, loading: false, error: null },
   actionLoading: false,
 };
 
 const availableSlotSlice = createSlice({
   name: "availableSlots",
   initialState,
-  reducers: {},
+  reducers: {
+    clearOrderDetails: (state) => {
+      state.orderDetails = { data: null, loading: false, error: null };
+    },
+  },
   extraReducers: (builder) => {
     builder
       // 🎯 جلب الفترات المتاحة (Slots)
@@ -49,53 +53,34 @@ const availableSlotSlice = createSlice({
         state.appointments.error = action.payload || "Failed to load appointments";
       })
 
-      // 🎯 إضافة فترة متاحة
-      .addCase(createAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-      })
-      .addCase(createAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
-      })
-      .addCase(createAvailableSlot.rejected, (state) => {
-        state.actionLoading = false;
-      })
+      // 🎯 إدارة العمليات (إضافة/تحديث/حذف)
+      .addCase(createAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(createAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(createAvailableSlot.rejected, (state) => { state.actionLoading = false; })
 
-      // 🎯 تحديث فترة متاحة
-      .addCase(updateAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-      })
-      .addCase(updateAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
-      })
-      .addCase(updateAvailableSlot.rejected, (state) => {
-        state.actionLoading = false;
-      })
+      .addCase(updateAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(updateAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(updateAvailableSlot.rejected, (state) => { state.actionLoading = false; })
 
-      // 🎯 حذف فترة متاحة
-      .addCase(deleteAvailableSlot.pending, (state) => {
-        state.actionLoading = true;
-      })
-      .addCase(deleteAvailableSlot.fulfilled, (state) => {
-        state.actionLoading = false;
-      })
-      .addCase(deleteAvailableSlot.rejected, (state) => {
-        state.actionLoading = false;
-      })
+      .addCase(deleteAvailableSlot.pending, (state) => { state.actionLoading = true; })
+      .addCase(deleteAvailableSlot.fulfilled, (state) => { state.actionLoading = false; })
+      .addCase(deleteAvailableSlot.rejected, (state) => { state.actionLoading = false; })
 
-      // 🎯 جلب طلبات القسم
-      .addCase(fetchDepartmentOrders.pending, (state) => {
-        state.departmentOrders.loading = true;
-        state.departmentOrders.error = null;
+      // 🎯 جلب تفاصيل طلب محدد
+      .addCase(fetchOrderDetails.pending, (state) => {
+        state.orderDetails.loading = true;
+        state.orderDetails.error = null;
       })
-      .addCase(fetchDepartmentOrders.fulfilled, (state, action) => {
-        state.departmentOrders.loading = false;
-        state.departmentOrders.items = action.payload;
+      .addCase(fetchOrderDetails.fulfilled, (state, action) => {
+        state.orderDetails.loading = false;
+        state.orderDetails.data = action.payload;
       })
-      .addCase(fetchDepartmentOrders.rejected, (state, action) => {
-        state.departmentOrders.loading = false;
-        state.departmentOrders.error = action.payload || "فشل في جلب طلبات القسم";
+      .addCase(fetchOrderDetails.rejected, (state, action) => {
+        state.orderDetails.loading = false;
+        state.orderDetails.error = action.payload || "فشل في جلب تفاصيل الطلب";
       });
   },
 });
 
+export const { clearOrderDetails } = availableSlotSlice.actions;
 export default availableSlotSlice.reducer;

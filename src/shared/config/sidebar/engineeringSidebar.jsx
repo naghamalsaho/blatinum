@@ -1,10 +1,8 @@
 import {
   FolderKanban,
-  
   Users2,
-  ChartNoAxesCombined,
-  
-  
+  FileText,
+  Sparkles,
 } from "lucide-react";
 
 export const engineeringSidebar = [
@@ -19,26 +17,31 @@ export const engineeringSidebar = [
       },
     ],
   },
-
-  
-
   {
     items: [
       {
-        label: "Engineers",
+        label: "المهندسون",
         icon: Users2,
         to: "/engineering/engineers",
       },
     ],
   },
-
   {
-    
     items: [
       {
-        label: "Reports",
-        icon: ChartNoAxesCombined,
+        label: "التقارير",
+        icon: FileText,
         to: "/engineering/reports",
+      },
+    ],
+  },
+  {
+    items: [
+      {
+        label: "استوديو الذكاء الاصطناعي",
+        icon: Sparkles,
+        to: "/engineering/ai-design",
+        badge: "جديد",
       },
     ],
   },

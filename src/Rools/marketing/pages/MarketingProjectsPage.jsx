@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import PropTypes from "prop-types";
 import {
   Building2,
   Home,
@@ -14,6 +15,7 @@ import {
   PencilLine,
   Trash2,
   Eye,
+  Navigation,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
@@ -145,7 +147,6 @@ function isImageFile(urlOrName = "") {
   return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(urlOrName);
 }
 
-// 🎨 دالة تحديد كلاس الشارة (Status Badge) لتطبيق نفس تصميم الخدمات
 function getStatusBadgeClass(status) {
   switch (status) {
     case "in_progress":
@@ -177,7 +178,12 @@ function getStatusBadgeClass(status) {
 function AttachmentViewer({ attachment, title = "المرفق" }) {
   if (!attachment || !attachment.url) return null;
 
-  const isImg = isImageFile(attachment.url || attachment.name);
+  const fileName =
+    attachment.original_name ||
+    attachment.file_name ||
+    attachment.name ||
+    title;
+  const isImg = isImageFile(attachment.url || fileName);
 
   if (isImg) {
     return (
@@ -192,7 +198,7 @@ function AttachmentViewer({ attachment, title = "المرفق" }) {
       <div className="attachment-file-info">
         <FileText size={28} className="file-icon" />
         <div>
-          <span className="file-name">{attachment.name || title || "ملف مرفق"}</span>
+          <span className="file-name">{fileName}</span>
           <span className="file-type">مستند / ملف تنفيذي</span>
         </div>
       </div>
@@ -208,6 +214,16 @@ function AttachmentViewer({ attachment, title = "المرفق" }) {
     </div>
   );
 }
+
+AttachmentViewer.propTypes = {
+  attachment: PropTypes.shape({
+    url: PropTypes.string,
+    original_name: PropTypes.string,
+    file_name: PropTypes.string,
+    name: PropTypes.string,
+  }),
+  title: PropTypes.string,
+};
 
 export default function MarketingProjectsPage() {
   const dispatch = useDispatch();
@@ -370,7 +386,8 @@ export default function MarketingProjectsPage() {
         unit.floor,
         unit.area,
         unit.rooms_count,
-        unit.price,
+        unit.current_price,
+        unit.original_price,
         buildingName,
         projectName,
       ]
@@ -569,7 +586,7 @@ export default function MarketingProjectsPage() {
       floor: String(unit.floor ?? ""),
       area: String(unit.area ?? ""),
       type: unit.type || "social",
-      price: String(unit.price ?? ""),
+      price: String(unit.current_price ?? unit.price ?? ""),
       status: unit.status || "available",
       attachment: null,
     });
@@ -824,10 +841,7 @@ export default function MarketingProjectsPage() {
     if (Object.keys(errors).length > 0) return;
 
     const payload = {
-      name: [
-        { ar: locationForm.name },
-        { en: locationForm.name },
-      ],
+      name: [{ ar: locationForm.name }, { en: locationForm.name }],
       type: locationForm.type,
       parent_id: Number(locationForm.parent_id),
     };
@@ -867,12 +881,10 @@ export default function MarketingProjectsPage() {
 
   return (
     <div className="projects-page" dir="rtl">
-      {/* شبكة الإحصائيات - مطابقة تماماً لوجهة الخدمات */}
       <section className="legal-stats-grid">
         <StatCard title="المشاريع" value={String(stats.projectsCount)} icon={Layers3} />
         <StatCard title="الأبنية" value={String(stats.buildingsCount)} icon={Building2} />
         <StatCard title="الوحدات" value={String(stats.unitsCount)} icon={Home} />
-       
       </section>
 
       <section className="projects-layout">
@@ -1049,7 +1061,7 @@ export default function MarketingProjectsPage() {
                       >
                         <div className="building-card-visual">
                           {firstAttach?.url ? (
-                            isImageFile(firstAttach.url) ? (
+                            isImageFile(firstAttach.url || firstAttach.original_name || firstAttach.file_name) ? (
                               <img
                                 src={firstAttach.url}
                                 alt={building.building_number}
@@ -1180,84 +1192,141 @@ export default function MarketingProjectsPage() {
                 {unitsLoading || buildingUnitsLoading ? (
                   <div className="projects-empty">جاري تحميل الوحدات...</div>
                 ) : filteredUnits.length > 0 ? (
-                  filteredUnits.map((unit) => (
-                    <article key={unit.id} className="unit-card">
-                      <div className="unit-card-head">
-                        <div>
-                          <h3>{unit.unit_number}</h3>
-                          <p>
-                            {unit.building?.building_number || "-"} ·{" "}
-                            {unit.building?.project?.name || "-"}
-                          </p>
-                        </div>
+                  filteredUnits.map((unit) => {
+                    const firstAttach = unit.attachments?.[0];
+                    const displayPrice = unit.current_price ?? unit.price ?? 0;
+                    const originalPrice = unit.original_price;
 
+                    return (
+                      <article key={unit.id} className="unit-card">
                         <div
-                          className="unit-card-actions"
-                          onClick={(e) => e.stopPropagation()}
+                          className="building-card-visual"
+                          style={{
+                            height: "130px",
+                            overflow: "hidden",
+                            borderRadius: "8px",
+                            marginBottom: "12px",
+                          }}
                         >
-                          <button
-                            type="button"
-                            className="card-icon-btn"
-                            onClick={() =>
-                              setViewingDetails({
-                                type: "unit",
-                                data: unit,
-                              })
-                            }
-                            title="عرض تفاصيل الوحدة"
-                          >
-                            <Eye size={15} />
-                          </button>
-
-                          <button
-                            type="button"
-                            className="card-icon-btn"
-                            onClick={() => openEditUnitModal(unit)}
-                            title="تعديل الوحدة"
-                          >
-                            <PencilLine size={15} />
-                          </button>
-
-                          <button
-                            type="button"
-                            className="card-icon-btn danger"
-                            onClick={() => handleDeleteUnit(unit.id)}
-                            title="حذف الوحدة"
-                          >
-                            <Trash2 size={15} />
-                          </button>
-                        </div>
-                      </div>
-
-                      <p className="unit-desc">
-                        {unit.description || "لا يوجد وصف لهذه الوحدة."}
-                      </p>
-
-                      <div className="unit-tags">
-                        <span className={getStatusBadgeClass(unit.status)}>
-                          {formatUnitStatus(unit.status)}
-                        </span>
-                        <span className={getStatusBadgeClass(unit.type)}>
-                          {formatUnitType(unit.type)}
-                        </span>
-                        <span>طابق {unit.floor}</span>
-                        <span>{unit.area} م²</span>
-                      </div>
-
-                      <div className="unit-footer">
-                        <div className="unit-price">
-                          <Coins size={14} />
-                          <strong>{Number(unit.price || 0).toLocaleString()}</strong>
+                          {firstAttach?.url ? (
+                            isImageFile(
+                              firstAttach.url ||
+                              firstAttach.original_name ||
+                              firstAttach.file_name
+                            ) ? (
+                              <img
+                                src={firstAttach.url}
+                                alt={unit.unit_number}
+                                style={{
+                                  width: "100%",
+                                  height: "100%",
+                                  objectFit: "cover",
+                                }}
+                              />
+                            ) : (
+                              <FileText size={28} />
+                            )
+                          ) : (
+                            <ImageIcon size={26} />
+                          )}
                         </div>
 
-                        <div className="unit-extra">
-                          <span>
-                            {unit.building?.floors_count || "-"} طابق في البناء
+                        <div className="unit-card-head">
+                          <div>
+                            <h3>{unit.unit_number}</h3>
+                            <p>
+                              {unit.building?.building_number || "-"} ·{" "}
+                              {unit.building?.project?.name || "-"}
+                            </p>
+                          </div>
+
+                          <div
+                            className="unit-card-actions"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            <button
+                              type="button"
+                              className="card-icon-btn"
+                              onClick={() =>
+                                setViewingDetails({
+                                  type: "unit",
+                                  data: unit,
+                                })
+                              }
+                              title="عرض تفاصيل الوحدة"
+                            >
+                              <Eye size={15} />
+                            </button>
+
+                            <button
+                              type="button"
+                              className="card-icon-btn"
+                              onClick={() => openEditUnitModal(unit)}
+                              title="تعديل الوحدة"
+                            >
+                              <PencilLine size={15} />
+                            </button>
+
+                            <button
+                              type="button"
+                              className="card-icon-btn danger"
+                              onClick={() => handleDeleteUnit(unit.id)}
+                              title="حذف الوحدة"
+                            >
+                              <Trash2 size={15} />
+                            </button>
+                          </div>
+                        </div>
+
+                        <p className="unit-desc">
+                          {unit.description || "لا يوجد وصف لهذه الوحدة."}
+                        </p>
+
+                        <div className="unit-tags">
+                          <span className={getStatusBadgeClass(unit.status)}>
+                            {formatUnitStatus(unit.status)}
                           </span>
+                          <span className={getStatusBadgeClass(unit.type)}>
+                            {formatUnitType(unit.type)}
+                          </span>
+                          <span>طابق {unit.floor}</span>
+                          <span>{unit.area} م²</span>
+                          {unit.has_active_offer && (
+                            <span className="status-badge status-sold">
+                              خصم {unit.discount_percentage}%
+                            </span>
+                          )}
                         </div>
-                      </div>
-                    </article>
-                  ))
+
+                        <div className="unit-footer">
+                          <div className="unit-price">
+                            <Coins size={14} />
+                            <strong>
+                              {Number(displayPrice).toLocaleString()} ل.س
+                            </strong>
+                            {unit.has_active_offer && originalPrice && (
+                              <span
+                                style={{
+                                  textDecoration: "line-through",
+                                  color: "#888",
+                                  fontSize: "11px",
+                                  marginRight: "6px",
+                                }}
+                              >
+                                {Number(originalPrice).toLocaleString()}
+                              </span>
+                            )}
+                          </div>
+
+                          <div className="unit-extra">
+                            <span>
+                              {unit.building?.floors_count || "-"} طابق في البناء
+                            </span>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })
                 ) : (
                   <div className="projects-empty">لا توجد وحدات لعرضها</div>
                 )}
@@ -1270,8 +1339,8 @@ export default function MarketingProjectsPage() {
       <section className="projects-panel locations-panel">
         <div className="projects-panel-head">
           <div>
-            <h2>المواقع</h2>
-            <p>عرض المواقع المسجلة مع تعديل مباشر</p>
+            <h2>المواقع المسجلة</h2>
+            <p>إدارة التوزيع الجغرافي والمناطق المرتبطة بالمشاريع</p>
           </div>
 
           <Button
@@ -1279,7 +1348,7 @@ export default function MarketingProjectsPage() {
             onClick={openCreateLocationModal}
           >
             <Plus size={16} />
-            إضافة موقع
+            إضافة موقع جديد
           </Button>
         </div>
 
@@ -1288,7 +1357,7 @@ export default function MarketingProjectsPage() {
             <Search size={18} />
             <input
               type="text"
-              placeholder="ابحث عن موقع..."
+              placeholder="ابحث باسم الموقع، النوع، أو المنطقة الأب..."
               value={locationSearchTerm}
               onChange={(e) => setLocationSearchTerm(e.target.value)}
             />
@@ -1300,49 +1369,71 @@ export default function MarketingProjectsPage() {
             {locationsLoading ? (
               <div className="projects-empty">جاري تحميل المواقع...</div>
             ) : filteredLocations.length > 0 ? (
-              filteredLocations.map((location) => (
-                <article key={location.id} className="location-card">
-                  <div className="location-card-head">
-                    <div>
-                      <h3>{extractName(location.name)}</h3>
-                      <p>{location.type}</p>
+              filteredLocations.map((location) => {
+                const locationName = extractName(location.name);
+                const parentName = extractName(location.parent?.name);
+
+                return (
+                  <article key={location.id} className="location-card-enhanced">
+                    <div className="location-card-header">
+                      <div className="location-icon-wrapper">
+                        <MapPin size={18} />
+                      </div>
+                      <span className={`location-type-pill type-${location.type}`}>
+                        {location.type}
+                      </span>
                     </div>
 
-                    <div className="location-card-actions">
-                      <button
-                        type="button"
-                        className="card-icon-btn"
-                        onClick={() => openEditLocationModal(location)}
-                        title="تعديل الموقع"
-                      >
-                        <PencilLine size={15} />
-                      </button>
+                    <div className="location-card-body">
+                      <h3>{locationName}</h3>
 
-                      <button
-                        type="button"
-                        className="card-icon-btn danger"
-                        onClick={() => handleDeleteLocation(location.id)}
-                        title="حذف الموقع"
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                      {parentName && parentName !== "-" ? (
+                        <div className="location-parent-tag">
+                          <Navigation size={12} className="parent-icon" />
+                          <span>
+                            تابع لـ: <strong>{parentName}</strong>
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="location-parent-tag root">
+                          <span>موقع رئيسي</span>
+                        </div>
+                      )}
                     </div>
-                  </div>
 
-                  <div className="location-meta">
-                    <span>Parent: {location.parent_id || "-"}</span>
-                    <span>{extractName(location.parent?.name)}</span>
-                  </div>
-                </article>
-              ))
+                    <div className="location-card-footer">
+                      <span className="location-id-badge">#ID: {location.id}</span>
+
+                      <div className="location-card-actions">
+                        <button
+                          type="button"
+                          className="card-icon-btn"
+                          onClick={() => openEditLocationModal(location)}
+                          title="تعديل الموقع"
+                        >
+                          <PencilLine size={15} />
+                        </button>
+
+                        <button
+                          type="button"
+                          className="card-icon-btn danger"
+                          onClick={() => handleDeleteLocation(location.id)}
+                          title="حذف الموقع"
+                        >
+                          <Trash2 size={15} />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })
             ) : (
-              <div className="projects-empty">لا توجد مواقع لعرضها</div>
+              <div className="projects-empty">لا توجد مواقع مطابقة للبحث</div>
             )}
           </div>
         </div>
       </section>
 
-      {/* 👁️ مودال التفاصيل الشامل الذكي */}
       <Modal
         open={Boolean(viewingDetails.type && viewingDetails.data)}
         title={
@@ -1368,7 +1459,6 @@ export default function MarketingProjectsPage() {
         }
       >
         <div className="details-modal-container">
-          {/* ===================== تفاصيل المشروع ===================== */}
           {viewingDetails.type === "project" && viewingDetails.data && (
             <>
               <AttachmentViewer
@@ -1437,7 +1527,6 @@ export default function MarketingProjectsPage() {
             </>
           )}
 
-          {/* ===================== تفاصيل البناء ===================== */}
           {viewingDetails.type === "building" && viewingDetails.data && (
             <>
               <AttachmentViewer
@@ -1507,7 +1596,6 @@ export default function MarketingProjectsPage() {
             </>
           )}
 
-          {/* ===================== تفاصيل الوحدة ===================== */}
           {viewingDetails.type === "unit" && viewingDetails.data && (
             <>
               <AttachmentViewer
@@ -1571,11 +1659,50 @@ export default function MarketingProjectsPage() {
                 </div>
 
                 <div className="details-card">
-                  <span className="details-label">السعر</span>
+                  <span className="details-label">السعر الحالي</span>
                   <span className="details-value price-text">
-                    {Number(viewingDetails.data.price || 0).toLocaleString()} ل.س
+                    {Number(
+                      viewingDetails.data.current_price ??
+                        viewingDetails.data.price ??
+                        0
+                    ).toLocaleString()}{" "}
+                    ل.س
                   </span>
                 </div>
+
+                {viewingDetails.data.has_active_offer && (
+                  <>
+                    <div className="details-card">
+                      <span className="details-label">السعر الأصلي</span>
+                      <span
+                        className="details-value"
+                        style={{ textDecoration: "line-through" }}
+                      >
+                        {Number(
+                          viewingDetails.data.original_price ?? 0
+                        ).toLocaleString()}{" "}
+                        ل.س
+                      </span>
+                    </div>
+
+                    <div className="details-card">
+                      <span className="details-label">نسبة الخصم</span>
+                      <span className="details-value highlight">
+                        %{viewingDetails.data.discount_percentage}
+                      </span>
+                    </div>
+                  </>
+                )}
+
+                {viewingDetails.data.offer && (
+                  <div className="details-card full-width">
+                    <span className="details-label">تفاصيل العرض النشط</span>
+                    <span className="details-value">
+                      من: {viewingDetails.data.offer.start_date} | إلى:{" "}
+                      {viewingDetails.data.offer.end_date}
+                    </span>
+                  </div>
+                )}
               </div>
 
               <div className="details-card full-width">
@@ -1589,7 +1716,6 @@ export default function MarketingProjectsPage() {
         </div>
       </Modal>
 
-      {/* مودال إنشاء / تعديل مشروع */}
       <Modal
         open={openProjectModal}
         title={editingProjectId ? "تعديل مشروع" : "إضافة مشروع"}
@@ -1830,7 +1956,6 @@ export default function MarketingProjectsPage() {
         </form>
       </Modal>
 
-      {/* مودال إنشاء / تعديل بناء */}
       <Modal
         open={openBuildingModal}
         title={editingBuildingId ? "تعديل بناء" : "إضافة بناء"}
@@ -2019,7 +2144,6 @@ export default function MarketingProjectsPage() {
         </form>
       </Modal>
 
-      {/* مودال إنشاء / تعديل وحدة */}
       <Modal
         open={openUnitModal}
         title={editingUnitId ? "تعديل وحدة" : "إضافة وحدة"}
@@ -2159,7 +2283,6 @@ export default function MarketingProjectsPage() {
         </form>
       </Modal>
 
-      {/* مودال إنشاء / تعديل موقع */}
       <Modal
         open={openLocationModal}
         title={editingLocationId ? "تعديل موقع" : "إضافة موقع"}

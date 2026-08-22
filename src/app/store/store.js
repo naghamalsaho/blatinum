@@ -33,13 +33,14 @@ import transferReducer from "@/Rools/financial/features/transfers/model/transfer
 import paymentReducer from "@/Rools/financial/features/payments/model/payment.slice";
 import contractExceptionReducer from "@/Rools/financial/features/exceptions/model/contractException.slice";
 import errorReducer from "@/shared/store/error/error.slice";
-
-
+import reportsReducer from "../../Rools/engineering/features/reports/model/reports.slice";
+import aiDesignReducer from "../../Rools/engineering/features/aidesign/model/aiDesign.slice";
 import appointmentReducer from "@/Rools/legal/features/availableSlots/model/appointment.slice";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     error: errorReducer,
+    reports: reportsReducer,
 
     availableSlots: availableSlotReducer,
 
@@ -51,7 +52,7 @@ export const store = configureStore({
 
     projectEngineer: projectEngineerReducer,
     engineers: engineerReducer,
-
+aiDesign: aiDesignReducer,
     advertisements: advertisementReducer,
     projects: projectReducer,
     buildings: buildingReducer,

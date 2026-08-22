@@ -722,3 +722,161 @@
   color: #ffffff;
   border-color: var(--dash-accent);
 }
+/* ==========================================================================
+   Custom Locations Section Styles
+   ========================================================================== */
+.locations-grid {
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 16px;
+}
+
+.location-card-enhanced {
+  position: relative;
+  background: linear-gradient(
+    135deg,
+    var(--dash-surface) 0%,
+    var(--dash-surface-2) 100%
+  );
+  border: 1px solid var(--dash-line);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+/* شريط علوي جمالي بلون accent */
+.location-card-enhanced::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  height: 3px;
+  background: var(--dash-accent);
+  opacity: 0.5;
+  transition: opacity 0.25s ease;
+}
+
+.location-card-enhanced:hover {
+  transform: translateY(-3px);
+  border-color: var(--dash-accent);
+  box-shadow: var(--dash-shadow);
+}
+
+.location-card-enhanced:hover::before {
+  opacity: 1;
+}
+
+.location-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.location-icon-wrapper {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+  border: 1px solid var(--dash-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* شارات نوع الموقع Dynamic Location Type Badges */
+.location-type-pill {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.location-type-pill.type-city {
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent);
+  border-color: var(--dash-accent);
+}
+
+.location-type-pill.type-district {
+  background: var(--marketing-accent-soft);
+  color: var(--marketing-accent-strong);
+  border-color: var(--marketing-accent-strong);
+}
+
+.location-type-pill.type-area {
+  background: var(--dash-surface-2);
+  color: var(--dash-text);
+  border-color: var(--dash-line);
+}
+
+.location-type-pill.type-village {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border-color: #10b981;
+}
+
+.location-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.location-card-body h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--dash-text);
+  line-height: 1.3;
+}
+
+/* تاغ التسلسل الجغرافي Parent Location */
+.location-parent-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+  background: var(--dash-surface);
+  border: 1px solid var(--dash-line);
+  color: var(--dash-muted);
+  font-size: 12px;
+  width: fit-content;
+}
+
+.location-parent-tag .parent-icon {
+  color: var(--dash-accent);
+  transform: rotate(90deg);
+}
+
+.location-parent-tag.root {
+  background: transparent;
+  border-style: dashed;
+  color: var(--dash-muted);
+}
+
+.location-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 10px;
+  border-top: 1px dashed var(--dash-line);
+  margin-top: auto;
+}
+
+.location-id-badge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--dash-muted);
+  background: var(--dash-surface-2);
+  padding: 2px 8px;
+  border-radius: 6px;
+  border: 1px solid var(--dash-line);
+}

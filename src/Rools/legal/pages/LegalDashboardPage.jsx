@@ -12,12 +12,9 @@ import {
   Loader2,
   ClipboardList,
   Plus,
-  
-
-  Pencil,
   Trash2,
   Eye,
-
+  Ban,
 } from "lucide-react";
 
 // المكونات والخدمات الموحدة بالمشروع
@@ -30,7 +27,12 @@ import StatusBadge from "@/shared/components/StatusBadge";
 import { t } from "../../../shared/i18n";
 
 // Thunks واستدعاء البيانات
-import { fetchAvailableSlots, createAvailableSlot } from "../features/availableSlots/model/availableSlot.thunks";
+import {
+  fetchAvailableSlots,
+  createAvailableSlot,
+  updateAvailableSlot,
+  deleteAvailableSlot,
+} from "../features/availableSlots/model/availableSlot.thunks";
 import { fetchContracts, fetchOrders } from "../features/contracts/model/contract.thunks";
 import { fetchSoldUnitOwnership } from "../features/soldUnits/model/soldUnitOwnership.thunks";
 
@@ -39,21 +41,50 @@ import "../styles/legal.css";
 export default function LegalDashboardPage() {
   const dispatch = useDispatch();
 
-  // 1. حالات Redux
-  const { items: slots = [], loading: slotsLoading } = useSelector((state) => state.availableSlots || {});
-  const { items: contracts = [], orders = [], loading: contractsLoading } = useSelector((state) => state.contract || {});
-  const { items: soldUnits = [], loading: soldUnitsLoading } = useSelector((state) => state.soldUnitOwnership || {});
+  // 1. استخراج حالات Redux بحذر مع مراعاة الهيكلية الفعلية للـ Slices
+  const availableSlotsSlice = useSelector((state) => state.availableSlots || {});
+  const contractSlice = useSelector((state) => state.contract || {});
+  const soldUnitsSlice = useSelector((state) => state.soldUnitOwnership || {});
+
+  // استخراج المصفوفات بشكل آمن مع الفحوصات
+  const slots = useMemo(() => {
+    const data = availableSlotsSlice.slots || availableSlotsSlice;
+    if (Array.isArray(data.items)) return data.items;
+    if (Array.isArray(data)) return data;
+    return [];
+  }, [availableSlotsSlice]);
+
+  const contracts = useMemo(() => {
+    if (Array.isArray(contractSlice.items)) return contractSlice.items;
+    if (Array.isArray(contractSlice.contracts)) return contractSlice.contracts;
+    if (Array.isArray(contractSlice)) return contractSlice;
+    return [];
+  }, [contractSlice]);
+
+  const orders = useMemo(() => {
+    if (Array.isArray(contractSlice.orders)) return contractSlice.orders;
+    return [];
+  }, [contractSlice]);
+
+  const soldUnits = useMemo(() => {
+    if (Array.isArray(soldUnitsSlice.items)) return soldUnitsSlice.items;
+    if (Array.isArray(soldUnitsSlice)) return soldUnitsSlice;
+    return [];
+  }, [soldUnitsSlice]);
+
+  const slotsLoading = availableSlotsSlice.slots?.loading ?? availableSlotsSlice.loading ?? false;
+  const contractsLoading = contractSlice.loading ?? false;
+  const soldUnitsLoading = soldUnitsSlice.loading ?? false;
+  const isGlobalLoading = slotsLoading || contractsLoading || soldUnitsLoading;
 
   // 2. الحالات المحلية للفلترة، التبويب والمودال
-  const [activeTab] = useState("overview"); // 'overview' | 'contracts' | 'slots'
+  const [activeTab, setActiveTab] = useState("overview"); // 'overview' | 'contracts' | 'slots'
   const [searchTerm] = useState("");
   const [statusFilter] = useState("all");
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newSlotData, setNewSlotData] = useState({ date: "", start_time: "", end_time: "" });
 
-  const isGlobalLoading = slotsLoading || contractsLoading || soldUnitsLoading;
-
-  // 3. جلب البيانات عند التحميل
+  // 3. جلب البيانات عند تحميل الصفحة
   useEffect(() => {
     dispatch(fetchAvailableSlots());
     dispatch(fetchContracts(1));
@@ -66,6 +97,7 @@ export default function LegalDashboardPage() {
     () => ({
       available: { label: t("legal_slots.status_available") || "متاح", type: "ok" },
       booked: { label: t("legal_slots.status_booked") || "محجوز", type: "busy" },
+      cancelled: { label: t("legal_slots.status_cancelled") || "ملغى", type: "off" },
       closed: { label: "مغلق", type: "off" },
       approved: { label: "موافق عليه", type: "ok" },
       pending: { label: "قيد الانتظار", type: "busy" },
@@ -78,7 +110,7 @@ export default function LegalDashboardPage() {
   const metrics = useMemo(() => {
     const totalSlots = slots.length;
     const availableSlots = slots.filter((s) => s.status === "available" || s.status === "متاح" || s.is_available).length;
-    const closedSlots = slots.filter((s) => s.status === "closed" || s.status === "مغلق" || (!s.is_available && s.status !== "booked")).length;
+    const cancelledSlots = slots.filter((s) => s.status === "cancelled" || s.status === "ملغى" || s.status === "closed").length;
     const bookedSlots = slots.filter((s) => s.status === "booked" || s.status === "محجوز").length;
 
     const totalContracts = contracts.length;
@@ -87,20 +119,20 @@ export default function LegalDashboardPage() {
 
     const availablePercent = totalSlots ? Math.round((availableSlots / totalSlots) * 100) : 0;
     const bookedPercent = totalSlots ? Math.round((bookedSlots / totalSlots) * 100) : 0;
-    const closedPercent = totalSlots ? Math.round((closedSlots / totalSlots) * 100) : 0;
+    const cancelledPercent = totalSlots ? Math.round((cancelledSlots / totalSlots) * 100) : 0;
     const conversionRate = totalOrders > 0 ? Math.round((totalContracts / totalOrders) * 100) : 0;
 
     return {
       totalSlots,
       availableSlots,
-      closedSlots,
+      cancelledSlots,
       bookedSlots,
       totalContracts,
       totalOrders,
       totalSoldUnits,
       availablePercent,
       bookedPercent,
-      closedPercent,
+      cancelledPercent,
       conversionRate,
     };
   }, [slots, contracts, orders, soldUnits]);
@@ -115,7 +147,7 @@ export default function LegalDashboardPage() {
     });
   }, [contracts, searchTerm, statusFilter]);
 
-  // 7. فلترة السلات/المواعيد
+  // 7. فلترة الفترات/المواعيد
   const filteredSlots = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
     return slots.filter((s) => {
@@ -132,6 +164,35 @@ export default function LegalDashboardPage() {
     if (createAvailableSlot.fulfilled.match(res)) {
       setCreateModalOpen(false);
       setNewSlotData({ date: "", start_time: "", end_time: "" });
+      dispatch(fetchAvailableSlots());
+    }
+  };
+
+  // إلغاء الفترة المتاحة
+  const handleCancelSlot = async (slot) => {
+    if (slot.status === "cancelled") return;
+    const ok = window.confirm("هل أنت متأكد من إلغاء هذه الفترة؟");
+    if (!ok) return;
+
+    const res = await dispatch(
+      updateAvailableSlot({
+        id: slot.id,
+        payload: { status: "cancelled" },
+      })
+    );
+    if (updateAvailableSlot.fulfilled.match(res)) {
+      dispatch(fetchAvailableSlots());
+    }
+  };
+
+  // حذف الفترة المتاحة
+  const handleDeleteSlot = async (id) => {
+    const ok = window.confirm(t("legal_slots.confirm_delete") || "هل أنت متأكد من الحذف؟");
+    if (!ok) return;
+
+    const res = await dispatch(deleteAvailableSlot(id));
+    if (deleteAvailableSlot.fulfilled.match(res)) {
+      dispatch(fetchAvailableSlots());
     }
   };
 
@@ -169,10 +230,17 @@ export default function LegalDashboardPage() {
         />
       </section>
 
-      {/* شريط التبويب السريع */}
-     
-
-     
+      {/* شريط التبويب السريع للتنقل */}
+      <div className="legal-slots-tabs-bar" style={{ marginBottom: "20px" }}>
+        <button
+          type="button"
+          className={`legal-tab-btn ${activeTab === "overview" ? "active" : ""}`}
+          onClick={() => setActiveTab("overview")}
+        >
+          النظرة العامة والتحليلات
+        </button>
+        
+      </div>
 
       {/* محتوى التبويب 1: التحليلات والرسم البياني */}
       {activeTab === "overview" && (
@@ -230,8 +298,8 @@ export default function LegalDashboardPage() {
                   <div className="legend-item">
                     <span className="legend-dot closed"></span>
                     <div className="legend-info">
-                      <span className="legend-title">المواعيد المغلقة</span>
-                      <strong>{metrics.closedSlots} موعد ({metrics.closedPercent}%)</strong>
+                      <span className="legend-title">المواعيد الملغاة / المغلقة</span>
+                      <strong>{metrics.cancelledSlots} موعد ({metrics.cancelledPercent}%)</strong>
                     </div>
                   </div>
                 </div>
@@ -331,21 +399,24 @@ export default function LegalDashboardPage() {
 
               <div className="legal-preview-list">
                 {slots.length > 0 ? (
-                  slots.slice(0, 3).map((slot, idx) => (
-                    <div className="preview-row" key={slot.id || idx}>
-                      <div className="preview-row-main">
-                        <div className="row-time-badge">
-                          <Clock size={14} />
-                          <span>{slot.start_time || "09:00"} - {slot.end_time || "10:00"}</span>
+                  slots.slice(0, 3).map((slot, idx) => {
+                    const meta = STATUS_META[slot.status] || {
+                      label: slot.status || "متاح",
+                      type: "ok",
+                    };
+                    return (
+                      <div className="preview-row" key={slot.id || idx}>
+                        <div className="preview-row-main">
+                          <div className="row-time-badge">
+                            <Clock size={14} />
+                            <span>{slot.start_time || "09:00"} - {slot.end_time || "10:00"}</span>
+                          </div>
+                          <strong>{slot.date || "موعد محدد"}</strong>
                         </div>
-                        <strong>{slot.date || "موعد محدد"}</strong>
+                        <StatusBadge status={meta.label} type={meta.type} />
                       </div>
-                      <StatusBadge
-                        status={slot.status || (slot.is_available ? "متاح" : "مغلق")}
-                        type={slot.is_available || slot.status === "available" ? "ok" : "off"}
-                      />
-                    </div>
-                  ))
+                    );
+                  })
                 ) : (
                   <div className="empty-state-text">لا توجد مواعيد مضافة</div>
                 )}
@@ -421,7 +492,7 @@ export default function LegalDashboardPage() {
                   filteredSlots.map((slot) => {
                     const meta = STATUS_META[slot.status] || {
                       label: slot.status || "متاح",
-                      type: slot.is_available ? "ok" : "off",
+                      type: "ok",
                     };
                     return (
                       <tr key={slot.id}>
@@ -437,10 +508,22 @@ export default function LegalDashboardPage() {
                         </td>
                         <td>
                           <div className="row-actions">
-                            <button type="button" className="icon-action-btn" title="تعديل">
-                              <Pencil size={16} />
-                            </button>
-                            <button type="button" className="icon-action-btn danger" title="حذف">
+                            {slot.status !== "cancelled" && (
+                              <button
+                                type="button"
+                                className="icon-action-btn danger"
+                                onClick={() => handleCancelSlot(slot)}
+                                title="إلغاء الفترة"
+                              >
+                                <Ban size={16} />
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              className="icon-action-btn danger"
+                              onClick={() => handleDeleteSlot(slot.id)}
+                              title="حذف"
+                            >
                               <Trash2 size={16} />
                             </button>
                           </div>
@@ -459,7 +542,7 @@ export default function LegalDashboardPage() {
         </TableCard>
       )}
 
-      {/* مودال إضافة موعد جديد بنفس الستايل القياسي */}
+      {/* مودال إضافة موعد جديد */}
       <Modal
         open={createModalOpen}
         onClose={() => setCreateModalOpen(false)}
