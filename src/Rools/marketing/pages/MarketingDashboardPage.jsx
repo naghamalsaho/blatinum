@@ -4,10 +4,8 @@ import {
   Eye,
   TrendingUp,
   Activity,
-
   Home,
   Briefcase,
-  
 } from "lucide-react";
 import {
   ResponsiveContainer,
@@ -23,6 +21,8 @@ import {
 } from "recharts";
 
 import { useDispatch, useSelector } from "react-redux";
+import { t } from "@/shared/i18n";
+import i18n from "i18next";
 
 import StatCard from "@/shared/components/StatCard";
 import Modal from "@/shared/components/Modal";
@@ -34,8 +34,6 @@ import {
 } from "../features/advertisements/model/advertisement.thunks";
 
 import { fetchOffers } from "../features/offer/model/offer.thunks";
-
-/* استخدام نفس ملف التنسيقات الموحد للخدمات والإعلانات */
 
 import "../styles/marketing.css";
 
@@ -70,19 +68,9 @@ const adsFallback = [
   },
 ];
 
-const MONTH_LABELS_AR = [
-  "يناير",
-  "فبراير",
-  "مارس",
-  "أبريل",
-  "مايو",
-  "يونيو",
-  "يوليو",
-  "أغسطس",
-  "سبتمبر",
-  "أكتوبر",
-  "نوفمبر",
-  "ديسمبر",
+const MONTH_KEYS = [
+  "jan", "feb", "mar", "apr", "may", "jun",
+  "jul", "aug", "sep", "oct", "nov", "dec"
 ];
 
 const STATUS_COLORS = [
@@ -129,13 +117,9 @@ function formatDate(value) {
   return value ? String(value).split(" ")[0] : "—";
 }
 
-function formatPrice(amount) {
-  if (!amount && amount !== 0) return "—";
-  return Number(amount).toLocaleString("ar-EG") + " ل.س";
-}
-
 export default function MarketingDashboardPage() {
   const dispatch = useDispatch();
+  const currentLang = i18n?.language || "ar";
 
   const adsState = useSelector((state) => state.advertisements || {});
   const liveAdvertisements =
@@ -174,6 +158,12 @@ export default function MarketingDashboardPage() {
     dispatch(fetchOffers());
   }, [dispatch]);
 
+  const formatPrice = (amount) => {
+    if (!amount && amount !== 0) return "—";
+    const locale = currentLang === "ar" ? "ar-EG" : "en-US";
+    return `${Number(amount).toLocaleString(locale)} ${t("marketing_dashboard.currency")}`;
+  };
+
   const performanceData = useMemo(() => {
     const result = [];
     for (let i = 5; i >= 0; i -= 1) {
@@ -191,7 +181,7 @@ export default function MarketingDashboardPage() {
 
       result.push({
         key: monthKey,
-        name: MONTH_LABELS_AR[monthIndex],
+        name: t(`marketing_dashboard.months.${MONTH_KEYS[monthIndex]}`),
         campaigns: adsInMonth.length,
         ads: adsInMonth.filter((ad) => getAdStatus(ad) === "active").length,
       });
@@ -204,8 +194,8 @@ export default function MarketingDashboardPage() {
     const draft = advertisements.filter((ad) => getAdStatus(ad) === "draft").length;
 
     return [
-      { name: "نشط", value: active, count: active },
-      { name: "مسودة", value: draft, count: draft },
+      { name: t("marketing_dashboard.active"), value: active, count: active },
+      { name: t("marketing_dashboard.draft"), value: draft, count: draft },
     ];
   }, [advertisements]);
 
@@ -221,29 +211,31 @@ export default function MarketingDashboardPage() {
     const conversionRate =
       totalViews > 0 ? ((totalClicks / totalViews) * 100).toFixed(1) : "0.0";
 
+    const locale = currentLang === "ar" ? "ar-EG" : "en-US";
+
     return [
       {
-        title: "إجمالي الإعلانات",
+        title: t("marketing_dashboard.total_ads"),
         value: String(advertisements.length),
         icon: Megaphone,
       },
       {
-        title: "الإعلانات النشطة",
+        title: t("marketing_dashboard.active_ads"),
         value: String(activeAdvertisements.length),
         icon: Activity,
       },
       {
-        title: "مشاهدات هذا الشهر",
-        value: totalViews ? totalViews.toLocaleString() : "0",
+        title: t("marketing_dashboard.month_views"),
+        value: totalViews ? totalViews.toLocaleString(locale) : "0",
         icon: Eye,
       },
       {
-        title: "معدل التحويل",
+        title: t("marketing_dashboard.conversion_rate"),
         value: `${conversionRate}%`,
         icon: TrendingUp,
       },
     ];
-  }, [advertisements, activeAdvertisements.length]);
+  }, [advertisements, activeAdvertisements.length, currentLang]);
 
   const openOfferPreview = (offer) => {
     setPreviewOffer(offer);
@@ -251,8 +243,8 @@ export default function MarketingDashboardPage() {
   };
 
   return (
-    <div className="marketing-services-page" dir="rtl">
-      {/* 1. شبكة الإحصائيات العلوية بأسلوب واجهة الإعلانات */}
+    <div className="marketing-services-page" dir={currentLang === "ar" ? "rtl" : "ltr"}>
+      {/* 1. شبكة الإحصائيات العلوية */}
       <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard
@@ -269,8 +261,8 @@ export default function MarketingDashboardPage() {
         <article className="marketing-panel marketing-chart-panel">
           <div className="marketing-panel-head">
             <div>
-              <h2>نشاط النظام</h2>
-              <p>آخر 6 أشهر</p>
+              <h2>{t("marketing_dashboard.system_activity")}</h2>
+              <p>{t("marketing_dashboard.last_6_months")}</p>
             </div>
           </div>
 
@@ -325,6 +317,7 @@ export default function MarketingDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="campaigns"
+                  name={t("marketing_dashboard.campaigns")}
                   stroke="var(--dash-accent)"
                   fill="url(#campaignFill)"
                   strokeWidth={3}
@@ -335,6 +328,7 @@ export default function MarketingDashboardPage() {
                 <Area
                   type="monotone"
                   dataKey="ads"
+                  name={t("marketing_dashboard.ads")}
                   stroke="var(--dash-accent-strong)"
                   fill="url(#adsFill)"
                   strokeWidth={3}
@@ -349,8 +343,8 @@ export default function MarketingDashboardPage() {
         <article className="marketing-panel marketing-donut-panel">
           <div className="marketing-panel-head">
             <div>
-              <h2>حالة الإعلانات</h2>
-              <p>توزيع سريع حسب الحالة</p>
+              <h2>{t("marketing_dashboard.ads_status")}</h2>
+              <p>{t("marketing_dashboard.status_distribution")}</p>
             </div>
           </div>
 
@@ -401,24 +395,24 @@ export default function MarketingDashboardPage() {
         </article>
       </section>
 
-      {/* 3. قسم أحدث العروض مصمم كجدول كروت متطابق تماماً مع واجهة الإعلانات */}
-      <TableCard title="أحدث العروض والخصومات">
+      {/* 3. قسم أحدث العروض */}
+      <TableCard title={t("marketing_dashboard.latest_offers")}>
         {offersLoading ? (
-          <div className="table-state">جاري تحميل العروض...</div>
+          <div className="table-state">{t("marketing_dashboard.loading_offers")}</div>
         ) : latestOffers.length === 0 ? (
-          <div className="table-state">لا توجد عروض متاحة حالياً</div>
+          <div className="table-state">{t("marketing_dashboard.no_offers")}</div>
         ) : (
           <div className="table-scroll">
             <table className="legal-table">
               <thead>
                 <tr>
-                  <th>العرض / العنصر</th>
-                  <th>النوع</th>
-                  <th>نسبة الخصم</th>
-                  <th>السعر السابق</th>
-                  <th>السعر الحالي</th>
-                  <th>ينتهي في</th>
-                  <th>الإجراءات</th>
+                  <th>{t("marketing_dashboard.table.item")}</th>
+                  <th>{t("marketing_dashboard.table.type")}</th>
+                  <th>{t("marketing_dashboard.table.discount")}</th>
+                  <th>{t("marketing_dashboard.table.old_price")}</th>
+                  <th>{t("marketing_dashboard.table.new_price")}</th>
+                  <th>{t("marketing_dashboard.table.ends_at")}</th>
+                  <th>{t("marketing_dashboard.table.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -427,14 +421,14 @@ export default function MarketingDashboardPage() {
                   const title = isService
                     ? item.item?.name
                     : item.item?.unit_number
-                    ? `شقة رقم ${item.item.unit_number}`
-                    : "عرض خاص";
+                    ? t("marketing_dashboard.apartment_number", { number: item.item.unit_number })
+                    : t("marketing_dashboard.special_offer");
 
                   const categoryLabel = isService
-                    ? "خدمة تخصصية"
+                    ? t("marketing_dashboard.specialized_service")
                     : item.item?.building_id
-                    ? `مبنى رقم ${item.item.building_id}`
-                    : "وحدة سكنية";
+                    ? t("marketing_dashboard.building_number", { number: item.item.building_id })
+                    : t("marketing_dashboard.residential_unit");
 
                   return (
                     <tr key={item.id}>
@@ -444,7 +438,7 @@ export default function MarketingDashboardPage() {
                             type="button"
                             className="services-thumb-btn"
                             onClick={() => openOfferPreview(item)}
-                            title="معاينة العرض"
+                            title={t("marketing_dashboard.preview_offer")}
                           >
                             <div className="services-thumb-placeholder">
                               {isService ? <Briefcase size={16} /> : <Home size={16} />}
@@ -458,12 +452,12 @@ export default function MarketingDashboardPage() {
                       </td>
 
                       <td className="services-date">
-                        {isService ? "خدمة" : "عقار"}
+                        {isService ? t("marketing_dashboard.service") : t("marketing_dashboard.property")}
                       </td>
 
                       <td>
                         <span className="marketing-offer-badge">
-                          🏷️ خصم {item.discount_percentage}%
+                          {t("marketing_dashboard.discount_badge", { percentage: item.discount_percentage })}
                         </span>
                       </td>
 
@@ -485,7 +479,7 @@ export default function MarketingDashboardPage() {
                             type="button"
                             className="icon-action-btn"
                             onClick={() => openOfferPreview(item)}
-                            title="معاينة العرض"
+                            title={t("marketing_dashboard.preview_offer")}
                           >
                             <Eye size={16} />
                           </button>
@@ -506,21 +500,25 @@ export default function MarketingDashboardPage() {
         onClose={() => setPreviewOpen(false)}
         title={
           previewOffer?.item?.name
-            ? `تفاصيل عرض الخدمة (${previewOffer.item.name})`
+            ? t("marketing_dashboard.modal.service_details", { name: previewOffer.item.name })
             : previewOffer?.item?.unit_number
-            ? `تفاصيل عرض الوحدة (${previewOffer.item.unit_number})`
-            : "معاينة العرض"
+            ? t("marketing_dashboard.modal.unit_details", { number: previewOffer.item.unit_number })
+            : t("marketing_dashboard.modal.offer_preview")
         }
         size="lg"
       >
         <div className="marketing-offers-summary-card" style={{ maxWidth: "100%" }}>
           <div className="marketing-offers-summary-head">
             <div>
-              <p>{previewOffer?.item?.name ? "نوع العرض: خدمة" : "نوع العرض: عقار"}</p>
+              <p>
+                {previewOffer?.item?.name
+                  ? t("marketing_dashboard.modal.type_service")
+                  : t("marketing_dashboard.modal.type_property")}
+              </p>
               <h3>
                 {previewOffer?.item?.name
                   ? previewOffer.item.name
-                  : `الوحدة السكنية: ${previewOffer?.item?.unit_number || "-"}`}
+                  : t("marketing_dashboard.modal.residential_unit", { number: previewOffer?.item?.unit_number || "-" })}
               </h3>
             </div>
             <div className="marketing-summary-icon">
@@ -529,32 +527,32 @@ export default function MarketingDashboardPage() {
           </div>
 
           <p style={{ color: "var(--dash-muted)", fontSize: "13px", lineHeight: "1.6", margin: "12px 0" }}>
-            {previewOffer?.item?.description || "لا يوجد وصف تفصيلي متوفر لهذا العرض."}
+            {previewOffer?.item?.description || t("marketing_dashboard.modal.no_description")}
           </p>
 
           <div className="marketing-offers-summary-metrics" style={{ marginTop: "15px" }}>
             <div>
-              <strong>السعر الأصلي</strong>
+              <strong>{t("marketing_dashboard.modal.original_price")}</strong>
               {formatPrice(previewOffer?.old_price)}
             </div>
 
             <div>
-              <strong>السعر بعد الخصم</strong>
+              <strong>{t("marketing_dashboard.modal.discounted_price")}</strong>
               {formatPrice(previewOffer?.new_price)}
             </div>
 
             <div>
-              <strong>نسبة الخصم</strong>
+              <strong>{t("marketing_dashboard.modal.discount_percentage")}</strong>
               <span>{previewOffer?.discount_percentage || 0}%</span>
             </div>
 
             <div>
-              <strong>تاريخ البداية</strong>
+              <strong>{t("marketing_dashboard.modal.start_date")}</strong>
               <span>{formatDate(previewOffer?.start_date)}</span>
             </div>
 
             <div>
-              <strong>تاريخ النهاية</strong>
+              <strong>{t("marketing_dashboard.modal.end_date")}</strong>
               <span>{formatDate(previewOffer?.end_date)}</span>
             </div>
           </div>

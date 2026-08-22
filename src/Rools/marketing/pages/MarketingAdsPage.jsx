@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { t } from "@/shared/i18n";
+import i18n from "i18next";
 import {
   Megaphone,
   Image as ImageIcon,
@@ -12,10 +14,13 @@ import {
   Tag,
   SlidersHorizontal,
   ChevronDown,
+  Building2,
+  Home,
+  CheckCircle2,
+  XCircle,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
-
 import Modal from "@/shared/components/Modal";
 import TableCard from "@/shared/components/TableCard";
 import StatusBadge from "@/shared/components/StatusBadge";
@@ -31,20 +36,7 @@ import {
 import { fetchOffers } from "../features/offer/model/offer.thunks";
 import { validateAdvertisementForm } from "../features/advertisements/validation/advertisement.validation";
 
-/* استخدام ملف تنسيقات الخدمات الموحد لتطابق التنسيق تماماً */
 import "../styles/marketing-services.css";
-
-const STATUS_META = {
-  active: { label: "نشط", type: "ok" },
-  draft: { label: "مسودة", type: "off" },
-};
-
-const STATUS_OPTIONS = [
-  { id: "all", label: "جميع الحالات" },
-  { id: "active", label: "نشط" },
-  { id: "draft", label: "مسودة" },
-  { id: "with_offer", label: "عروض الخصم 🏷️" },
-];
 
 function isAdvertisementActive(advertisement) {
   if (typeof advertisement?.status === "boolean") return advertisement.status;
@@ -54,14 +46,16 @@ function isAdvertisementActive(advertisement) {
 }
 
 function getStatusMeta(status) {
-  return STATUS_META[status] || { label: status || "-", type: "off" };
+  const metaMap = {
+    active: { label: t("marketing_ads.toolbar.status_active"), type: "ok" },
+    draft: { label: t("marketing_ads.toolbar.status_inactive"), type: "off" },
+  };
+  return metaMap[status] || { label: status || "-", type: "off" };
 }
 
 function getAdvertisementRowMeta(advertisement) {
-  if (typeof advertisement?.status === "boolean") return getStatusMeta(advertisement.status ? "active" : "draft");
-  if (typeof advertisement?.is_active === "boolean") return getStatusMeta(advertisement.is_active ? "active" : "draft");
-  if (advertisement?.status === 1 || advertisement?.status === "1") return getStatusMeta("active");
-  return getStatusMeta("draft");
+  const active = isAdvertisementActive(advertisement);
+  return getStatusMeta(active ? "active" : "draft");
 }
 
 function getFirstImage(advertisement) {
@@ -113,6 +107,16 @@ export default function MarketingAdsPage() {
     dispatch(fetchOffers());
   }, [dispatch]);
 
+  const statusOptions = useMemo(
+    () => [
+      { id: "all", label: t("marketing_ads.toolbar.status_all") },
+      { id: "active", label: t("marketing_ads.toolbar.status_active") },
+      { id: "draft", label: t("marketing_ads.toolbar.status_inactive") },
+      { id: "with_offer", label: t("marketing_ads.toolbar.status_with_offer") },
+    ],
+    []
+  );
+
   const stats = useMemo(() => {
     const totalAds = advertisements.length;
     const activeCount = activeAdvertisements.length;
@@ -123,10 +127,10 @@ export default function MarketingAdsPage() {
         : 0;
 
     return [
-      { title: "إجمالي الإعلانات", value: String(totalAds), icon: Megaphone },
-      { title: "إعلانات نشطة", value: String(activeCount), icon: Sparkles },
-      { title: "إعلانات بعروض خصم", value: String(offersCount), icon: Tag },
-      { title: "متوسط مدة الإعلان", value: `${avgDuration} يوم`, icon: CalendarDays },
+      { title: t("marketing_ads.stats.total_ads"), value: String(totalAds), icon: Megaphone },
+      { title: t("marketing_ads.stats.active_ads"), value: String(activeCount), icon: Sparkles },
+      { title: t("marketing_ads.stats.offer_ads"), value: String(offersCount), icon: Tag },
+      { title: t("marketing_ads.stats.avg_duration"), value: t("marketing_ads.stats.days_unit", { count: avgDuration }), icon: CalendarDays },
     ];
   }, [advertisements, activeAdvertisements]);
 
@@ -151,6 +155,8 @@ export default function MarketingAdsPage() {
         item.ends_at,
         String(item.duration_days || ""),
         item.offer?.discount_percentage ? `خصم ${item.offer.discount_percentage}%` : "",
+        item.offer?.item?.unit_number || "",
+        item.offer?.item?.type || "",
       ]
         .join(" ")
         .toLowerCase();
@@ -171,7 +177,7 @@ export default function MarketingAdsPage() {
   };
 
   const handleDelete = (id) => {
-    if (window.confirm("هل أنتِ متأكدة من رغبتكِ في حذف هذا الإعلان نهائياً؟")) {
+    if (window.confirm(t("marketing_ads.table.confirm_delete"))) {
       dispatch(deleteAdvertisement(id));
     }
   };
@@ -215,33 +221,27 @@ export default function MarketingAdsPage() {
   };
 
   const pageLoading = loading || activeLoading;
+  const currentLang = i18n?.language || "ar";
 
   return (
-    <div className="marketing-services-page" dir="rtl">
-      {/* 1. شبكة الإحصائيات العلوية */}
+    <div className="marketing-services-page" dir={currentLang === "ar" ? "rtl" : "ltr"}>
+      {/* 1. الإحصائيات العلوية */}
       <section className="legal-stats-grid">
         {stats.map((item) => (
           <StatCard key={item.title} title={item.title} value={item.value} icon={item.icon} />
         ))}
       </section>
 
-      {/* 2. شريط الأدوات المنسق تماماً كواجهة الخدمات */}
-      <div className="exact-toolbar-card" dir="rtl">
-        <button
-          type="button"
-          className="exact-primary-btn"
-          onClick={() => setCreateOpen(true)}
-        >
+      {/* 2. شريط الأدوات والتصفية */}
+      <div className="exact-toolbar-card" dir={currentLang === "ar" ? "rtl" : "ltr"}>
+        <button type="button" className="exact-primary-btn" onClick={() => setCreateOpen(true)}>
           <Plus size={18} />
-          <span>إعلان جديد</span>
+          <span>{t("marketing_ads.toolbar.new_ad")}</span>
         </button>
 
         <div className="exact-select-wrapper">
-          <select
-            value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value)}
-          >
-            {STATUS_OPTIONS.map((opt) => (
+          <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)}>
+            {statusOptions.map((opt) => (
               <option key={opt.id} value={opt.id}>
                 {opt.label}
               </option>
@@ -252,13 +252,13 @@ export default function MarketingAdsPage() {
 
         <div className="exact-filter-label">
           <SlidersHorizontal size={16} />
-          <span>تصفية</span>
+          <span>{t("marketing_ads.toolbar.filter")}</span>
         </div>
 
         <div className="exact-search-field">
           <input
             type="text"
-            placeholder="ابحث بعنوان الإعلان، الوصف، أو نسب الخصم..."
+            placeholder={t("marketing_ads.toolbar.search_placeholder")}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -266,25 +266,26 @@ export default function MarketingAdsPage() {
         </div>
       </div>
 
-      {/* 3. جدول الإعلانات باستخدام TableCard */}
-      <TableCard title="الإعلانات والعروض الترويجية" >
+      {/* 3. جدول الإعلانات */}
+      <TableCard title={t("marketing_ads.table.title")}>
         {pageLoading ? (
-          <div className="table-state">جاري تحميل الإعلانات...</div>
+          <div className="table-state">{t("marketing_ads.table.loading")}</div>
         ) : error ? (
-          <div className="table-state is-error">{typeof error === "string" ? error : "حدث خطأ غير متوقع"}</div>
+          <div className="table-state is-error">
+            {typeof error === "string" ? error : t("marketing_ads.table.unexpected_error")}
+          </div>
         ) : (
           <div className="table-scroll">
             <table className="legal-table">
               <thead>
                 <tr>
-                  <th>الإعلان</th>
-                  <th>البداية</th>
-                  <th>النهاية</th>
-                  <th>المدة</th>
-                  <th>العرض المرفق</th>
-                  <th>المرفقات</th>
-                  <th>الحالة</th>
-                  <th>الإجراءات</th>
+                  <th>{t("marketing_ads.table.col_ad")}</th>
+                  <th>{t("marketing_ads.table.col_period")}</th>
+                  <th>{t("marketing_ads.table.col_property")}</th>
+                  <th>{t("marketing_ads.table.col_discount")}</th>
+                  <th>{t("marketing_ads.table.col_attachments")}</th>
+                  <th>{t("marketing_ads.table.col_status")}</th>
+                  <th>{t("marketing_ads.table.col_actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -292,10 +293,12 @@ export default function MarketingAdsPage() {
                   filteredAds.map((item) => {
                     const meta = getAdvertisementRowMeta(item);
                     const firstImage = getFirstImage(item);
-                    const hasOffer = item.offer && item.offer.is_active;
+                    const offerObj = item.offer;
+                    const itemObj = offerObj?.item;
 
                     return (
                       <tr key={item.id}>
+                        {/* عنوان الإعلان والوصف */}
                         <td>
                           <div className="services-item-cell">
                             <button
@@ -305,7 +308,7 @@ export default function MarketingAdsPage() {
                                 setPreviewAdvertisement(item);
                                 setPreviewOpen(true);
                               }}
-                              title="عرض التفاصيل"
+                              title={t("marketing_ads.table.view_details")}
                             >
                               {firstImage ? (
                                 <img src={firstImage} alt={item.title} className="services-thumb" />
@@ -316,33 +319,76 @@ export default function MarketingAdsPage() {
                               )}
                             </button>
                             <div className="services-item-info">
-                              <strong>{item.title}</strong>
-                              <span>{item.description || "لا يوجد وصف"}</span>
+                              <strong>#{item.id} {item.title}</strong>
+                              <span>{item.description || t("marketing_ads.table.no_description")}</span>
                             </div>
                           </div>
                         </td>
 
-                        <td className="services-date">{formatDate(item.starts_at)}</td>
-                        <td className="services-date">{formatDate(item.ends_at)}</td>
-                        <td className="services-date">{item.duration_days ? `${item.duration_days} يوم` : "—"}</td>
+                        {/* الفترة والمدة */}
+                        <td className="services-date">
+                          <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+                            <span>{t("marketing_ads.table.from", { date: formatDate(item.starts_at) })}</span>
+                            <span>{t("marketing_ads.table.to", { date: formatDate(item.ends_at) })}</span>
+                            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
+                              {t("marketing_ads.table.duration", { count: item.duration_days || "—" })}
+                            </span>
+                          </div>
+                        </td>
 
+                        {/* تفاصيل العقار المرتبط */}
                         <td>
-                          {hasOffer ? (
-                            <span className="marketing-offer-badge">🏷️ خصم {item.offer.discount_percentage}%</span>
+                          {itemObj ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "2px", fontSize: "0.85rem" }}>
+                              <strong>
+                                <Home size={13} style={{ display: "inline", marginInlineEnd: 4 }} />
+                                {t("marketing_ads.table.unit", { number: itemObj.unit_number })}
+                              </strong>
+                              <span style={{ fontSize: "0.75rem", opacity: 0.8 }}>
+                                {t("marketing_ads.table.building_meta", {
+                                  building_id: itemObj.building_id,
+                                  type: itemObj.type,
+                                  area: itemObj.area,
+                                })}
+                              </span>
+                              <span style={{ fontSize: "0.75rem", color: itemObj.status === "available" ? "#10b981" : "var(--dash-text-muted)" }}>
+                                {t("marketing_ads.table.property_status", { status: itemObj.status })}
+                              </span>
+                            </div>
                           ) : (
-                            <span className="services-date">بدون عرض</span>
+                            <span className="services-date">{t("marketing_ads.table.no_property")}</span>
                           )}
                         </td>
 
-                        <td className="services-date">
-                          <ImageIcon size={14} style={{ display: "inline", verticalAlign: "middle", marginLeft: 4 }} />
-                          {item.attachments?.length || 0} مرفق
+                        {/* تفاصيل الخصم والسعر */}
+                        <td>
+                          {offerObj ? (
+                            <div style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
+                              <span className="marketing-offer-badge" style={{ width: "fit-content" }}>
+                                {t("marketing_ads.table.discount_badge", { percentage: offerObj.discount_percentage })}
+                              </span>
+                              <span style={{ fontSize: "0.78rem" }}>
+                                <s style={{ color: "#ef4444", marginInlineEnd: "4px" }}>{offerObj.old_price}</s>
+                                <strong style={{ color: "#10b981" }}>{offerObj.new_price}</strong>
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="services-date">{t("marketing_ads.table.no_offer")}</span>
+                          )}
                         </td>
 
+                        {/* المرفقات */}
+                        <td className="services-date">
+                          <ImageIcon size={14} style={{ display: "inline", verticalAlign: "middle", marginInlineEnd: 4 }} />
+                          {t("marketing_ads.table.attachments_count", { count: item.attachments?.length || 0 })}
+                        </td>
+
+                        {/* الحالة */}
                         <td>
                           <StatusBadge status={meta.label} type={meta.type} />
                         </td>
 
+                        {/* الإجراءات */}
                         <td>
                           <div className="row-actions">
                             <button
@@ -352,7 +398,7 @@ export default function MarketingAdsPage() {
                                 setPreviewAdvertisement(item);
                                 setPreviewOpen(true);
                               }}
-                              title="عرض التفاصيل"
+                              title={t("marketing_ads.table.view_full_details")}
                             >
                               <Eye size={16} />
                             </button>
@@ -360,7 +406,7 @@ export default function MarketingAdsPage() {
                               type="button"
                               className="icon-action-btn danger"
                               onClick={() => handleDelete(item.id)}
-                              title="حذف"
+                              title={t("marketing_ads.table.delete")}
                             >
                               <Trash2 size={16} />
                             </button>
@@ -371,8 +417,8 @@ export default function MarketingAdsPage() {
                   })
                 ) : (
                   <tr>
-                    <td colSpan="8" className="empty-cell">
-                      لا توجد إعلانات مطابقة لخيارات البحث
+                    <td colSpan="7" className="empty-cell">
+                      {t("marketing_ads.table.empty_search")}
                     </td>
                   </tr>
                 )}
@@ -382,46 +428,69 @@ export default function MarketingAdsPage() {
         )}
       </TableCard>
 
-      {/* مودال إنشاء إعلان */}
-      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title="إضافة إعلان جديد" size="md">
+      {/* مودال إضافة إعلان جديد */}
+      <Modal open={createOpen} onClose={() => setCreateOpen(false)} title={t("marketing_ads.create_modal.title")} size="md">
         <form className="modal-form" onSubmit={handleSubmit}>
           <div className="modal-grid">
             <div className="custom-form-group">
-              <label>عنوان الإعلان</label>
-              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder="العنوان" />
+              <label>{t("marketing_ads.create_modal.ad_title")}</label>
+              <input type="text" name="title" value={formData.title} onChange={handleChange} placeholder={t("marketing_ads.create_modal.ad_title_placeholder")} />
               <ErrorMessage message={formErrors.title} />
             </div>
             <div className="custom-form-group">
-              <label>المدة (بالأيام)</label>
-              <input type="number" name="duration_days" value={formData.duration_days} onChange={handleChange} placeholder="الأيام" />
+              <label>{t("marketing_ads.create_modal.duration_days")}</label>
+              <input type="number" name="duration_days" value={formData.duration_days} onChange={handleChange} placeholder={t("marketing_ads.create_modal.duration_placeholder")} />
               <ErrorMessage message={formErrors.duration_days} />
             </div>
           </div>
 
           <div className="modal-grid">
             <div className="custom-form-group">
-              <label>العرض المرفق</label>
+              <label>{t("marketing_ads.create_modal.attached_offer")}</label>
               <select name="offer_id" value={formData.offer_id} onChange={handleChange}>
-                <option value="">-- بدون عرض --</option>
+                <option value="">{t("marketing_ads.create_modal.no_offer_option")}</option>
                 {offersList.map((off) => (
                   <option key={off.id} value={off.id}>
-                    خصم {off.discount_percentage}%
+                    {off.item?.unit_number
+                      ? t("marketing_ads.create_modal.offer_option_unit", { percentage: off.discount_percentage, unit: off.item.unit_number })
+                      : t("marketing_ads.create_modal.offer_option_id", { percentage: off.discount_percentage, id: off.id })}
                   </option>
                 ))}
               </select>
             </div>
             <div className="custom-form-group">
-              <label>الحالة</label>
+              <label>{t("marketing_ads.create_modal.status")}</label>
               <select name="status" value={formData.status} onChange={handleChange}>
-                <option value="1">نشط</option>
-                <option value="0">مسودة</option>
+                <option value="1">{t("marketing_ads.create_modal.active")}</option>
+                <option value="0">{t("marketing_ads.create_modal.draft")}</option>
               </select>
             </div>
           </div>
 
           <div className="custom-form-group">
-            <label>الوصف</label>
-            <textarea name="description" value={formData.description} onChange={handleChange} placeholder="وصف الإعلان..." rows={3} style={{ width: '100%', border: '1px solid var(--dash-line)', borderRadius: '12px', background: 'var(--dash-input-bg)', color: 'var(--dash-text)', padding: '10px 14px', outline: 'none' }} />
+            <label>{t("marketing_ads.create_modal.attachment")}</label>
+            <input type="file" name="attachment" onChange={handleChange} accept="image/*" />
+            <ErrorMessage message={formErrors.attachmentFile} />
+          </div>
+
+          <div className="custom-form-group">
+            <label>{t("marketing_ads.create_modal.description")}</label>
+            <textarea
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              placeholder={t("marketing_ads.create_modal.description_placeholder")}
+              rows={3}
+              style={{
+                width: "100%",
+                border: "1px solid var(--dash-line)",
+                borderRadius: "12px",
+                background: "var(--dash-input-bg)",
+                color: "var(--dash-text)",
+                padding: "10px 14px",
+                outline: "none",
+              }}
+            />
             <ErrorMessage message={formErrors.description} />
           </div>
 
@@ -435,48 +504,117 @@ export default function MarketingAdsPage() {
               }}
               disabled={loading}
             >
-              إلغاء
+              {t("marketing_ads.create_modal.cancel")}
             </button>
             <button type="submit" className="exact-primary-btn" disabled={loading}>
-              {loading ? "جاري الحفظ..." : "حفظ الإعلان"}
+              {loading ? t("marketing_ads.create_modal.saving") : t("marketing_ads.create_modal.save")}
             </button>
           </div>
         </form>
       </Modal>
 
-      {/* مودال استعراض الإعلان */}
-      <Modal open={previewOpen} onClose={() => setPreviewOpen(false)} title="تفاصيل الإعلان" size="lg">
+      {/* مودال استعراض كافة التفاصيل */}
+      <Modal open={previewOpen} onClose={() => setPreviewOpen(false)} title={t("marketing_ads.details_modal.title")} size="lg">
         {previewAdvertisement && (
-          <div className="services-details">
-            {getFirstImage(previewAdvertisement) ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+            {getFirstImage(previewAdvertisement) && (
               <div className="services-preview-image">
                 <img src={getFirstImage(previewAdvertisement)} alt={previewAdvertisement.title} />
               </div>
+            )}
+
+            {/* معلومات الإعلان الأساسية */}
+            <div style={{ border: "1px solid var(--dash-line)", borderRadius: "12px", padding: "16px", background: "var(--dash-card-bg)" }}>
+              <h4 style={{ margin: "0 0 14px 0", display: "flex", alignItems: "center", gap: "8px", color: "var(--dash-text)" }}>
+                <Megaphone size={18} /> {t("marketing_ads.details_modal.basic_info")}
+              </h4>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", fontSize: "0.9rem" }}>
+                <div><strong>{t("marketing_ads.details_modal.id")}</strong> #{previewAdvertisement.id}</div>
+                <div><strong>{t("marketing_ads.details_modal.ad_title")}</strong> {previewAdvertisement.title}</div>
+                <div>
+                  <strong>{t("marketing_ads.details_modal.status")}</strong>{" "}
+                  {isAdvertisementActive(previewAdvertisement) ? (
+                    <span style={{ color: "#10b981", fontWeight: "bold" }}>
+                      {t("marketing_ads.details_modal.active")} <CheckCircle2 size={14} style={{ display: "inline" }} />
+                    </span>
+                  ) : (
+                    <span style={{ color: "#ef4444", fontWeight: "bold" }}>
+                      {t("marketing_ads.details_modal.inactive")} <XCircle size={14} style={{ display: "inline" }} />
+                    </span>
+                  )}
+                </div>
+                <div><strong>{t("marketing_ads.details_modal.total_duration")}</strong> {t("marketing_ads.details_modal.days", { count: previewAdvertisement.duration_days || "—" })}</div>
+                <div><strong>{t("marketing_ads.details_modal.starts_at")}</strong> {formatDate(previewAdvertisement.starts_at)}</div>
+                <div><strong>{t("marketing_ads.details_modal.ends_at")}</strong> {formatDate(previewAdvertisement.ends_at)}</div>
+                <div><strong>{t("marketing_ads.details_modal.created_by")}</strong> #{previewAdvertisement.created_by || "—"}</div>
+                <div><strong>{t("marketing_ads.details_modal.created_at")}</strong> {formatDate(previewAdvertisement.created_at)}</div>
+                <div><strong>{t("marketing_ads.details_modal.updated_at")}</strong> {formatDate(previewAdvertisement.updated_at)}</div>
+              </div>
+            </div>
+
+            {/* تفاصيل العرض المرتبط */}
+            {previewAdvertisement.offer ? (
+              <div style={{ border: "1px solid rgba(16, 185, 129, 0.3)", borderRadius: "12px", padding: "16px", backgroundColor: "rgba(16, 185, 129, 0.05)" }}>
+                <h4 style={{ margin: "0 0 14px 0", color: "#10b981", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Tag size={18} /> {t("marketing_ads.details_modal.offer_info")}
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", fontSize: "0.9rem" }}>
+                  <div><strong>{t("marketing_ads.details_modal.offer_id")}</strong> #{previewAdvertisement.offer.id}</div>
+                  <div>
+                    <strong>{t("marketing_ads.details_modal.discount")}</strong>{" "}
+                    <span style={{ color: "#10b981", fontWeight: "bold", fontSize: "1.05rem" }}>{previewAdvertisement.offer.discount_percentage}%</span>
+                  </div>
+                  <div>
+                    <strong>{t("marketing_ads.details_modal.old_price")}</strong>{" "}
+                    <span style={{ textDecoration: "line-through", color: "#ef4444" }}>{previewAdvertisement.offer.old_price}</span>
+                  </div>
+                  <div>
+                    <strong>{t("marketing_ads.details_modal.new_price")}</strong>{" "}
+                    <span style={{ fontWeight: "bold", color: "#10b981", fontSize: "1.05rem" }}>{previewAdvertisement.offer.new_price}</span>
+                  </div>
+                  <div><strong>{t("marketing_ads.details_modal.offer_start")}</strong> {formatDate(previewAdvertisement.offer.start_date)}</div>
+                  <div><strong>{t("marketing_ads.details_modal.offer_end")}</strong> {formatDate(previewAdvertisement.offer.end_date)}</div>
+                  <div><strong>{t("marketing_ads.details_modal.offer_created")}</strong> {formatDate(previewAdvertisement.offer.created_at)}</div>
+                  <div>
+                    <strong>{t("marketing_ads.details_modal.offer_status")}</strong>{" "}
+                    {previewAdvertisement.offer.is_active ? t("marketing_ads.details_modal.active") : t("marketing_ads.details_modal.inactive")}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div style={{ padding: "14px", border: "1px dashed var(--dash-line)", borderRadius: "12px", textAlign: "center", color: "var(--dash-text-muted)" }}>
+                {t("marketing_ads.details_modal.no_offer")}
+              </div>
+            )}
+
+            {/* تفاصيل العقار/الوحدة المرتبطة */}
+            {previewAdvertisement.offer?.item ? (
+              <div style={{ border: "1px solid rgba(59, 130, 246, 0.3)", borderRadius: "12px", padding: "16px", backgroundColor: "rgba(59, 130, 246, 0.05)" }}>
+                <h4 style={{ margin: "0 0 14px 0", color: "#3b82f6", display: "flex", alignItems: "center", gap: "8px" }}>
+                  <Building2 size={18} /> {t("marketing_ads.details_modal.property_info")}
+                </h4>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "12px", fontSize: "0.9rem" }}>
+                  <div><strong>{t("marketing_ads.details_modal.item_id")}</strong> #{previewAdvertisement.offer.item.id}</div>
+                  <div><strong>{t("marketing_ads.details_modal.building_id")}</strong> #{previewAdvertisement.offer.item.building_id}</div>
+                  <div><strong>{t("marketing_ads.details_modal.unit_number")}</strong> <span style={{ fontWeight: "bold" }}>{previewAdvertisement.offer.item.unit_number}</span></div>
+                  <div><strong>{t("marketing_ads.details_modal.property_type")}</strong> {previewAdvertisement.offer.item.type}</div>
+                  <div><strong>{t("marketing_ads.details_modal.floor")}</strong> {previewAdvertisement.offer.item.floor}</div>
+                  <div><strong>{t("marketing_ads.details_modal.area")}</strong> {t("marketing_ads.details_modal.area_m2", { area: previewAdvertisement.offer.item.area })}</div>
+                  <div><strong>{t("marketing_ads.details_modal.rooms")}</strong> {previewAdvertisement.offer.item.rooms_count}</div>
+                  <div><strong>{t("marketing_ads.details_modal.original_price")}</strong> {previewAdvertisement.offer.item.original_price}</div>
+                  <div><strong>{t("marketing_ads.details_modal.current_price")}</strong> <span style={{ color: "#10b981", fontWeight: "bold" }}>{previewAdvertisement.offer.item.current_price}</span></div>
+                  <div><strong>{t("marketing_ads.details_modal.property_status_label")}</strong> <span style={{ color: "#3b82f6", fontWeight: "bold" }}>{previewAdvertisement.offer.item.status}</span></div>
+                  <div><strong>{t("marketing_ads.details_modal.property_registered")}</strong> {formatDate(previewAdvertisement.offer.item.created_at)}</div>
+                </div>
+              </div>
             ) : null}
 
-            <div className="services-details-grid">
-              <div>
-                <strong>المدة</strong>
-                <span>{previewAdvertisement.duration_days || "—"} يوم</span>
-              </div>
-              <div>
-                <strong>البداية</strong>
-                <span>{formatDate(previewAdvertisement.starts_at)}</span>
-              </div>
-              <div>
-                <strong>النهاية</strong>
-                <span>{formatDate(previewAdvertisement.ends_at)}</span>
-              </div>
-            </div>
-
-            <div className="services-preview-description">
-              <h4>عنوان الإعلان</h4>
-              <p>{previewAdvertisement.title}</p>
-            </div>
-
-            <div className="services-preview-description">
-              <h4>وصف الإعلان</h4>
-              <p>{previewAdvertisement.description || "لا يوجد وصف مفصل."}</p>
+            {/* الوصف التفصيلي */}
+            <div style={{ border: "1px solid var(--dash-line)", borderRadius: "12px", padding: "16px", background: "var(--dash-card-bg)" }}>
+              <h4 style={{ margin: "0 0 8px 0" }}>{t("marketing_ads.details_modal.description_title")}</h4>
+              <p style={{ margin: 0, lineHeight: 1.6, color: "var(--dash-text-muted)" }}>
+                {previewAdvertisement.description || t("marketing_ads.details_modal.no_description_provided")}
+              </p>
             </div>
           </div>
         )}

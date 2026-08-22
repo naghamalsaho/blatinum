@@ -106,6 +106,7 @@ const EMPTY_BUILDING_FORM = {
   start_date: "",
   radius_meters: "",
   attachment: null,
+  is_360: false,
 };
 
 const EMPTY_UNIT_FORM = {
@@ -117,6 +118,7 @@ const EMPTY_UNIT_FORM = {
   price: "",
   status: "available",
   attachment: null,
+  is_360: false,
 };
 
 const EMPTY_LOCATION_FORM = {
@@ -557,6 +559,7 @@ export default function MarketingProjectsPage() {
       start_date: building.start_date || "",
       radius_meters: String(building.coordinates?.radius ?? ""),
       attachment: null,
+      is_360: false,
     });
     setBuildingErrors({});
     setOpenBuildingModal(true);
@@ -589,6 +592,7 @@ export default function MarketingProjectsPage() {
       price: String(unit.current_price ?? unit.price ?? ""),
       status: unit.status || "available",
       attachment: null,
+      is_360: false,
     });
     setUnitErrors({});
     setOpenUnitModal(true);
@@ -725,6 +729,9 @@ export default function MarketingProjectsPage() {
         "attachments[0][custom_properties][display_name]",
         buildingForm.display_name || buildingForm.attachment.name
       );
+      if (buildingForm.is_360) {
+        fd.append("attachments[0][type]", "360_panorama");
+      }
     }
 
     if (editingBuildingId) {
@@ -767,62 +774,59 @@ export default function MarketingProjectsPage() {
     }
   };
 
-  const handleSubmitUnit = async (e) => {
-    e.preventDefault();
+ const handleSubmitUnit = async (e) => {
+  e.preventDefault();
 
-    const errors = validateUnitForm(unitForm);
-    setUnitErrors(errors);
-    if (Object.keys(errors).length > 0) return;
+  const errors = validateUnitForm(unitForm);
 
-    let payload;
-    if (unitForm.attachment) {
-      const fd = new FormData();
-      fd.append("building_id", unitForm.building_id);
-      fd.append("unit_number", unitForm.unit_number);
-      fd.append("floor", unitForm.floor || 0);
-      fd.append("area", unitForm.area || 0);
-      fd.append("type", unitForm.type);
-      fd.append("price", unitForm.price || 0);
-      fd.append("status", unitForm.status);
-      fd.append("attachments[0][file]", unitForm.attachment);
-      payload = fd;
-    } else {
-      payload = {
-        building_id: Number(unitForm.building_id),
-        unit_number: unitForm.unit_number,
-        floor: Number(unitForm.floor || 0),
-        area: Number(unitForm.area || 0),
-        type: unitForm.type,
-        price: Number(unitForm.price || 0),
-        status: unitForm.status,
-      };
+  // 1. التحقق من وجود المرفق عند الإنشاء لأن الباك إيند يطلبه إجبارياً
+  if (!editingUnitId && !unitForm.attachment) {
+    errors.attachment = "حقل المرفق مطلوب";
+  }
+
+  setUnitErrors(errors);
+  if (Object.keys(errors).length > 0) return;
+
+  const fd = new FormData();
+
+  // 2. الحقول الأساسية للوحدة
+  fd.append("building_id", unitForm.building_id);
+  fd.append("unit_number", unitForm.unit_number);
+  fd.append("floor", unitForm.floor);
+  fd.append("area", unitForm.area);
+  fd.append("type", unitForm.type);
+  fd.append("price", unitForm.price);
+  fd.append("status", unitForm.status);
+
+  // 3. إضافة المرفق مع الأندكس
+  if (unitForm.attachment) {
+    fd.append("attachments[0][file]", unitForm.attachment);
+    const attachmentType = unitForm.is_360 ? "360_panorama" : "image";
+    fd.append("attachments[0][type]", attachmentType);
+  }
+
+  let result;
+  if (editingUnitId) {
+    // دعم _method لـ Laravel عند إرسال FormData في التعديل
+    fd.append("_method", "PUT");
+    result = await dispatch(
+      updateUnit({
+        id: editingUnitId,
+        payload: fd,
+      })
+    );
+  } else {
+    result = await dispatch(createUnit(fd));
+  }
+
+  if (createUnit.fulfilled.match(result) || updateUnit.fulfilled.match(result)) {
+    closeUnitModal();
+    dispatch(fetchUnits());
+    if (unitForm.building_id) {
+      dispatch(fetchUnitsByBuilding(unitForm.building_id));
     }
-
-    if (editingUnitId) {
-      const result = await dispatch(
-        updateUnit({
-          id: Number(editingUnitId),
-          payload,
-        })
-      );
-
-      if (updateUnit.fulfilled.match(result)) {
-        closeUnitModal();
-        dispatch(fetchUnits());
-        dispatch(fetchUnitsByBuilding(Number(unitForm.building_id)));
-      }
-      return;
-    }
-
-    const result = await dispatch(createUnit(payload));
-
-    if (createUnit.fulfilled.match(result)) {
-      closeUnitModal();
-      dispatch(fetchUnits());
-      dispatch(fetchUnitsByBuilding(Number(unitForm.building_id)));
-    }
-  };
-
+  }
+};
   const handleDeleteUnit = async (id) => {
     const ok = window.confirm("هل تريدين حذف الوحدة؟");
     if (!ok) return;
@@ -2140,6 +2144,34 @@ export default function MarketingProjectsPage() {
               />
               <ErrorMessage message={buildingErrors.attachment} />
             </div>
+
+            {buildingForm.attachment && (
+              <div
+                className="project-native-field"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: "8px",
+                  gridColumn: "1 / -1",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="building_is_360"
+                  checked={buildingForm.is_360}
+                  onChange={(e) =>
+                    handleBuildingFormChange("is_360", e.target.checked)
+                  }
+                  style={{ width: "auto", cursor: "pointer" }}
+                />
+                <label
+                  htmlFor="building_is_360"
+                  style={{ cursor: "pointer", marginBottom: 0 }}
+                >
+                  رفع الصورة كـ صورة بانورامية (360 Panorama)
+                </label>
+              </div>
+            )}
           </div>
         </form>
       </Modal>
@@ -2279,6 +2311,34 @@ export default function MarketingProjectsPage() {
               />
               <ErrorMessage message={unitErrors.attachment} />
             </div>
+
+            {unitForm.attachment && (
+              <div
+                className="project-native-field"
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: "8px",
+                  gridColumn: "1 / -1",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  id="unit_is_360"
+                  checked={unitForm.is_360}
+                  onChange={(e) =>
+                    handleUnitFormChange("is_360", e.target.checked)
+                  }
+                  style={{ width: "auto", cursor: "pointer" }}
+                />
+                <label
+                  htmlFor="unit_is_360"
+                  style={{ cursor: "pointer", marginBottom: 0 }}
+                >
+                  رفع الصورة كـ صورة بانورامية (360 Panorama)
+                </label>
+              </div>
+            )}
           </div>
         </form>
       </Modal>
