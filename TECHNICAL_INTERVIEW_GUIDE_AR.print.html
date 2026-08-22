@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>Ø§Ù„Ø¯Ù„ÙŠÙ„ Ø§Ù„ØªÙ‚Ù†ÙŠ Ù„Ù…Ø´Ø±ÙˆØ¹ Platinum</title>
+<style>
+  @page { size: A4; margin: 17mm 15mm 18mm; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #152033; background: #fff; font-family: "Segoe UI", Tahoma, Arial, sans-serif; font-size: 12px; line-height: 1.75; }
+  h1, h2, h3, h4 { color: #073b6f; page-break-after: avoid; break-after: avoid-page; }
+  h1 { font-size: 28px; text-align: center; margin: 20px 0 8px; padding-bottom: 14px; border-bottom: 3px solid #0ba8cc; }
+  h2 { font-size: 20px; margin: 24px 0 10px; padding: 7px 12px; border-right: 5px solid #11b4d5; background: #eef9fc; border-radius: 6px; }
+  h3 { font-size: 16px; margin: 20px 0 8px; border-bottom: 1px solid #d6e5ed; padding-bottom: 4px; }
+  h4 { font-size: 14px; }
+  p { margin: 5px 0 9px; }
+  ul { margin: 4px 0 12px; padding-right: 24px; }
+  li { margin: 2px 0; }
+  table { width: 100%; border-collapse: collapse; margin: 12px 0 18px; page-break-inside: avoid; }
+  th, td { border: 1px solid #cbdbe5; padding: 7px 9px; text-align: right; vertical-align: top; }
+  th { color: #fff; background: #087da4; }
+  tr:nth-child(even) td { background: #f5fafc; }
+  code { direction: ltr; unicode-bidi: embed; font-family: Consolas, monospace; color: #075985; background: #eef6fa; border-radius: 4px; padding: 1px 4px; }
+  pre { direction: ltr; text-align: left; white-space: pre-wrap; color: #eaf7ff; background: #102335; border-right: 5px solid #11b4d5; border-radius: 8px; padding: 12px; page-break-inside: avoid; }
+  pre code { color: inherit; background: transparent; padding: 0; }
+  blockquote { margin: 12px 0; padding: 10px 14px; color: #42566b; background: #f2f8fb; border-right: 4px solid #19aac8; }
+  hr { border: 0; border-top: 1px solid #cbdbe5; margin: 22px 0; }
+  strong { color: #102a43; }
+</style>
+</head>
+<body>
+<h1>الدليل التقني لمشروع Platinum</h1>
+<blockquote>مرجع عربي لمناقشة مشروع التخرج — الإصدار الحالي يركّز على لوحة الإدارة وخدمة العملاء، إضافة إلى البنية المشتركة بينهما.</blockquote>
+<h2>1. ملخص سريع يمكن قوله أمام اللجنة</h2>
+<p>Platinum هو تطبيق ويب لإدارة شركة عقارية/مقاولات. الواجهة الأمامية مبنية بـ React وVite، وتتصل مع REST API مبني على Laravel. قسّمنا التطبيق حسب أدوار المستخدمين، ووفرنا لوحة خاصة للإدارة وأخرى لخدمة العملاء. استخدمنا Redux Toolkit لإدارة الحالة والطلبات غير المتزامنة، وAxios للاتصال بالـAPI، وReact Router لحماية المسارات والتنقل، وLaravel Echo مع Pusher للمحادثة الفورية. كما يدعم التطبيق العربية والإنجليزية، RTL وLTR، والوضعين الفاتح والداكن.</p>
+<hr>
+<h2>2. التقنيات واللغات المستخدمة</h2>
+<table><thead>
+<tr><th>التقنية</th><th>استخدامها في المشروع</th></tr>
+</thead><tbody>
+<tr><td>JavaScript ES6+</td><td>منطق التطبيق، التعامل مع البيانات والـAPI</td></tr>
+<tr><td>JSX</td><td>بناء واجهات React</td></tr>
+<tr><td>HTML5 وCSS3</td><td>هيكلة وتصميم الواجهات، Responsive، Dark/Light وRTL</td></tr>
+<tr><td>JSON</td><td>صيغة البيانات المتبادلة مع REST API</td></tr>
+<tr><td>React 19</td><td>بناء الواجهات على شكل Components</td></tr>
+<tr><td>Vite 8</td><td>تشغيل بيئة التطوير وتجميع نسخة الإنتاج</td></tr>
+<tr><td>React Router DOM 7</td><td>المسارات، Nested Routes، وحماية الصفحات</td></tr>
+<tr><td>Redux Toolkit</td><td>Global State وAsync Thunks وحالات loading/error</td></tr>
+<tr><td>React Redux</td><td>ربط React بالـRedux Store</td></tr>
+<tr><td>Axios</td><td>إرسال HTTP requests وإعداد base URL والـheaders</td></tr>
+<tr><td>Laravel Echo + Pusher JS</td><td>استقبال رسائل الدردشة لحظيًا عبر WebSocket</td></tr>
+<tr><td>Firebase</td><td>دعم الإشعارات وFCM device tokens</td></tr>
+<tr><td>react-hot-toast</td><td>رسائل النجاح والخطأ السريعة</td></tr>
+<tr><td>Lucide React</td><td>أيقونات موحدة وقابلة للتخصيص</td></tr>
+<tr><td>Recharts</td><td>الرسوم البيانية في الصفحات التي تعرض إحصائيات</td></tr>
+<tr><td>Leaflet + React Leaflet</td><td>الخرائط والمواقع في الوحدات التي تحتاج موقعًا جغرافيًا</td></tr>
+<tr><td>Lodash</td><td>Utilities لمعالجة البيانات عند الحاجة</td></tr>
+<tr><td>ESLint</td><td>اكتشاف أخطاء وجودة JavaScript وReact</td></tr>
+<tr><td>Babel / React Compiler</td><td>تحويل وتحسين كود React أثناء البناء</td></tr>
+</tbody></table>
+<h3>لماذا React؟</h3>
+<p>لأن المشروع يحتوي على لوحات متعددة وعناصر تتغير باستمرار مثل الجداول، النوافذ، الإحصائيات والدردشة. React يسمح بتقسيمها إلى Components قابلة لإعادة الاستخدام وتحديث الجزء المتغير فقط بدل إعادة بناء الصفحة كاملة.</p>
+<h3>لماذا Vite؟</h3>
+<p>لأنه سريع في التطوير، يدعم Hot Module Replacement، ويولد نسخة Production محسّنة. متغيرات البيئة الخاصة بالواجهة تبدأ عادة بـ<code>VITE_</code> حتى يستطيع Vite قراءتها.</p>
+<hr>
+<h2>3. معمارية المشروع</h2>
+<p>اعتمدنا أسلوبًا قريبًا من <strong>Feature-based Architecture</strong>:</p>
+<pre><code>
+src/
+├─ app/                 المسارات، الـlayouts، وإعداد التطبيق
+├─ shared/              API مشترك، مكونات عامة، i18n، theme
+└─ Rools/
+   ├─ admin/            صفحات وميزات الإدارة
+   └─ customerService/  صفحات وميزات خدمة العملاء
+</code></pre>
+<p>كل Feature تحتوي غالبًا على:</p>
+<pre><code>
+feature/
+├─ api/      تعريف endpoints وتحضير payload
+├─ model/    Redux slice وasync thunks
+├─ styles/   CSS الخاص بالميزة
+└─ components أو pages
+</code></pre>
+<h3>مسار البيانات في أغلب الميزات</h3>
+<pre><code>
+ضغط المستخدم
+   ↓
+Component / Page
+   ↓ dispatch
+Async Thunk
+   ↓
+Feature API function
+   ↓
+Axios instance → Laravel REST API
+   ↓
+Response موحّد
+   ↓
+Redux Slice (loading / success / error)
+   ↓
+إعادة رسم الواجهة تلقائيًا
+</code></pre>
+<p>ميزة هذا التقسيم أن الصفحة لا تعرف تفاصيل Axios، وطبقة الـAPI لا تعرف طريقة العرض، والـSlice مسؤول عن الحالة فقط. هذا يسهّل الاختبار والصيانة.</p>
+<hr>
+<h2>4. طبقة الاتصال بالـAPI</h2>
+<p>يوجد wrapper مشترك فوق Axios في <code>src/shared/api/crud.js</code> يدعم:</p>
+<ul>
+<li><code>GET</code>, <code>POST</code>, <code>PUT</code>, <code>PATCH</code>, <code>DELETE</code>.</li>
+<li>JSON و<code>FormData</code>.</li>
+<li>إضافة <code>Authorization: Bearer &lt;token&gt;</code> تلقائيًا.</li>
+<li>إضافة <code>Accept-Language</code> حسب لغة الواجهة.</li>
+<li>توحيد النتيجة إلى <code>{ ok, status, message, data }</code>.</li>
+<li>تحويل أخطاء Laravel المختلفة إلى رسالة قابلة للعرض.</li>
+<li>عدم طباعة الـtoken الحقيقي في سجل الطلب.</li>
+</ul>
+<h3>JSON أم FormData؟</h3>
+<ul>
+<li>نستخدم JSON عندما تكون البيانات object عادية أو تحتوي arrays منظمة، مثل شروط القرعة.</li>
+<li>نستخدم <code>FormData</code> عندما يتوقع الـbackend حقول form-data أو عندما تكون الميزة قابلة لدعم ملفات.</li>
+<li>لا نضع <code>Content-Type: multipart/form-data</code> يدويًا؛ المتصفح يضيف الـboundary الصحيح.</li>
+</ul>
+<h3>المصادقة وحماية المسارات</h3>
+<ul>
+<li>بعد تسجيل الدخول يُحفظ الـtoken ويُرسل مع الطلبات.</li>
+<li><code>RequireAuth</code> يمنع فتح الصفحات المحمية دون جلسة صحيحة.</li>
+<li>اختيار Workspace/Role يحدد القسم الذي يستطيع المستخدم دخوله.</li>
+<li>الحماية في الواجهة لتحسين تجربة المستخدم، لكن الحماية الحقيقية يجب أن تبقى أيضًا في Laravel عبر middleware وpermissions.</li>
+</ul>
+<hr>
+<h1>القسم الأول: لوحة الإدارة Admin</h1>
+<h2>5. لوحة الإدارة والمسارات</h2>
+<p>المسار الأساسي <code>/admin</code> ويحتوي على:</p>
+<ul>
+<li>Dashboard.</li>
+<li>Departments.</li>
+<li>Employees.</li>
+<li>Warehouses.</li>
+<li>Items.</li>
+<li>Roles &amp; Permissions.</li>
+</ul>
+<p>تستخدم الصفحات Layout موحدًا يحتوي Sidebar وTopbar ومنطقة محتوى، مع مكونات مشتركة مثل بطاقات الإحصائيات، شريط البحث والتصفية، الجداول والنوافذ المنبثقة.</p>
+<h2>6. إدارة الأقسام Departments</h2>
+<h3>الميزات</h3>
+<ul>
+<li>عرض الأقسام.</li>
+<li>إنشاء قسم وتعديله وحذفه.</li>
+<li>عرض موظفي القسم.</li>
+<li>ربط موظف بقسم.</li>
+<li>تعديل علاقة الموظف بالقسم أو حذفها.</li>
+<li>تحديد موقع الموظف داخل القسم مثل Manager أو Supervisor أو Staff بحسب البيانات المدعومة.</li>
+<li>البحث، الإحصائيات، وحالات التحميل والخطأ.</li>
+</ul>
+<h3>كيف حققناها؟</h3>
+<p>تعرض الصفحة البيانات الموجودة في Redux. عند تنفيذ عملية، تستدعي <code>Async Thunk</code> وظيفة الـAPI المناسبة، ثم يقوم الـSlice بتحديث القائمة. علاقات الموظف بالقسم تعامل كResource منفصل لأن الموظف قد يمتلك بيانات حساب مستقلة عن تكليفه ضمن قسم.</p>
+<h3>سؤال محتمل</h3>
+<p><strong>لماذا لم نخزن اسم القسم نصًا داخل الموظف؟</strong></p>
+<p>لأن العلاقة يجب أن تعتمد على <code>department_id</code>. الاسم قابل للتعديل، أما المعرّف فهو المرجع الثابت ويمنع تكرار البيانات وعدم اتساقها.</p>
+<h2>7. إدارة الموظفين Employees</h2>
+<h3>الميزات</h3>
+<ul>
+<li>جلب قائمة الموظفين من الـAPI.</li>
+<li>إنشاء وتعديل وحذف موظف.</li>
+<li>عرض الاسم والبريد والهاتف والأدوار والبيانات المفيدة التي يعيدها السيرفر.</li>
+<li>البحث والتصفية حسب الدور.</li>
+<li>نماذج Validation ورسائل نجاح وخطأ.</li>
+</ul>
+<h3>حقول الإنشاء/التعديل</h3>
+<p>تشمل بحسب العملية: الاسم الأول والأخير، البريد، الهاتف، العنوان، الجنس، كلمة المرور والحقول التي يسمح بها endpoint الموظف.</p>
+<h3>ملاحظة مهمة للمناقشة</h3>
+<p>لا يجوز اختراع Department من Role. مثلًا <code>Customer Service Staff</code> هو Role وليس بالضرورة كائن Department. إذا response الموظفين لا يحتوي علاقة القسم، نخفي عمود القسم أو نطلب من الـbackend إرجاع:</p>
+<pre><code>
+{
+  &quot;department&quot;: { &quot;id&quot;: 2, &quot;name&quot;: &quot;Customer Service&quot; },
+  &quot;position&quot;: &quot;staff&quot;
+}
+</code></pre>
+<p>هذه نقطة تدل على احترام <strong>API contract</strong> وعدم تخمين علاقات غير موجودة.</p>
+<h2>8. المستودعات Warehouses</h2>
+<h3>الميزات</h3>
+<ul>
+<li>عرض المستودعات.</li>
+<li>جلب المواقع لاستخدامها في الاختيار.</li>
+<li>إنشاء وتعديل وحذف مستودع.</li>
+<li>ربط المستودع بـ<code>location_id</code> مع الاسم والعنوان والوصف.</li>
+<li>فتح تفاصيل العناصر المرتبطة بالمستودع.</li>
+</ul>
+<h3>طريقة الإرسال</h3>
+<p>يُبنى <code>FormData</code> يحتوي:</p>
+<ul>
+<li><code>name</code></li>
+<li><code>location_id</code></li>
+<li><code>address</code> عند وجوده</li>
+<li><code>description</code> عند وجوده</li>
+</ul>
+<p>نفصل الموقع كمرجع بدل تكراره، وهذا تطبيق للعلاقات الطبيعية في قواعد البيانات.</p>
+<h2>9. العناصر والمخزون Items</h2>
+<h3>الميزات</h3>
+<ul>
+<li>CRUD كامل للعناصر.</li>
+<li>ربط العنصر بمستودع.</li>
+<li>البحث والعرض ضمن جدول موحد مع باقي لوحة الإدارة.</li>
+<li>إدارة كمية العنصر وحالته وتواريخ الشراء والاستلام والانتهاء.</li>
+</ul>
+<h3>الـpayload الفعلي</h3>
+<ul>
+<li><code>warehouse_id</code></li>
+<li><code>sku</code></li>
+<li><code>name</code></li>
+<li><code>description</code></li>
+<li><code>quantity</code></li>
+<li><code>status</code></li>
+<li><code>expiry_date</code></li>
+<li><code>purchase_date</code></li>
+<li><code>received_date</code></li>
+</ul>
+<h3>أسئلة محتملة</h3>
+<p><strong>لماذا SKU مهم؟</strong>  </p>
+<p>هو رمز أعمال واضح للعنصر، بينما <code>id</code> هو معرف قاعدة بيانات داخلي.</p>
+<p><strong>كيف نتعامل مع مادة ليس لها تاريخ انتهاء؟</strong>  </p>
+<p>يُرسل الحقل فارغًا/اختياريًا ويعرض <code>—</code> بدل تاريخ وهمي.</p>
+<p><strong>كيف نمنع quantity سالبة؟</strong>  </p>
+<p>Validation في الواجهة لتحسين التجربة، وValidation إلزامي في الـbackend لأنه مصدر الثقة.</p>
+<h2>10. الأدوار والصلاحيات Roles &amp; Permissions</h2>
+<h3>الميزات</h3>
+<ul>
+<li>عرض الأدوار.</li>
+<li>إنشاء وتعديل وحذف Role.</li>
+<li>جلب جميع Permissions.</li>
+<li>تحديد Role ثم تعديل مجموعة صلاحياته.</li>
+<li>إسناد دور أو أكثر إلى مستخدم.</li>
+<li>واجهة مقسمة إلى Tabs: Roles، Permissions، Assign Roles.</li>
+</ul>
+<h3>Endpoints المستخدمة</h3>
+<pre><code>
+GET     /role
+POST    /role
+PUT     /role/{id}
+DELETE  /role/{id}
+GET     /permission
+POST    /role/selectPermission/{roleId}
+POST    /role/assignRoles/{userId}
+</code></pre>
+<p>الصلاحيات تُرسل كمصفوفة <code>permissions[index]</code>، بينما إسناد الأدوار يرسل JSON بالشكل <code>{ roles: [1, 2] }</code>.</p>
+<h3>الفرق بين Role وPermission</h3>
+<ul>
+<li>Role مجموعة صلاحيات تعبّر عن وظيفة، مثل Admin أو Customer Service Staff.</li>
+<li>Permission فعل واحد دقيق، مثل <code>read.warehouse</code> أو <code>update.warehouse</code>.</li>
+<li>المستخدم يُعطى Role، والـRole يحتوي Permissions. هذا هو <strong>RBAC: Role-Based Access Control</strong>.</li>
+</ul>
+<h3>خطأ <code>guard_name</code></h3>
+<p>إذا أعاد Laravel رسالة <code>Undefined array key guard_name</code> فهذا يعني أن عقد endpoint أو Validation في الـbackend يتوقع الحقل رغم أن نموذج Postman قد يعرض حقولًا مختلفة. الحل الصحيح هو توحيد العقد: إما يجعل السيرفر <code>guard_name</code> اختياريًا بقيمة افتراضية مثل <code>web</code>، أو يصرّح أنه حقل مطلوب ونرسله. لا ينبغي إخفاء خطأ backend على أنه نجاح في الواجهة.</p>
+<hr>
+<h1>القسم الثاني: خدمة العملاء Customer Service</h1>
+<h2>11. المسارات والميزات العامة</h2>
+<p>المسار الأساسي <code>/customer-service</code> ويحتوي:</p>
+<ul>
+<li>Dashboard.</li>
+<li>Clients.</li>
+<li>Appointments.</li>
+<li>Orders، وتفاصيل طلب مستقل <code>/orders/:orderId</code>.</li>
+<li>Complaints.</li>
+<li>Lottery.</li>
+<li>Chat وFAQ Tree.</li>
+</ul>
+<h2>12. العملاء Clients</h2>
+<h3>الميزات</h3>
+<ul>
+<li>عرض العملاء القادمين من الـAPI.</li>
+<li>البحث ضمن المعلومات المتاحة.</li>
+<li>عرض بيانات الحساب والبيانات الإضافية بطريقة منظمة.</li>
+<li>تنفيذ العمليات التي يسمح بها السيرفر مثل تعطيل العميل.</li>
+<li>استخدام بيانات العميل في إنشاء موعد واختيار صاحب الطلب.</li>
+</ul>
+<p>نفصل <code>account</code> عن <code>additional_info</code> لأن بيانات تسجيل الدخول مشتركة بين أنواع الحسابات، بينما تاريخ الميلاد والحالة الاجتماعية والرقم الوطني تخص ملف العميل.</p>
+<h2>13. المواعيد Appointments</h2>
+<h3>العمليات المربوطة</h3>
+<pre><code>
+GET   /appointment
+POST  /appointment
+PUT   /appointment/{id}
+PUT   /appointment/cancel/{id}
+PUT   /appointment/markAsDone/{id}
+</code></pre>
+<h3>إنشاء موعد</h3>
+<p>النموذج يرسل الحقول المناسبة لعقد الـAPI:</p>
+<ul>
+<li><code>client_id</code></li>
+<li><code>order_id</code></li>
+<li><code>av_slot_id</code></li>
+<li><code>type</code></li>
+<li><code>notes</code> عند وجودها</li>
+</ul>
+<p>الواجهة تجلب العملاء والطلبات والـavailable slots. تُعرض الأوقات المحجوزة بوضوح، ويجب منع اختيار slot محجوز قبل الإرسال، مع بقاء التحقق النهائي في السيرفر لتجنب حجزين متزامنين.</p>
+<h3>تعديل الموعد</h3>
+<p>يستخدم <code>PUT /appointment/{id}</code> ونفس builder المرن للحقول غير الفارغة. تظهر الحقول التي يمكن تعديلها فعليًا بدل إرسال قيم وهمية.</p>
+<h3>الإلغاء والإكمال</h3>
+<ul>
+<li>Cancel يغيّر حالة الموعد عبر endpoint مخصص.</li>
+<li>Complete يستخدم <code>markAsDone</code>.</li>
+<li>رفض إكمال موعد مستقبلي هو Business Rule صحيح من الـbackend؛ تعرض الواجهة الرسالة ولا تحذف الجدول أو تحول الخطأ إلى Empty State.</li>
+</ul>
+<h3>لماذا لم يظهر اسم العميل سابقًا؟</h3>
+<p>قائمة المواعيد كانت تعيد <code>order</code> و<code>slot</code> والحالة والنوع، لكنها لا تعيد كائن <code>client</code>. لا يمكن استخراج اسم موثوق من <code>order.id</code> وحده. الحل الأفضل أن يعيد backend داخل كل موعد:</p>
+<pre><code>
+{
+  &quot;client&quot;: {
+    &quot;id&quot;: 1,
+    &quot;account&quot;: {
+      &quot;full_name&quot;: &quot;Youssef El-Mansouri&quot;,
+      &quot;email&quot;: &quot;...&quot;,
+      &quot;phone&quot;: &quot;...&quot;
+    }
+  }
+}
+</code></pre>
+<p>يمكن استخدام cache مؤقت من بيانات الإنشاء، لكنه ليس بديلًا عن response كامل لأن البيانات تختفي على جهاز جديد أو بعد مسح التخزين.</p>
+<h2>14. الطلبات Orders</h2>
+<h3>العمليات</h3>
+<ul>
+<li>عرض جميع الطلبات.</li>
+<li>قراءة تفاصيل طلب واحد.</li>
+<li>جلب طلبات قسم.</li>
+<li>جلب طلبات الوحدات أو الحلول لعميل.</li>
+<li>تحويل الطلب إلى قسم.</li>
+<li>تغيير الحالة.</li>
+<li>إضافة ملاحظة وتعديلها وحذفها.</li>
+</ul>
+<h3>Endpoints الأساسية</h3>
+<pre><code>
+GET  /order
+GET  /order/{id}
+GET  /order/departmentOrders/{departmentId}
+GET  /order/getClientUnitOrders/{clientId}
+GET  /order/getClientSolutionOrders/{clientId}
+PUT  /order/transfer/{id}
+PUT  /order/changeStatus/{id}
+POST /order/note/add/{id}
+PUT  /note/{noteId}
+DELETE /note/{noteId}
+</code></pre>
+<h3>العرض الديناميكي</h3>
+<p>الطلب قد يكون <code>unit</code> أو <code>solution</code>:</p>
+<ul>
+<li>إذا كان Unit نعرض رقم الوحدة والمساحة والطابق والغرف والسعر والحالة.</li>
+<li>إذا كان Solution نعرض اسم الخدمة ووصفها والسعر الأصلي والحالي والعرض والمرفقات.</li>
+<li>لا نعرض بطاقة Unit فارغة لطلب Solution؛ العرض يعتمد على <code>type</code> ووجود الكائن.</li>
+<li>معلومات العميل تؤخذ من <code>client.account</code> و<code>client.additional_info</code>.</li>
+</ul>
+<h3>قائمة Actions</h3>
+<p>زر النقاط يفتح Dropdown داخل صف الطلب لعمليات Change Status وTransfer Order وAdd Note. يجب إدارة <code>z-index</code> و<code>overflow</code> بحذر؛ إذا كان الأب <code>overflow: hidden</code> فستُقص القائمة. الحل إما <code>overflow: visible</code> في حاوية الجدول المناسبة أو Portal للقوائم التي يجب أن تتجاوز حدود الجدول.</p>
+<h2>15. الشكاوى Complaints</h2>
+<h3>الميزات</h3>
+<ul>
+<li>عرض الشكاوى وحالاتها.</li>
+<li>جلب أنواع الشكاوى.</li>
+<li>تغيير حالة الشكوى.</li>
+<li>حذف شكوى حسب صلاحية المستخدم.</li>
+<li>إنشاء/حذف أنواع الشكاوى عند توفر الصلاحية.</li>
+<li>البحث والتصفية وإظهار بيانات العميل والمحتوى المفيد.</li>
+</ul>
+<p>استخدام endpoint منفصل للأنواع يسمح بإضافة نوع جديد دون تعديل كود الواجهة في كل مرة.</p>
+<h2>16. القرعة Lottery</h2>
+<h3>العمليات المربوطة</h3>
+<pre><code>
+GET  /lottery
+GET  /lottery/{id}
+POST /lottery
+PUT  /lottery/{id}
+PUT  /lottery/cancel/{id}
+PUT  /lottery/drawWinner/{id}
+</code></pre>
+<h3>إنشاء وتعديل القرعة</h3>
+<p>يُرسل:</p>
+<ul>
+<li>عنوان القرعة.</li>
+<li><code>unit_id</code> كرقم.</li>
+<li>مصفوفة <code>rules</code>، وكل Rule تحتوي <code>rule_key</code>, <code>operator</code>, <code>rule_value</code>.</li>
+</ul>
+<p>الـrule key يُختار من قائمة لمنع أخطاء الكتابة. عند <code>social_status</code> تظهر قائمة بالقيم المدعومة: <code>single</code>, <code>married</code>, <code>divorced</code>. أما العمر أو الدخل/الراتب فيدخل المستخدم قيمة رقمية، والعمر يُكتب بالسنوات.</p>
+<h3>رسم الفائز</h3>
+<p>قبل الرسم تتحقق الواجهة من:</p>
+<ul>
+<li>أن الحالة تسمح بالرسم، عادة <code>open</code>.</li>
+<li>وجود مشاركين مؤهلين.</li>
+<li>عدم تنفيذ الرسم مرتين على قرعة مكتملة.</li>
+</ul>
+<p>القرار النهائي والفائز يأتيان من السيرفر، وليس من <code>Math.random()</code> في المتصفح، حتى تكون العملية موثوقة وغير قابلة للتلاعب. بعد نجاح endpoint:</p>
+<ul>
+<li>تُحدّث حالة Redux والقائمة.</li>
+<li>تُجلب التفاصيل عند الحاجة للحصول على اسم الفائز الكامل.</li>
+<li>تظهر مرحلة تشويق ثم Reveal للفائز.</li>
+<li>تستخدم الواجهة CSS animations وconfetti وعناصر زخرفية.</li>
+<li>يولّد Web Audio API مؤثرات الرسم والفوز دون الاعتماد على ملف صوت خارجي.</li>
+<li>يوجد منع لإعادة بدء animation عند وصول نفس تحديث القرعة مرة ثانية.</li>
+</ul>
+<h3>لماذا قد تظهر Completed ثم رسالة فشل؟</h3>
+<p>قد ينجح أول request ويصبح status <code>completed</code>، ثم ينطلق request ثانٍ بسبب نقر متكرر أو state/effect مكرر؛ السيرفر يرفض الثاني لأنه لا يرسم قرعة مكتملة. نعالج ذلك بتعطيل الزر أثناء <code>drawing</code>، منع الطلب المكرر، وعدم إظهار زر Draw للحالات غير المفتوحة.</p>
+<h2>17. الدردشة Chat</h2>
+<h3>REST API</h3>
+<pre><code>
+GET  /chat/rooms
+GET  /chat/unassigned
+POST /chat/rooms/{roomId}/claim
+GET  /chat/rooms/{roomId}/messages
+POST /chat/message
+</code></pre>
+<h3>كيف تعمل الدردشة؟</h3>
+<p>1. نجلب الغرف المسندة وغير المسندة.</p>
+<p>2. يختار الموظف غرفة أو يعمل Claim لغرفة غير مسندة.</p>
+<p>3. نجلب سجل الرسائل عبر REST.</p>
+<p>4. الإرسال يتم عبر REST لضمان حفظ الرسالة في قاعدة البيانات.</p>
+<p>5. الاستقبال اللحظي يتم عبر Laravel Echo وPusher على private channel خاص بالغرفة.</p>
+<p>6. عند وصول event نتحقق من الغرفة ونضيف الرسالة إلى Redux مع منع التكرار.</p>
+<p>7. تتحدث آخر رسالة وترتيب المحادثة ويعمل auto-scroll إلى آخر رسالة.</p>
+<h3>لماذا REST مع WebSocket معًا؟</h3>
+<ul>
+<li>REST مناسب لجلب التاريخ وحفظ الرسالة مع response واضح.</li>
+<li>WebSocket مناسب لدفع الرسالة الجديدة فورًا دون polling.</li>
+<li>الجمع بينهما يعطي موثوقية التخزين وتجربة لحظية.</li>
+</ul>
+<h3>الصور والصوت والتمرير</h3>
+<ul>
+<li>تعرض الصورة من حقول avatar المحتملة إذا أعادها الـAPI، مع fallback إلى Initials عند غيابها أو فشل تحميلها.</li>
+<li>الصور داخل الرسائل تحتاج endpoint رفع/مرفقات؛ لا يمكن للواجهة اختراع رابط ملف لا يخزنه السيرفر.</li>
+<li>حاوية الرسائل لها scroll مستقل، وعند رسالة جديدة نستخدم ref و<code>scrollIntoView</code>.</li>
+<li>Web Audio API يولّد صوتًا مختلفًا للرسالة الواردة والصادرة، مثل تطبيقات المحادثة.</li>
+<li>الصوت قد لا يعمل قبل أول تفاعل للمستخدم بسبب سياسة Autoplay في المتصفحات، وهذا قيد من المتصفح وليس خطأ في React.</li>
+</ul>
+<h3>Realtime Security</h3>
+<ul>
+<li>Echo يستخدم Bearer token في broadcasting auth.</li>
+<li>private channel يجب أن يتحقق في Laravel أن المستخدم مخول لدخول الغرفة.</li>
+<li>إخفاء غرفة من UI ليس حماية؛ authorization في السيرفر إلزامي.</li>
+</ul>
+<h2>18. شجرة الأسئلة الشائعة FAQ Decision Tree</h2>
+<h3>العمليات</h3>
+<pre><code>
+GET    /faqs/admin/tree
+POST   /faqs
+PUT    /faqs/{id}
+DELETE /faqs/{id}
+</code></pre>
+<h3>أنواع العقد</h3>
+<ul>
+<li><code>category</code>: تصنيف يمكن أن يحتوي أبناء.</li>
+<li><code>answer</code>: إجابة نهائية؛ يستخدم <code>content</code> لعرض التفاصيل.</li>
+<li><code>action_human</code>: نهاية تنقل العميل إلى موظف بشري.</li>
+</ul>
+<h3>بناء الشجرة</h3>
+<ul>
+<li>الجذر يرسل <code>parent_id = null</code>.</li>
+<li>الابن يرسل ID العقدة الأب.</li>
+<li>Component recursive يعرض أي عمق دون كتابة UI منفصل لكل مستوى.</li>
+<li>التصنيفات تظهر Accordion مع عدد الأبناء.</li>
+<li>الضغط على سؤال يفتح الإجابة بوضوح.</li>
+<li>يوجد Search ضمن العناوين والمحتوى.</li>
+<li>الإضافة والتعديل والحذف متاحة من مكان العقدة المناسب.</li>
+</ul>
+<h3>لماذا Recursive Component؟</h3>
+<p>لأن عمق الشجرة غير ثابت. الدالة تعرض Node ثم تستدعي نفس Component لكل child. بذلك يدعم التصميم مستوى واحدًا أو عشرة مستويات دون تكرار الكود.</p>
+<hr>
+<h2>19. الـState Management باستخدام Redux Toolkit</h2>
+<p>كل Slice تحتوي عادة:</p>
+<ul>
+<li>البيانات مثل <code>items</code>, <code>orders</code>, <code>rooms</code>.</li>
+<li><code>loading</code> أثناء الطلب.</li>
+<li><code>error</code> عند الفشل.</li>
+<li>بيانات محددة مثل <code>selectedOrder</code> أو <code>selectedRoom</code>.</li>
+<li>reducers محلية للتحديد أو إضافة realtime message.</li>
+<li><code>extraReducers</code> لمعالجة pending/fulfilled/rejected الخاصة بالـthunks.</li>
+</ul>
+<h3>لماذا Redux وليس useState فقط؟</h3>
+<p>نستخدم Redux عندما تكون البيانات مشتركة، لها عدة عمليات async، أو يجب تحديثها من WebSocket ومن أكثر من Component. نستخدم <code>useState</code> للحالة المحلية القصيرة، مثل فتح Modal أو نص search أو العقدة المفتوحة في FAQ.</p>
+<h3>منع التكرار في الرسائل</h3>
+<p>الرسالة المرسلة قد تصل مرة من response ومرة من WebSocket. لذلك نقارن ID، أو مفتاحًا بديلًا محسوبًا من الغرفة والمرسل والنص والوقت، قبل الإضافة.</p>
+<hr>
+<h2>20. التصميم وتجربة المستخدم</h2>
+<h3>المكونات المشتركة</h3>
+<ul>
+<li>Layout وSidebar وTopbar.</li>
+<li>Toolbar للبحث والتصفية وأزرار الإضافة.</li>
+<li>StatCard للإحصائيات.</li>
+<li>TableCard للجداول.</li>
+<li>Modal عبر Portal لتجنب مشاكل القص والـz-index.</li>
+<li>Status badges وdropdowns.</li>
+<li>Empty, Loading, Error states.</li>
+</ul>
+<h3>Dark / Light Mode</h3>
+<p>تتم إدارة الثيم مركزيًا، وتُضبط قيمة <code>data-theme</code> أو class على عنصر عام. تعتمد CSS على variables بدل كتابة لون ثابت في كل Component، وتحفظ القيمة في <code>localStorage</code>.</p>
+<h3>العربية والإنجليزية</h3>
+<ul>
+<li>قاموس ترجمة مركزي وHook للحصول على النص.</li>
+<li>تخزين اللغة المختارة.</li>
+<li>تغيير <code>dir</code> إلى <code>rtl</code> للعربية و<code>ltr</code> للإنجليزية.</li>
+<li>إرسال <code>Accept-Language</code> إلى السيرفر.</li>
+<li>استخدام CSS منطقي قدر الإمكان مثل inline-start/end لتقليل شروط الاتجاه.</li>
+</ul>
+<h3>Accessibility</h3>
+<ul>
+<li>استخدام buttons حقيقية بدل div قابل للنقر.</li>
+<li>labels للنماذج و<code>aria-label</code> للأزرار الأيقونية.</li>
+<li>إغلاق Modal بزر Escape ومنع scroll خلفه.</li>
+<li>حالات disabled أثناء الطلب.</li>
+<li>عدم الاعتماد على اللون وحده لشرح الحالة.</li>
+</ul>
+<hr>
+<h2>21. الإشعارات</h2>
+<p>يوجد دعم لـFirebase وواجهات FCM:</p>
+<ul>
+<li>تسجيل device token عبر <code>/device-tokens</code>.</li>
+<li>حذف token عند Logout.</li>
+<li>جلب الإشعارات.</li>
+<li>جلب unread count لجرس الإشعارات.</li>
+<li>تحديد إشعار واحد أو الجميع كمقروء.</li>
+</ul>
+<p>الصوت يمكن إنشاؤه عبر Web Audio API. ويجب طلب إذن Notification من المستخدم وعدم افتراض الموافقة.</p>
+<hr>
+<h2>22. معالجة الأخطاء والحالات الطرفية</h2>
+<ul>
+<li>نفصل <code>loading</code> عن <code>error</code> عن القائمة الفارغة.</li>
+<li>فشل Mutation لا يمسح القائمة الناجحة الموجودة.</li>
+<li>رسائل Laravel تُحوّل إلى نص مفهوم.</li>
+<li>نمنع double submit بتعطيل الزر أثناء الطلب.</li>
+<li>نتحقق من null قبل قراءة nested fields.</li>
+<li>الواجهة لا تخمّن حقولًا لا يعيدها الـAPI.</li>
+<li>Validation في Frontend لتجربة المستخدم، وفي Backend للأمان وسلامة البيانات.</li>
+</ul>
+<hr>
+<h1>23. أسئلة تقنية متوقعة مع أجوبة مختصرة</h1>
+<h3>1. ما الفرق بين Component وPage؟</h3>
+<p>Component جزء قابل لإعادة الاستخدام، مثل Modal أو StatCard. Page تنسّق عدة Components وتمثل route كاملة.</p>
+<h3>2. ما الفرق بين Props وState؟</h3>
+<p>Props تأتي من الأب ولا يعدلها الابن مباشرة. State بيانات داخلية متغيرة تسبب إعادة الرسم عند تحديثها.</p>
+<h3>3. ما وظيفة <code>useEffect</code>؟</h3>
+<p>تشغيل side effects مثل جلب البيانات أو الاشتراك بقناة، مع cleanup لإلغاء الاشتراك. يجب ضبط dependencies لمنع loop أو طلبات مكررة.</p>
+<h3>4. لماذا نستخدم <code>useMemo</code> و<code>useCallback</code>؟</h3>
+<p>لتثبيت قيمة محسوبة أو function عندما يكون ذلك مفيدًا لتقليل حسابات أو renders غير لازمة، وليس لاستخدامهما في كل مكان عشوائيًا.</p>
+<h3>5. ما هو Async Thunk؟</h3>
+<p>Action غير متزامن في Redux Toolkit يمر بحالات pending وfulfilled وrejected، ويتيح للـSlice تحديث loading/data/error.</p>
+<h3>6. ما الفرق بين PUT وPATCH؟</h3>
+<p>PUT يُستخدم عادة لاستبدال/تحديث resource وفق عقد كامل، وPATCH لتعديل جزئي. الاستخدام النهائي يتبع تصميم API المتفق عليه.</p>
+<h3>7. لماذا نستخدم IDs بدل الأسماء في العلاقات؟</h3>
+<p>لأن ID فريد وثابت وأصغر، بينما الاسم قد يتكرر أو يتغير.</p>
+<h3>8. كيف حميتم الـtoken؟</h3>
+<p>نرسله Bearer عبر HTTPS ولا نطبعه صريحًا. التخزين الحالي في localStorage عملي لكنه معرض لـXSS؛ في إنتاج عالي الحساسية يمكن استخدام HttpOnly Secure SameSite cookie مع CSRF protection.</p>
+<h3>9. كيف منعتم المستخدم غير المخول؟</h3>
+<p>Route guards في الواجهة، ويفترض Laravel middleware + permissions في السيرفر. الواجهة وحدها ليست حاجز أمان.</p>
+<h3>10. ما هو CORS؟</h3>
+<p>سياسة متصفح تتحكم بوصول Frontend على origin إلى Backend على origin آخر، ويضبطها السيرفر للمصادر والـheaders والطرق المسموحة.</p>
+<h3>11. ما الفرق بين Authentication وAuthorization؟</h3>
+<p>Authentication يثبت من المستخدم، وAuthorization يحدد ماذا يستطيع أن يفعل.</p>
+<h3>12. كيف تعمل المحادثة الفورية؟</h3>
+<p>نحفظ ونقرأ عبر REST، ونستقبل الأحداث الجديدة عبر private WebSocket channel باستخدام Laravel Echo وPusher، ثم نحدّث Redux.</p>
+<h3>13. لماذا لا نختار فائز القرعة في Frontend؟</h3>
+<p>لأن العميل قابل للتلاعب. السيرفر يطبق الشروط ويختار ويسجل النتيجة ضمن عملية موثوقة.</p>
+<h3>14. كيف تمنعون Race Condition في الحجز؟</h3>
+<p>الواجهة تمنع اختيار slot ظاهر كمحجوز، لكن السيرفر يجب أن يستخدم transaction/unique constraint أو lock لأن مستخدمين قد يحجزان في اللحظة نفسها.</p>
+<h3>15. ما فائدة API normalization؟</h3>
+<p>بدل أن تتعامل كل صفحة مع شكل Axios مختلف، تحصل جميعها على <code>ok/status/message/data</code>، فيصبح الكود أبسط ومتناسقًا.</p>
+<h3>16. كيف تدعمون Responsive Design؟</h3>
+<p>Grid/Flexbox، قياسات مرنة، media queries، scroll أفقي للجداول عند الحاجة، وتغيير توزيع الأعمدة على الشاشات الصغيرة.</p>
+<h3>17. كيف تعمل شجرة FAQ؟</h3>
+<p>كل عقدة تحمل <code>parent_id</code> ونوعًا، والسيرفر يعيد children. React يعرضها recursively، والتصنيفات تُفتح كـaccordion والإجابات تظهر عند الاختيار.</p>
+<h3>18. لماذا قد لا يعمل الصوت مباشرة؟</h3>
+<p>المتصفح يمنع Web Audio قبل تفاعل المستخدم. بعد أول click يمكن resume للـAudioContext وتشغيل المؤثرات.</p>
+<h3>19. كيف تختبرون المشروع؟</h3>
+<p>نختبر build وESLint، ونختبر سيناريوهات CRUD والـvalidation والـAPI errors والأدوار والاتجاهين والـthemes والـrealtime. الأفضل مستقبلًا إضافة Vitest/React Testing Library واختبارات End-to-End مثل Playwright.</p>
+<h3>20. ما أهم تحسينات Production؟</h3>
+<ul>
+<li>إلغاء أو تقييد console logs.</li>
+<li>Error Boundary وcentral monitoring.</li>
+<li>اختبارات آلية.</li>
+<li>Pagination وserver-side search للقوائم الكبيرة.</li>
+<li>Lazy loading للصفحات.</li>
+<li>توثيق OpenAPI لعقد الـAPI.</li>
+<li>حماية token أقوى وسياسة CSP.</li>
+<li>Retry مدروس للطلبات القابلة للإعادة فقط.</li>
+</ul>
+<hr>
+<h2>24. سيناريو Demo مقترح أمام اللجنة</h2>
+<p>1. تسجيل الدخول واختيار Workspace مناسب.</p>
+<p>2. تبديل اللغة والثيم لإظهار التخصيص المركزي.</p>
+<p>3. في Admin: إنشاء قسم أو موظف، ثم شرح Redux → API → Slice.</p>
+<p>4. فتح Roles &amp; Permissions وشرح RBAC.</p>
+<p>5. في Customer Service: فتح طلب Solution وبيان العرض الديناميكي بدل Unit فارغة.</p>
+<p>6. إنشاء موعد من عميل وطلب ووقت متاح، ثم شرح منع الحجز المزدوج.</p>
+<p>7. إنشاء قرعة بشروط، عرض المشاركين، ثم رسم الفائز من السيرفر مع animation.</p>
+<p>8. فتح Chat، إرسال رسالة، وشرح REST + WebSocket.</p>
+<p>9. فتح FAQ Tree وإضافة child مع <code>parent_id</code> ثم عرض recursion.</p>
+<p>10. إنهاء العرض بذكر فصل المسؤوليات، معالجة الأخطاء، وما يمكن تحسينه مستقبلًا.</p>
+<h2>25. قاعدة ذهبية أثناء المناقشة</h2>
+<p>لا تقولوا إن الواجهة تنفذ قاعدة أمان أو قرار أعمال حساس وحدها. قولوا دائمًا:</p>
+<blockquote>الواجهة تتحقق لتحسين تجربة المستخدم، لكن السيرفر يعيد التحقق لأنه مصدر الحقيقة، والواجهة تعرض النتيجة القادمة من الـAPI.</blockquote>
+<p>هذا ينطبق على الصلاحيات، اختيار الفائز، حجز الموعد، تغيير حالات الطلبات، ورفع الملفات.</p>
+</body>
+</html>

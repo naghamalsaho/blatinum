@@ -7309,6 +7309,46 @@ details[open] > summary.customer-service-detail-head::after {
 
 .faq-tree-footer button:hover { background: var(--dash-accent); color: #fff; }
 
+/* Keep the orders action popover out of the table's scroll calculation. */
+.customer-service-page .legal-table-card:has(.customer-service-orders-table) {
+  overflow: visible;
+}
+
+.customer-service-page .table-scroll:has(.customer-service-orders-table) {
+  max-height: none;
+  overflow-x: auto;
+  overflow-y: visible;
+}
+
+.customer-service-orders-table tbody,
+.customer-service-orders-table tr,
+.customer-service-orders-table td:last-child {
+  overflow: visible;
+}
+
+.customer-service-orders-table tr:has(.customer-service-menu-trigger.is-open) {
+  position: relative;
+  z-index: 40;
+}
+
+.customer-service-orders-table .customer-service-actions-menu {
+  z-index: 60;
+}
+
+.customer-service-orders-table .customer-service-actions-menu.open-upwards {
+  top: auto;
+  bottom: calc(100% + 8px);
+}
+
+.customer-service-orders-table .customer-service-actions-menu.open-upwards::before {
+  top: auto;
+  bottom: -6px;
+  border-top: 0;
+  border-left: 0;
+  border-right: 1px solid var(--dash-line);
+  border-bottom: 1px solid var(--dash-line);
+}
+
 .customer-service-chat-page .chat-message-list::before {
   content: "";
   position: absolute;
