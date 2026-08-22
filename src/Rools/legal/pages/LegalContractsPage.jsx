@@ -102,6 +102,7 @@ export default function LegalContractsPage() {
     const selectedId = e.target.value;
     const selectedOrder = orders.find((o) => String(o.id) === String(selectedId));
 
+    // استخراج العملة والسعر الأصلي من الطلب المختار
     const detectedCurrency =
       selectedOrder?.currency ||
       selectedOrder?.unit?.currency ||
@@ -378,13 +379,11 @@ export default function LegalContractsPage() {
                     <option value="">
                       {ordersLoading ? t("legal_contracts.loading_orders") : t("legal_contracts.select_order")}
                     </option>
-                    {orders
-                      .filter((order) => Boolean(order.has_done_appointment))
-                      .map((order) => (
-                        <option key={order.id} value={order.id}>
-                          #{order.id} - {order.client?.account?.full_name || `الطلب ${order.id}`}
-                        </option>
-                      ))}
+                    {orders.map((order) => (
+                      <option key={order.id} value={order.id}>
+                        #{order.id} - {order.client?.account?.full_name || `${order.type} (${order.status})`}
+                      </option>
+                    ))}
                   </select>
                   {fieldErrors.order_id && (
                     <span className="field-error-msg">{fieldErrors.order_id}</span>
