@@ -6,6 +6,7 @@ import departmentReducer from "@/Rools/admin/features/departments/model/departme
 import employeeReducer from "@/Rools/admin/features/employees/model/employee.slice";
 import warehouseReducer from "@/Rools/admin/features/warehouses/model/warehouse.slice";
 import itemReducer from "@/Rools/admin/features/items/model/item.slice";
+import activityLogReducer from "@/Rools/admin/features/activityLogs/model/activityLog.slice";
 
 import projectEngineerReducer from "@/Rools/engineering/features/engineerProjects/model/engineerProject.slice";
 import engineerReducer from "@/Rools/engineering/features/engineers/model/engineer.slice";
@@ -48,6 +49,7 @@ export const store = configureStore({
     employees: employeeReducer,
     warehouses: warehouseReducer,
     items: itemReducer,
+    activityLogs: activityLogReducer,
     rolePermission: rolePermissionReducer,
 
     projectEngineer: projectEngineerReducer,

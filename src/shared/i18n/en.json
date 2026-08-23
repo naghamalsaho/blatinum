@@ -24,6 +24,8 @@
   "warehouses": "Warehouses",
   "items": "Items",
   "roles_permissions": "Roles & Permissions",
+  "activity_logs": "Activity Logs",
+  "reports": "Reports",
   "clients": "Clients",
   "appointments": "Appointments",
   "orders": "Orders",
@@ -254,6 +256,8 @@
   "role": "Role",
   "select_role": "Select role",
   "items_page_desc": "Manage inventory items, quantities and availability",
+  "activity_logs_page_desc": "Review system operations and data changes",
+  "reports_page_desc": "Review admin and inventory reports",
   "edit_item": "Edit item",
 
 

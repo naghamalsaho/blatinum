@@ -19,6 +19,8 @@ import AdminEmployeesPage from "@/Rools/admin/pages/AdminEmployeesPage";
 import AdminWarehousesPage from "@/Rools/admin/pages/AdminWarehousesPage";
 import AdminItemsPage from "@/Rools/admin/pages/AdminItemsPage";
 import AdminRolesPermissionsPage from "@/Rools/admin/pages/AdminRolesPermissionsPage";
+import AdminActivityLogsPage from "@/Rools/admin/pages/AdminActivityLogsPage";
+import AdminReportsPage from "@/Rools/admin/pages/AdminReportsPage";
 
 import LegalDashboardPage from "@/Rools/legal/pages/LegalDashboardPage";
 import LegalAvailableSlotsPage from "@/Rools/legal/pages/LegalAvailableSlotsPage";
@@ -77,6 +79,8 @@ export default function AppRouter() {
             <Route path="employees" element={<AdminEmployeesPage />} />
             <Route path="warehouses" element={<AdminWarehousesPage />} />
             <Route path="items" element={<AdminItemsPage />} />
+            <Route path="activity-logs" element={<AdminActivityLogsPage />} />
+            <Route path="reports" element={<AdminReportsPage />} />
             <Route
               path="roles-permissions"
               element={<AdminRolesPermissionsPage />}

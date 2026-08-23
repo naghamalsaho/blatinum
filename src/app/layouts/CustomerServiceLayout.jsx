@@ -9,11 +9,13 @@ import { t, getDirection } from "@/shared/i18n";
 import { logout } from "@/Rools/admin/features/auth/model/auth.slice";
 import { logoutRequest } from "@/Rools/admin/features/auth/api/auth.api";
 import { deleteDeviceTokenApi } from "@/shared/api/notifications.api";
+import useCustomerServiceLocalization from "@/Rools/customerService/hooks/useCustomerServiceLocalization";
 
 export default function CustomerServiceLayout() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+  useCustomerServiceLocalization();
   const dir = getDirection();
   const pageMeta = (location.pathname.startsWith("/customer-service/orders/")
     ? [t("orders"), t("orders_page_desc")]
@@ -31,7 +33,7 @@ export default function CustomerServiceLayout() {
     try {
       const token = localStorage.getItem("fcmToken");
       if (token) {
-        try { await deleteDeviceTokenApi(token); } catch (e) {}
+        try { await deleteDeviceTokenApi(token); } catch { /* Logout must continue if token cleanup fails. */ }
         localStorage.removeItem("fcmToken");
       }
       await logoutRequest();
@@ -69,7 +71,9 @@ export default function CustomerServiceLayout() {
         onClick: handleLogout,
       }}
     >
-      <Outlet />
+      <div className="customer-service-localized-content">
+        <Outlet />
+      </div>
     </DashboardLayout>
   );
 }

@@ -2,7 +2,7 @@ import { api } from "@/shared/api/crud";
 
 const APPOINTMENT_ENDPOINT = "/appointment";
 const CLIENT_ENDPOINT = "/client";
-const ORDER_ENDPOINT = "/order/";
+const ORDER_ENDPOINT = "/order/ordersForAppointments";
 const AVAILABLE_SLOT_ENDPOINT = "/availableSlot";
 
 const buildAppointmentFormData = (payload = {}) => {

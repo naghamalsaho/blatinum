@@ -24,6 +24,8 @@
   "warehouses": "المستودعات",
   "items": "العناصر",
   "roles_permissions": "الأدوار والصلاحيات",
+  "activity_logs": "سجل النشاطات",
+  "reports": "التقارير",
   "clients": "العملاء",
   "appointments": "المواعيد",
   "orders": "الطلبات",
@@ -254,6 +256,8 @@
   "role": "الدور",
   "select_role": "اختر الدور",
   "items_page_desc": "إدارة عناصر المخزون والكميات وحالات التوفر",
+  "activity_logs_page_desc": "مراجعة عمليات النظام والتغييرات على البيانات",
+  "reports_page_desc": "مراجعة تقارير الإدارة والمخزون",
   "edit_item": "تعديل العنصر",
 
   "legal_contracts": {
