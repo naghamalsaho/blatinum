@@ -17,6 +17,7 @@ import {
   X,
   History,
   Layers,
+  ExternalLink,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
@@ -31,7 +32,7 @@ import ErrorMessage from "@/shared/ui/ErrorMessage";
 import {
   fetchPayments,
   createPayment,
-  updatePayment,
+  changePaymentStatus,
   fetchPaymentsByContract,
   payCustomByContract,
 } from "../features/payments/model/payment.thunks";
@@ -39,10 +40,7 @@ import { fetchCustomerServiceClients } from "../../customerService/features/clie
 import { fetchClientContracts } from "../../legal/features/contracts/model/contract.thunks";
 
 // Validations
-import {
-  validateCreatePaymentForm,
-  validateUpdatePaymentForm,
-} from "../features/payments/validation/payment.validation";
+import { validateCreatePaymentForm } from "../features/payments/validation/payment.validation";
 
 import "../styles/financial-payments.css";
 
@@ -51,6 +49,9 @@ const STATUS_META = {
   active: { label: "نشط", type: "ok" },
   pending: { label: "قيد الانتظار", type: "busy" },
   inactive: { label: "غير نشط", type: "off" },
+  posted: { label: "مرحّل", type: "ok" },
+  failed: { label: "فاشل", type: "off" },
+  refunded: { label: "مسترجع", type: "off" },
 };
 
 const STATUS_OPTIONS = [
@@ -251,7 +252,6 @@ export default function FinancialPaymentsPage() {
     setLoadingContracts(true);
     try {
       const result = await dispatch(fetchClientContracts(clientId)).unwrap();
-      // معالجة البيانات المسحوبة وسحب مصفوفة العقود سواء كانت مباشرة أو مغلفة بـ data
       const list = Array.isArray(result)
         ? result
         : Array.isArray(result?.data)
@@ -430,27 +430,14 @@ export default function FinancialPaymentsPage() {
         resetForm();
       }
     } else if (editOpen && selectedPayment) {
-      const { errors, isValid } = validateUpdatePaymentForm(
-        formData,
-        selectedFiles
-      );
-      if (!isValid) {
-        setFormErrors(errors);
-        return;
-      }
-
-      const values = {
-        payment_date: formData.payment_date,
-        payment_type: formData.payment_type,
-        payment_method: formData.payment_method,
-        status: formData.status,
-      };
-
       const result = await dispatch(
-        updatePayment({ id: selectedPayment.id, values, files: selectedFiles })
+        changePaymentStatus({
+          id: selectedPayment.id,
+          status: formData.status,
+        })
       );
 
-      if (updatePayment.fulfilled.match(result)) {
+      if (changePaymentStatus.fulfilled.match(result)) {
         setEditOpen(false);
         dispatch(fetchPayments());
 
@@ -743,7 +730,7 @@ export default function FinancialPaymentsPage() {
         )}
       </TableCard>
 
-      {/* 4. مودال تتبع أقساط ودفعات العقد */}
+      {/* 4. مودال تتبع أقساط ودفعات العقد (عرض الحالة عبر StatusBadge الأنيق) */}
       <Modal
         open={trackingOpen}
         onClose={() => {
@@ -813,7 +800,7 @@ export default function FinancialPaymentsPage() {
                   </thead>
                   <tbody>
                     {contractPayments.map((p, index) => {
-                      const pMeta = getStatusMeta(p.status);
+                      const statusMeta = getStatusMeta(p.status);
                       return (
                         <tr key={p.id || index}>
                           <td style={{ color: "var(--dash-muted)", fontWeight: "600" }}>
@@ -827,16 +814,22 @@ export default function FinancialPaymentsPage() {
                             </span>
                           </td>
                           <td className="services-date">{formatDate(p.payment_date)}</td>
+                          
+                          {/* عرض الحالة باستخدام StatusBadge المصمم بشكل أنيق */}
                           <td>
-                            <StatusBadge status={pMeta.label} type={pMeta.type} />
+                            <StatusBadge
+                              status={statusMeta.label}
+                              type={statusMeta.type}
+                            />
                           </td>
+
                           <td>
                             <div className="row-actions">
                               <button
                                 type="button"
                                 className="icon-action-btn"
                                 onClick={() => openPreviewModal(p)}
-                                title="عرض التفاصيل"
+                                title="عرض التفاصيل وإثبات الدفع"
                               >
                                 <Eye size={16} />
                               </button>
@@ -844,7 +837,7 @@ export default function FinancialPaymentsPage() {
                                 type="button"
                                 className="icon-action-btn"
                                 onClick={() => openEditModal(p)}
-                                title="تعديل الدفعة"
+                                title="تعديل تفاصيل الدفعة وحالتها"
                               >
                                 <Pencil size={16} />
                               </button>
@@ -869,7 +862,7 @@ export default function FinancialPaymentsPage() {
           setEditOpen(false);
           resetForm();
         }}
-        title={editOpen ? `تعديل الدفعة #${selectedPayment?.id || ""}` : "تسجيل دفعة جديدة"}
+        title={editOpen ? `تحديث حالة الدفعة #${selectedPayment?.id || ""}` : "تسجيل دفعة جديدة"}
         size="md"
       >
         <form className="modal-form" onSubmit={handleSubmit} noValidate>
@@ -937,7 +930,6 @@ export default function FinancialPaymentsPage() {
               <ErrorMessage message={formErrors.client_id} />
             </div>
 
-            {/* 🎯 اختيار العقد وعرض reference_number بدقة */}
             <div className="field-group">
               <label className="field-label">
                 اختيار العقد <span style={{ color: "var(--danger)" }}>*</span>
@@ -960,10 +952,7 @@ export default function FinancialPaymentsPage() {
                       : "-- اختر العقد --"}
                   </option>
                   {clientContracts.map((item) => {
-                    // استخراج كائن العقد سواء كان العنصر المباشر أو داخل data
                     const contract = item?.contract || item?.data || item;
-                    
-                    // استخدام reference_number بأسلوب مباشر ومضمون
                     const refNumber =
                       contract?.reference_number ||
                       contract?.order?.id ||
@@ -1005,6 +994,7 @@ export default function FinancialPaymentsPage() {
                 label="تاريخ الدفع"
                 value={formData.payment_date}
                 onChange={handleChange}
+                disabled={editOpen}
                 error={formErrors.payment_date}
               />
             )}
@@ -1017,6 +1007,7 @@ export default function FinancialPaymentsPage() {
                   name="payment_method"
                   value={formData.payment_method}
                   onChange={handleChange}
+                  disabled={editOpen}
                 >
                   <option value="cash">نقدي (cash)</option>
                   <option value="bank_transfer">تحويل بنكي (bank_transfer)</option>
@@ -1059,6 +1050,7 @@ export default function FinancialPaymentsPage() {
                     name="payment_type"
                     value={formData.payment_type}
                     onChange={handleChange}
+                    disabled={editOpen}
                   >
                     <option value="down_payment">دفعة أولى مقدم (down_payment)</option>
                     <option value="installment">قسط شهري (installment)</option>
@@ -1072,46 +1064,92 @@ export default function FinancialPaymentsPage() {
             </div>
           )}
 
-          <div className="field-group">
-            <label className="field-label">مرفقات الدفعة (ملفات / صور)</label>
-            <input
-              type="file"
-              multiple
-              id="file-input"
-              style={{ display: "none" }}
-              onChange={handleFileChange}
-            />
-            <label
-              htmlFor="file-input"
-              className="ghost-filter-btn"
-              style={{ cursor: "pointer", width: "fit-content" }}
-            >
-              <Upload size={16} />
-              <span>اختر الملفات...</span>
-            </label>
+          {/* عرض إثبات الدفع والمرفقات المرفوعة من الموبايل */}
+          {editOpen && (selectedPayment?.attachments || selectedPayment?.files || selectedPayment?.attachment) && (
+            <div className="field-group" style={{ marginBottom: "16px" }}>
+              <label className="field-label" style={{ color: "var(--dash-accent)", fontWeight: "bold" }}>
+                📁 إثبات الدفع المرفوع من الزبون (عبر تطبيق الموبايل):
+              </label>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "6px" }}>
+                {(() => {
+                  const rawList = selectedPayment?.attachments || selectedPayment?.files || (selectedPayment?.attachment ? [selectedPayment.attachment] : []);
+                  const list = Array.isArray(rawList) ? rawList : [rawList];
 
-            <ErrorMessage message={formErrors.files} />
+                  if (list.length === 0) {
+                    return <span style={{ fontSize: "12px", color: "var(--dash-muted)" }}>لا توجد ملفات مرفقة</span>;
+                  }
 
-            {selectedFiles.length > 0 && (
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
-                {selectedFiles.map((file, idx) => (
-                  <span
-                    key={idx}
-                    className="ghost-filter-btn"
-                    style={{ gap: "6px", padding: "4px 10px", fontSize: "12px" }}
-                  >
-                    <FileText size={14} />
-                    {file.name}
-                    <X
-                      size={14}
-                      style={{ cursor: "pointer", marginRight: "4px" }}
-                      onClick={() => removeFile(idx)}
-                    />
-                  </span>
-                ))}
+                  return list.map((fileItem, idx) => {
+                    const fileUrl = typeof fileItem === "string" ? fileItem : fileItem?.file_url || fileItem?.url || fileItem?.path;
+                    return (
+                      <a
+                        key={fileItem?.id || idx}
+                        href={fileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ghost-filter-btn"
+                        style={{
+                          gap: "6px",
+                          padding: "6px 12px",
+                          fontSize: "12px",
+                          borderColor: "var(--dash-accent)",
+                          color: "var(--dash-accent)",
+                          textDecoration: "none",
+                        }}
+                      >
+                        <FileText size={14} />
+                        <span>عرض إثبات الدفع {idx + 1}</span>
+                        <ExternalLink size={12} />
+                      </a>
+                    );
+                  });
+                })()}
               </div>
-            )}
-          </div>
+            </div>
+          )}
+
+          {createOpen && (
+            <div className="field-group">
+              <label className="field-label">مرفقات الدفعة (ملفات / صور)</label>
+              <input
+                type="file"
+                multiple
+                id="file-input"
+                style={{ display: "none" }}
+                onChange={handleFileChange}
+              />
+              <label
+                htmlFor="file-input"
+                className="ghost-filter-btn"
+                style={{ cursor: "pointer", width: "fit-content" }}
+              >
+                <Upload size={16} />
+                <span>اختر الملفات...</span>
+              </label>
+
+              <ErrorMessage message={formErrors.files} />
+
+              {selectedFiles.length > 0 && (
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginTop: "10px" }}>
+                  {selectedFiles.map((file, idx) => (
+                    <span
+                      key={idx}
+                      className="ghost-filter-btn"
+                      style={{ gap: "6px", padding: "4px 10px", fontSize: "12px" }}
+                    >
+                      <FileText size={14} />
+                      {file.name}
+                      <X
+                        size={14}
+                        style={{ cursor: "pointer", marginRight: "4px" }}
+                        onClick={() => removeFile(idx)}
+                      />
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="modal-actions">
             <Button
@@ -1133,7 +1171,7 @@ export default function FinancialPaymentsPage() {
                 {loading
                   ? "جاري الحفظ..."
                   : editOpen
-                  ? "تحديث الدفعة"
+                  ? "حفظ وتحديث الحالة"
                   : isCustomMode
                   ? "سداد وتوزيع الأقساط"
                   : "حفظ الدفعة"}
@@ -1206,6 +1244,40 @@ export default function FinancialPaymentsPage() {
                 />
               </span>
             </div>
+
+            {/* معاينة ملفات إثبات الدفع المرفوعة عبر التطبيق */}
+            {(selectedPayment?.attachments || selectedPayment?.files || selectedPayment?.attachment) && (
+              <div className="financial-preview-row" style={{ flexDirection: "column", alignItems: "flex-start", gap: "6px", marginTop: "10px" }}>
+                <span className="label" style={{ fontWeight: "bold" }}>إثبات الدفع المرفوع (من التطبيق):</span>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {(() => {
+                    const rawList = selectedPayment?.attachments || selectedPayment?.files || (selectedPayment?.attachment ? [selectedPayment.attachment] : []);
+                    const list = Array.isArray(rawList) ? rawList : [rawList];
+                    return list.map((fileItem, idx) => {
+                      const fileUrl = typeof fileItem === "string" ? fileItem : fileItem?.file_url || fileItem?.url || fileItem?.path;
+                      return (
+                        <a
+                          key={fileItem?.id || idx}
+                          href={fileUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ghost-filter-btn"
+                          style={{
+                            padding: "4px 10px",
+                            fontSize: "12px",
+                            textDecoration: "none",
+                            color: "var(--dash-accent)",
+                          }}
+                        >
+                          <FileText size={14} />
+                          <span>فتح المرفق {idx + 1}</span>
+                        </a>
+                      );
+                    });
+                  })()}
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </Modal>

@@ -6,6 +6,7 @@ import {
   updatePaymentRequest,
   createPaymentRequest,
   payCustomByContractRequest,
+  changePaymentStatusRequest
 } from "../api/payment.api";
 import { showError } from "@/shared/store/error/error.slice";
 import { handleApiError } from "@/shared/utils/errorHandler";
@@ -133,6 +134,19 @@ export const payCustomByContract = createAsyncThunk(
         return rejectWithValue(response.data.message);
       }
 
+      return response.data?.data || response.data;
+    } catch (error) {
+      const normalized = handleApiError(error);
+      dispatch(showError(normalized.message));
+      return rejectWithValue(normalized.message);
+    }
+  }
+);
+export const changePaymentStatus = createAsyncThunk(
+  "payment/changePaymentStatus",
+  async ({ id, status }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await changePaymentStatusRequest(id, status);
       return response.data?.data || response.data;
     } catch (error) {
       const normalized = handleApiError(error);

@@ -29,3 +29,7 @@ export const createPaymentRequest = async (formData) => {
 export const payCustomByContractRequest = async (contractId, formData) => {
   return await api.postForm(`/payment/byContract/${contractId}/custom`, formData);
 };
+// 🆕 تغيير حالة الدفعة (للدفعات المرفوعة من الموبايل)
+export const changePaymentStatusRequest = async (id, status) => {
+  return await api.put(`/payment/changeStatus/${id}`, { status });
+};
