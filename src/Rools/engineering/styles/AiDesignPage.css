@@ -422,3 +422,49 @@
   width: 100%;
   border-radius: 8px;
 }
+/* ==========================================
+   زر اعتماد التصميم (Adopt / Publish Design Button)
+   ========================================== */
+.adopt-design-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border: 1px solid #10b981;
+  background-color: rgba(16, 185, 129, 0.08);
+  color: #059669;
+}
+
+/* تأثير تحريك الفأرة عند عدم الاعتماد بعد */
+.adopt-design-btn:hover:not(:disabled) {
+  background-color: #10b981;
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
+  transform: translateY(-1px);
+}
+
+/* التنسيق عندما تكون النتيجة معتمدة بالفعل */
+.adopt-design-btn.adopted {
+  background-color: #10b981;
+  color: #ffffff;
+  border-color: #10b981;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.2);
+}
+
+.adopt-design-btn.adopted:hover:not(:disabled) {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+/* حالة التحميل / التعطيل */
+.adopt-design-btn:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}

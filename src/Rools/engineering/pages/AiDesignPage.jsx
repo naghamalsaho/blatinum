@@ -15,18 +15,25 @@ import {
   Ruler,
   Compass,
   Loader2,
- 
-  FileDown
+  Upload,
+  FileDown,
+  CheckCircle2
 } from "lucide-react";
 
 import PageHeader from "@/shared/components/PageHeader";
 import Modal from "@/shared/components/Modal";
 
-import { generateDesignFromText } from "../features/aidesign/model/aiDesign.thunks";
-
+import { 
+  generateDesignFromText, 
+  generateDesignFromImage,
+  togglePublishDesign 
+} from "../features/aidesign/model/aiDesign.thunks";
 
 import { fetchBuildings } from "../../../Rools/marketing/features/buildings/model/building.thunks";
-import { fetchUnitsByBuilding } from "../../../Rools/marketing/features/units/model/unit.thunks";
+import { 
+  fetchUnits, 
+  fetchUnitsByBuilding 
+} from "../../../Rools/marketing/features/units/model/unit.thunks";
 
 import "../styles/AiDesignPage.css";
 
@@ -41,9 +48,14 @@ const STYLES_OPTIONS = [
 export default function AiDesignPage() {
   const dispatch = useDispatch();
 
-  const { result, loading, error } = useSelector((state) => state.aiDesign || {});
+  const { result, loading, publishing, error } = useSelector((state) => state.aiDesign || {});
   const { buildings = [], loading: buildingsLoading } = useSelector((state) => state.buildings || {});
-  const { buildingUnits = [], buildingLoading: unitsLoading } = useSelector((state) => state.units || {});
+  const { 
+    units = [], 
+    buildingUnits = [], 
+    loading: unitsLoading, 
+    buildingLoading 
+  } = useSelector((state) => state.units || {});
 
   const [activeTab, setActiveTab] = useState("from-text");
   const [previewImage, setPreviewImage] = useState(null);
@@ -55,8 +67,16 @@ export default function AiDesignPage() {
     prompt: "",
   });
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [imageFormData, setImageFormData] = useState({
+    unit_id: "",
+    style: "modern",
+    prompt: "",
+  });
+
   useEffect(() => {
     dispatch(fetchBuildings());
+    dispatch(fetchUnits());
   }, [dispatch]);
 
   useEffect(() => {
@@ -79,6 +99,12 @@ export default function AiDesignPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedFile(e.target.files[0]);
+    }
+  };
+
   const handleSubmitFromText = (e) => {
     e.preventDefault();
     if (!formData.prompt.trim() || !formData.building_id || !formData.apartment_number) return;
@@ -92,18 +118,41 @@ export default function AiDesignPage() {
     dispatch(generateDesignFromText(dataPayload));
   };
 
- 
+  const handleSubmitFromImage = (e) => {
+    e.preventDefault();
+    if (!selectedFile || !imageFormData.unit_id) return;
 
-  // تابع تصدير التقرير بتنسيق PDF رسمي مع صور الهيكل وترويسة الشركة
+    const dataPayload = new FormData();
+    dataPayload.append("unit_id", imageFormData.unit_id);
+    dataPayload.append("style", imageFormData.style);
+    dataPayload.append("prompt", imageFormData.prompt);
+    dataPayload.append("image", selectedFile, selectedFile.name);
+
+    dispatch(generateDesignFromImage(dataPayload));
+  };
+
+  const handleTogglePublish = () => {
+    const designId = result?.id || result?.data?.id;
+    if (designId) {
+      dispatch(togglePublishDesign(designId));
+    }
+  };
+
   const handleExportFullReport = () => {
     if (!result) return;
 
     const details = result.details || result.data?.details || {};
-    const selectedBuilding = buildings.find((b) => String(b.id) === String(formData.building_id));
-    const buildingName = selectedBuilding?.name || selectedBuilding?.building_name || `بناء ${formData.building_id}`;
-    const mainImgUrl = result?.main_image_url || result?.generated_images?.[0] || result?.data?.main_image_url || "";
-    const styleLabel = STYLES_OPTIONS.find((s) => s.id === formData.style)?.label || formData.style;
+    const mainImgUrl = 
+      result?.main_image_url || 
+      result?.generated_images?.[0] || 
+      result?.data?.main_image_url || 
+      result?.data?.generated_images?.[0] || "";
+
+    const activeStyle = activeTab === "from-text" ? formData.style : imageFormData.style;
+    const styleLabel = STYLES_OPTIONS.find((s) => s.id === activeStyle)?.label || activeStyle;
     const rooms = details.rooms || [];
+    const promptText = activeTab === "from-text" ? formData.prompt : imageFormData.prompt;
+    const unitText = activeTab === "from-text" ? formData.apartment_number : imageFormData.unit_id;
 
     const printWindow = window.open("", "_blank");
     if (!printWindow) return;
@@ -116,114 +165,24 @@ export default function AiDesignPage() {
         <title>تقرير التصميم المعماري - شركة بلاتينيوم</title>
         <style>
           @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;600;700;800&display=swap');
-          body {
-            font-family: 'Tajawal', sans-serif;
-            margin: 0;
-            padding: 25px;
-            color: #1e293b;
-            background: #fff;
-          }
-          .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 3px solid #078db8;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-          }
-          .company-brand h1 {
-            margin: 0;
-            font-size: 22px;
-            color: #078db8;
-            font-weight: 800;
-          }
-          .company-brand p {
-            margin: 3px 0 0;
-            font-size: 12px;
-            color: #64748b;
-          }
-          .report-meta {
-            text-align: left;
-            font-size: 11px;
-            color: #475569;
-          }
-          .section-title {
-            font-size: 15px;
-            font-weight: 700;
-            color: #0f172a;
-            border-right: 4px solid #078db8;
-            padding-right: 8px;
-            margin: 20px 0 10px;
-          }
-          .info-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 10px;
-            background: #f8fafc;
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid #e2e8f0;
-            margin-bottom: 20px;
-          }
-          .info-item {
-            font-size: 13px;
-          }
-          .info-item strong {
-            color: #334155;
-          }
-          .main-image-container {
-            text-align: center;
-            margin: 20px 0;
-            page-break-inside: avoid;
-          }
-          .main-image-container img {
-            max-width: 100%;
-            max-height: 420px;
-            border-radius: 10px;
-            border: 1px solid #cbd5e1;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-          }
-          .notes-box {
-            background: #f0f9ff;
-            border: 1px solid #bae6fd;
-            border-radius: 8px;
-            padding: 12px 16px;
-            font-size: 13px;
-            line-height: 1.6;
-            margin-bottom: 20px;
-          }
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 10px;
-            font-size: 12px;
-          }
-          th {
-            background: #078db8;
-            color: #ffffff;
-            text-align: right;
-            padding: 8px 10px;
-            font-weight: 700;
-          }
-          td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #e2e8f0;
-          }
-          tr:nth-child(even) td {
-            background: #f8fafc;
-          }
-          .footer {
-            margin-top: 40px;
-            border-top: 1px solid #e2e8f0;
-            padding-top: 12px;
-            text-align: center;
-            font-size: 11px;
-            color: #94a3b8;
-          }
-          @media print {
-            body { padding: 0; }
-            .no-print { display: none; }
-          }
+          body { font-family: 'Tajawal', sans-serif; margin: 0; padding: 25px; color: #1e293b; background: #fff; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #078db8; padding-bottom: 15px; margin-bottom: 20px; }
+          .company-brand h1 { margin: 0; font-size: 22px; color: #078db8; font-weight: 800; }
+          .company-brand p { margin: 3px 0 0; font-size: 12px; color: #64748b; }
+          .report-meta { text-align: left; font-size: 11px; color: #475569; }
+          .section-title { font-size: 15px; font-weight: 700; color: #0f172a; border-right: 4px solid #078db8; padding-right: 8px; margin: 20px 0 10px; }
+          .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: #f8fafc; padding: 12px; border-radius: 8px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+          .info-item { font-size: 13px; }
+          .info-item strong { color: #334155; }
+          .main-image-container { text-align: center; margin: 20px 0; page-break-inside: avoid; }
+          .main-image-container img { max-width: 100%; max-height: 420px; border-radius: 10px; border: 1px solid #cbd5e1; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+          .notes-box { background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; padding: 12px 16px; font-size: 13px; line-height: 1.6; margin-bottom: 20px; }
+          table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 12px; }
+          th { background: #078db8; color: #ffffff; text-align: right; padding: 8px 10px; font-weight: 700; }
+          td { padding: 8px 10px; border-bottom: 1px solid #e2e8f0; }
+          tr:nth-child(even) td { background: #f8fafc; }
+          .footer { margin-top: 40px; border-top: 1px solid #e2e8f0; padding-top: 12px; text-align: center; font-size: 11px; color: #94a3b8; }
+          @media print { body { padding: 0; } .no-print { display: none; } }
         </style>
       </head>
       <body>
@@ -240,15 +199,14 @@ export default function AiDesignPage() {
 
         <div class="section-title">تفاصيل المشروع والوحدة</div>
         <div class="info-grid">
-          <div class="info-item"><strong>اسم البناء:</strong> ${buildingName}</div>
-          <div class="info-item"><strong>رقم الشقة/الوحدة:</strong> ${formData.apartment_number}</div>
+          <div class="info-item"><strong>رقم الشقة/الوحدة:</strong> ${unitText}</div>
           <div class="info-item"><strong>النمط المعماري:</strong> ${styleLabel}</div>
           <div class="info-item"><strong>المساحة الإجمالية:</strong> ${details.total_area || "غير محددة"}</div>
         </div>
 
-        ${formData.prompt ? `
+        ${promptText ? `
           <div class="section-title">الوصف الفراغي المطلوب (Prompt)</div>
-          <div class="notes-box">${formData.prompt}</div>
+          <div class="notes-box">${promptText}</div>
         ` : ''}
 
         ${mainImgUrl ? `
@@ -291,9 +249,7 @@ export default function AiDesignPage() {
 
         <script>
           window.onload = function() {
-            setTimeout(function() {
-              window.print();
-            }, 500);
+            setTimeout(function() { window.print(); }, 500);
           };
         </script>
       </body>
@@ -304,8 +260,15 @@ export default function AiDesignPage() {
     printWindow.document.close();
   };
 
-  const mainImageUrl = result?.main_image_url || result?.generated_images?.[0] || result?.data?.main_image_url;
+  const mainImageUrl = 
+    result?.main_image_url || 
+    result?.generated_images?.[0] || 
+    result?.data?.main_image_url || 
+    result?.data?.generated_images?.[0];
+
   const resultDetails = result?.details || result?.data?.details;
+  const isPublished = result?.is_published ?? result?.data?.is_published;
+  const currentDesignId = result?.id || result?.data?.id;
 
   return (
     <div className="ai-design-page" dir="rtl">
@@ -329,7 +292,7 @@ export default function AiDesignPage() {
           onClick={() => setActiveTab("from-building")}
         >
           <ImageIcon size={18} />
-          <span>إكساء صورة هيكل عظم</span>
+          <span>إكساء صورة هيكل / تصميم من صورة</span>
         </button>
       </div>
 
@@ -339,7 +302,6 @@ export default function AiDesignPage() {
             <div className="card-title-bar">
               <Sparkles className="sparkle-icon" size={20} />
               <h3>إعدادات التصميم المطلوب</h3>
-              {result }
             </div>
 
             <form onSubmit={handleSubmitFromText} className="ai-form">
@@ -369,12 +331,12 @@ export default function AiDesignPage() {
                     value={formData.apartment_number}
                     onChange={handleInputChange}
                     required
-                    disabled={!formData.building_id || unitsLoading}
+                    disabled={!formData.building_id || buildingLoading}
                   >
                     <option value="">
                       {!formData.building_id
                         ? "-- اختر البناء أولاً --"
-                        : unitsLoading
+                        : buildingLoading
                         ? "جاري تحميل الشقق..."
                         : "-- اختر الشقة --"}
                     </option>
@@ -446,15 +408,32 @@ export default function AiDesignPage() {
                 <h3>نتيجة التوليد والتحليل المعماري</h3>
               </div>
               {result && (
-                <button
-                  type="button"
-                  className="export-report-btn"
-                  onClick={handleExportFullReport}
-                  title="تصدير التقرير والبيانات كملف PDF"
-                >
-                  <FileDown size={16} />
-                  <span>تصدير تقرير PDF</span>
-                </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {currentDesignId && (
+                    <button
+                      type="button"
+                      className={`adopt-design-btn ${isPublished ? "adopted" : ""}`}
+                      onClick={handleTogglePublish}
+                      disabled={publishing}
+                    >
+                      {publishing ? (
+                        <Loader2 size={16} className="spinner" />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
+                      <span>{isPublished ? "معتمد" : "اعتماد النتيجة"}</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="export-report-btn"
+                    onClick={handleExportFullReport}
+                    title="تصدير التقرير والبيانات كملف PDF"
+                  >
+                    <FileDown size={16} />
+                    <span>تصدير تقرير PDF</span>
+                  </button>
+                </div>
               )}
             </div>
 
@@ -540,17 +519,188 @@ export default function AiDesignPage() {
           </div>
         </div>
       ) : (
-        <div className="ai-card coming-soon-card">
-          <ImageIcon size={50} />
-          <h3>ميزة إكساء المباني الهيكلية (عالعضم)</h3>
-          <p>هذا الخيار سيتيح لك رفع صورة مبنى عظم ليقوم الذكاء الاصطناعي برسم التصميم الخارجي والداخلي واكسائه تلقائياً.</p>
+        /* TAB 2: GENERATE FROM IMAGE */
+        <div className="ai-workspace-grid">
+          <div className="ai-card form-section">
+            <div className="card-title-bar">
+              <Sparkles className="sparkle-icon" size={20} />
+              <h3>إكساء وتنفيذ تصميم من صورة هيكل</h3>
+            </div>
+
+            <form onSubmit={handleSubmitFromImage} className="ai-form">
+              <div className="input-group">
+                <label><Home size={15} /> الشقة / الوحدة (unit_id)</label>
+                <select
+                  value={imageFormData.unit_id}
+                  onChange={(e) => setImageFormData((prev) => ({ ...prev, unit_id: e.target.value }))}
+                  required
+                  disabled={unitsLoading}
+                >
+                  <option value="">
+                    {unitsLoading ? "جاري تحميل الشقق..." : "-- اختر الشقة --"}
+                  </option>
+                  {units.map((unit) => (
+                    <option key={unit.id} value={unit.id}>
+                      {unit.unit_number || unit.name || `شقة ${unit.id}`}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="input-group">
+                <label><ImageIcon size={15} /> صورة الهيكل العظم (Image)</label>
+                <div className="file-upload-box">
+                  <label className="file-input-label">
+                    <Upload size={20} />
+                    <span>{selectedFile ? selectedFile.name : "اضغط هنا لاختيار صورة الغرفة..."}</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleFileChange}
+                      required
+                      style={{ display: "none" }}
+                    />
+                  </label>
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label><Palette size={15} /> النمط المعماري (Style)</label>
+                <div className="style-selector-grid">
+                  {STYLES_OPTIONS.map((style) => (
+                    <button
+                      type="button"
+                      key={style.id}
+                      className={`style-card ${imageFormData.style === style.id ? "selected" : ""}`}
+                      onClick={() => setImageFormData((prev) => ({ ...prev, style: style.id }))}
+                    >
+                      <span className="style-emoji">{style.icon}</span>
+                      <span className="style-name">{style.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label><Wand2 size={15} /> الوصف المخصص (Prompt)</label>
+                <textarea
+                  rows={4}
+                  value={imageFormData.prompt}
+                  onChange={(e) => setImageFormData((prev) => ({ ...prev, prompt: e.target.value }))}
+                  placeholder="اكتب تفاصيل الإكساء المطلوب..."
+                  required
+                />
+              </div>
+
+              {error && (
+                <div className="ai-error-box">
+                  <AlertCircle size={18} />
+                  <span>{error}</span>
+                </div>
+              )}
+
+              <button type="submit" className="submit-ai-btn" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 size={18} className="spinner" />
+                    <span>جاري معالجة الصورة والتوليد...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send size={18} />
+                    <span>إرسال وتوليد التصميم</span>
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
+
+          <div className="ai-card result-section">
+            <div className="card-title-bar card-title-between">
+              <div className="title-with-icon">
+                <Layers size={20} />
+                <h3>نتيجة التصميم المولد من الصورة</h3>
+              </div>
+              {result && (
+                <div style={{ display: "flex", gap: "8px" }}>
+                  {currentDesignId && (
+                    <button
+                      type="button"
+                      className={`adopt-design-btn ${isPublished ? "adopted" : ""}`}
+                      onClick={handleTogglePublish}
+                      disabled={publishing}
+                    >
+                      {publishing ? (
+                        <Loader2 size={16} className="spinner" />
+                      ) : (
+                        <CheckCircle2 size={16} />
+                      )}
+                      <span>{isPublished ? "معتمد" : "اعتماد النتيجة"}</span>
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    className="export-report-btn"
+                    onClick={handleExportFullReport}
+                    title="تصدير التقرير والبيانات كملف PDF"
+                  >
+                    <FileDown size={16} />
+                    <span>تصدير تقرير PDF</span>
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {loading ? (
+              <div className="ai-loading-state">
+                <div className="ai-pulse-loader">
+                  <Sparkles size={40} />
+                </div>
+                <h4>جاري إعادة تصميم وإكساء الصورة بالذكاء الاصطناعي...</h4>
+                <p>يتم الآن إضافة الأثاث والديكور حسب النمط والوصف المحددين.</p>
+              </div>
+            ) : result ? (
+              <div className="result-content">
+                {mainImageUrl && (
+                  <div className="main-generated-image-box">
+                    <img src={mainImageUrl} alt="AI Redesign Result" className="generated-img" />
+                    <div className="image-overlay-actions">
+                      <button
+                        className="img-action-btn"
+                        onClick={() => setPreviewImage(mainImageUrl)}
+                        title="معاينة بكامل الشاشة"
+                      >
+                        <Maximize2 size={16} />
+                      </button>
+                      <a
+                        href={mainImageUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="img-action-btn"
+                        title="تحميل الصورة"
+                      >
+                        <Download size={16} />
+                      </a>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="ai-empty-state">
+                <ImageIcon size={48} />
+                <h4>جاهز لتوليد التصميم</h4>
+                <p>اختر الشقة وارفع صورة المكان لبدء عملية إعادة التصميم الإكسائي.</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
       {previewImage && (
-        <Modal open={Boolean(previewImage)} onClose={() => setPreviewImage(null)} title="معاينة المخطط المولد" size="lg">
+        <Modal open={Boolean(previewImage)} onClose={() => setPreviewImage(null)} title="معاينة التصميم المولد" size="lg">
           <div className="ai-image-modal">
-            <img src={previewImage} alt="Large AI Generated Plan" />
+            <img src={previewImage} alt="Large AI Generated Design" />
           </div>
         </Modal>
       )}
