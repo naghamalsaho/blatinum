@@ -7,6 +7,8 @@ import {
   LayoutGrid,
   LogOut,
   PackageSearch,
+  FileBarChart,
+  ScrollText,
   UsersRound,
 } from "lucide-react";
 import { t } from "@/shared/i18n";
@@ -62,6 +64,18 @@ export const adminDashboardConfig = {
           to: "/admin/roles-permissions",
           label: t("roles_permissions"),
           icon: KeyRound,
+        },
+        {
+          key: "activity-logs",
+          to: "/admin/activity-logs",
+          label: t("activity_logs"),
+          icon: ScrollText,
+        },
+        {
+          key: "reports",
+          to: "/admin/reports",
+          label: t("reports"),
+          icon: FileBarChart,
         },
       ],
     },

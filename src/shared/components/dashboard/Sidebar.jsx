@@ -79,6 +79,7 @@ export default function Sidebar({
                     key={item.key || item.to}
                     to={item.to}
                     end={item.end ?? false}
+                    onClick={onClose}
                     className={({ isActive }) =>
                       `nav-item ${isActive ? "active" : ""}`
                     }

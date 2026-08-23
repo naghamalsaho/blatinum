@@ -23,6 +23,8 @@ export default function AdminLayout() {
     "/admin/employees": [t("employees"), t("employees_page_desc")],
     "/admin/warehouses": [t("warehouses"), t("warehouses_page_desc")],
     "/admin/items": [t("items"), t("items_page_desc")],
+    "/admin/activity-logs": [t("activity_logs"), t("activity_logs_page_desc")],
+    "/admin/reports": [t("reports"), t("reports_page_desc")],
     "/admin/roles-permissions": [t("roles_permissions"), t("roles_page_desc")],
   }[pathname] || [adminDashboardConfig.topbar.title, adminDashboardConfig.topbar.subtitle];
 
@@ -30,7 +32,7 @@ export default function AdminLayout() {
     try {
       const token = localStorage.getItem("fcmToken");
       if (token) {
-        try { await deleteDeviceTokenApi(token); } catch (e) {}
+        try { await deleteDeviceTokenApi(token); } catch { /* Logout must continue if token cleanup fails. */ }
         localStorage.removeItem("fcmToken");
       }
       await logoutRequest();
@@ -56,6 +58,7 @@ export default function AdminLayout() {
           subtitle={pageMeta[1]}
           searchPlaceholder={adminDashboardConfig.topbar.searchPlaceholder}
           actions={adminDashboardConfig.topbar.actions}
+          onMenuToggle={() => setSidebarOpen((open) => !open)}
         />
 
         <section className="dashboard-content">

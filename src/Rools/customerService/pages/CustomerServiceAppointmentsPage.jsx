@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  CalendarCheck,
   CalendarClock,
   CalendarDays,
   CheckCircle2,
@@ -16,6 +15,7 @@ import Modal from "@/shared/components/Modal";
 import StatCard from "@/shared/components/StatCard";
 import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
+import { getLanguage } from "@/shared/i18n";
 import {
   getAppointmentAvailableSlotsRequest,
   getAppointmentClientsRequest,
@@ -28,7 +28,6 @@ import {
 } from "../features/orders/api/order.api";
 import {
   cancelCustomerServiceAppointment,
-  completeCustomerServiceAppointment,
   createCustomerServiceAppointment,
   fetchCustomerServiceAppointments,
   updateCustomerServiceAppointment,
@@ -285,8 +284,45 @@ const getClientOptionId = (client) =>
 const getOrderOptionId = (order) =>
   readNested(order, ["id", "order_id"]);
 
+const getOrderOptionStatus = (order) =>
+  String(readNested(order, ["status", "order_status", "order.status"]) || "")
+    .trim()
+    .toLowerCase();
+
 const getSlotOptionId = (slot) =>
   readNested(slot, ["id", "slot_id", "av_slot_id", "available_slot_id"]);
+
+const getSlotOptionDateValue = (slot) => {
+  const value = readNested(slot, [
+    "date",
+    "slot_date",
+    "available_date",
+    "appointment_date",
+    "day",
+    "starts_at",
+    "start_at",
+    "batch.date",
+    "batch.day",
+    "batch.appointment_date",
+  ]);
+
+  if (!value) return "";
+  return String(value).split("T")[0].split(" ")[0];
+};
+
+const getSlotOptionDate = (slot) => {
+  const normalized = getSlotOptionDateValue(slot);
+  if (!normalized) return "";
+  const date = new Date(`${normalized}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return normalized;
+
+  return new Intl.DateTimeFormat(getLanguage() === "ar" ? "ar-SY" : "en-GB", {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+};
 
 const getSlotOptionStatus = (slot) => {
   const directStatus = readNested(slot, [
@@ -375,34 +411,30 @@ const getOrderOptionLabel = (order) => {
   return [`Order #${id}`, formatStatus(status), unit].filter(Boolean).join(" - ");
 };
 
-const getSlotOptionLabelWithRange = (slot, durationMinutes) => {
-  const id = getSlotOptionId(slot);
+const getSlotOptionLabelWithRange = (slot) => {
   const time = readNested(slot, ["start_time", "time", "from_time", "starts_at"]) || "";
-  const status = readNested(slot, ["status"]) || "unknown";
-  const batch = readNested(slot, ["batch_id"]);
+  const date = getSlotOptionDate(slot);
+  const displayTime = String(time).slice(0, 5);
 
-  return [
-    `Slot #${id}`,
-    getTimeRange(time, durationMinutes),
-    formatStatus(status),
-    batch ? `Batch ${String(batch).slice(0, 8)}` : "",
-  ]
-    .filter(Boolean)
-    .join(" - ");
+  const labeledTime = displayTime && getLanguage() === "ar" ? `الساعة ${displayTime}` : displayTime;
+  return [date, labeledTime].filter(Boolean).join(" — ");
+};
+
+const getCompactSlotLabel = (slot) => {
+  const date = getSlotOptionDate(slot);
+  const time = String(readNested(slot, ["start_time", "time", "from_time", "starts_at"]) || "").slice(0, 5);
+  const labeledTime = time && getLanguage() === "ar" ? `الساعة ${time}` : time;
+  return [date, labeledTime].filter((value) => value && value !== "-").join(" — ");
+};
+
+const compareAvailableSlots = (first, second) => {
+  const firstKey = `${getSlotOptionDateValue(first)} ${String(readNested(first, ["start_time", "time", "from_time", "starts_at"]) || "")}`;
+  const secondKey = `${getSlotOptionDateValue(second)} ${String(readNested(second, ["start_time", "time", "from_time", "starts_at"]) || "")}`;
+  return firstKey.localeCompare(secondKey);
 };
 
 const isFinalStatus = (status) =>
   ["completed", "done", "cancelled", "canceled"].includes(status);
-
-const isFutureAppointment = (appointment) => {
-  const date = getAppointmentDate(appointment);
-  const time = String(getAppointmentTime(appointment) || "00:00").slice(0, 8);
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) return false;
-
-  const scheduledAt = new Date(`${date}T${time || "00:00"}`);
-  return !Number.isNaN(scheduledAt.getTime()) && scheduledAt.getTime() > Date.now();
-};
 
 export default function CustomerServiceAppointmentsPage() {
   const dispatch = useDispatch();
@@ -721,6 +753,7 @@ export default function CustomerServiceAppointmentsPage() {
 
         slots.set(key, {
           id: key,
+          date: getAppointmentDate(appointment),
           time: startTime,
           range: getTimeRange(startTime, slotDurationMinutes),
           appointmentId: getAppointmentId(appointment),
@@ -860,14 +893,19 @@ export default function CustomerServiceAppointmentsPage() {
   };
 
   const availableOrderOptions = useMemo(() => {
-    if (!createFormData.client_id) return createOptions.orders;
+    const initiallyAcceptedOrders = createOptions.orders.filter((order) => {
+      const status = getOrderOptionStatus(order);
+      return !status || status === "initially_accepted";
+    });
+
+    if (!createFormData.client_id) return initiallyAcceptedOrders;
 
     const selectedClientId = String(createFormData.client_id);
-    const filtered = createOptions.orders.filter(
+    const filtered = initiallyAcceptedOrders.filter(
       (order) => String(getOrderClientId(order)) === selectedClientId
     );
 
-    return filtered.length > 0 ? filtered : createOptions.orders;
+    return filtered;
   }, [createFormData.client_id, createOptions.orders]);
 
   const availableSlotOptions = useMemo(
@@ -881,7 +919,7 @@ export default function CustomerServiceAppointmentsPage() {
         }
 
         return isAvailableSlotStatus(status) && !bookedSlotById.has(String(id));
-      }),
+      }).sort(compareAvailableSlots),
     [bookedSlotById, createOptions.slots]
   );
 
@@ -907,8 +945,16 @@ export default function CustomerServiceAppointmentsPage() {
       "from_time",
       "starts_at",
     ]);
+    const selectedAvailableEndTime = readNested(selectedAvailableSlot, [
+      "end_time",
+      "to_time",
+      "ends_at",
+    ]);
 
     if (selectedAvailableTime) {
+      if (selectedAvailableEndTime) {
+        return `${String(selectedAvailableTime).slice(0, 5)} - ${String(selectedAvailableEndTime).slice(0, 5)}`;
+      }
       return getTimeRange(selectedAvailableTime, slotDurationMinutes);
     }
 
@@ -941,17 +987,9 @@ export default function CustomerServiceAppointmentsPage() {
 
     setConfirmActionError("");
 
-    const result =
-      confirmAction.type === "complete"
-        ? await dispatch(completeCustomerServiceAppointment(id))
-        : await dispatch(cancelCustomerServiceAppointment(id));
+    const result = await dispatch(cancelCustomerServiceAppointment(id));
 
-    const matcher =
-      confirmAction.type === "complete"
-        ? completeCustomerServiceAppointment.fulfilled
-        : cancelCustomerServiceAppointment.fulfilled;
-
-    if (matcher.match(result)) {
+    if (cancelCustomerServiceAppointment.fulfilled.match(result)) {
       closeConfirmModal();
     } else {
       setConfirmActionError(result.payload || "Failed to update appointment.");
@@ -1008,7 +1046,6 @@ export default function CustomerServiceAppointmentsPage() {
                   const status = getAppointmentStatus(appointment);
                   const orderStatus = getOrderStatus(appointment);
                   const isLocked = isFinalStatus(status);
-                  const isFuture = isFutureAppointment(appointment);
 
                   return (
                     <tr key={id || JSON.stringify(appointment)}>
@@ -1057,21 +1094,6 @@ export default function CustomerServiceAppointmentsPage() {
                           </button>
                           <button
                             type="button"
-                            className="icon-action-btn"
-                            onClick={() =>
-                              setConfirmAction({ type: "complete", appointment })
-                            }
-                            disabled={actionLoading || isLocked || isFuture || !id}
-                            title={
-                              isFuture
-                                ? "This appointment can be completed after its scheduled time"
-                                : "Complete appointment"
-                            }
-                          >
-                            <CalendarCheck size={16} />
-                          </button>
-                          <button
-                            type="button"
                             className="icon-action-btn danger"
                             onClick={() =>
                               setConfirmAction({ type: "cancel", appointment })
@@ -1101,18 +1123,12 @@ export default function CustomerServiceAppointmentsPage() {
       <Modal
         open={Boolean(confirmAction)}
         onClose={closeConfirmModal}
-        title={
-          confirmAction?.type === "complete"
-            ? "Complete appointment"
-            : "Cancel appointment"
-        }
+        title="Cancel appointment"
         size="sm"
       >
         <div className="modal-form">
           <p className="customer-service-confirm-copy">
-            {confirmAction?.type === "complete"
-              ? "Mark this appointment as done?"
-              : "Cancel this appointment?"}
+            Cancel this appointment?
           </p>
           {confirmActionError ? (
             <div className="form-alert">{confirmActionError}</div>
@@ -1259,7 +1275,7 @@ export default function CustomerServiceAppointmentsPage() {
                 <div
                   className={`slot-preview-card ${selectedBookedSlot ? "is-booked" : ""}`}
                 >
-                  <span>Slot #{selectedSlotId}</span>
+                  <span>{[getSlotOptionDate(selectedAvailableSlot), `Slot #${selectedSlotId}`].filter(Boolean).join(" • ")}</span>
                   <strong>{selectedSlotRange || "Time not available"}</strong>
                   <small>
                     {selectedBookedSlot
@@ -1303,7 +1319,7 @@ export default function CustomerServiceAppointmentsPage() {
                         className="booked-slot-chip"
                         title={`Booked by appointment #${slot.appointmentId}, order #${slot.orderId}`}
                       >
-                        Slot #{slot.id} - {slot.range}
+                        {getCompactSlotLabel(slot)}
                       </span>
                     ))}
                   </div>

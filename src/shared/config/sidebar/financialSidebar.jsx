@@ -1,47 +1,21 @@
-import {
-  LayoutDashboard,
-  Receipt,
-  CreditCard,
-  AlertTriangle,
-  
-} from "lucide-react";
+import { AlertTriangle, CreditCard, LayoutDashboard, Receipt } from "lucide-react";
+
+import { t } from "@/shared/i18n";
 
 export const financialSidebar = [
   {
-    title: "القسم المالي",
+    title: t("financial_department"),
+    items: [{ label: t("dashboard"), icon: LayoutDashboard, to: "/financial", end: true }],
+  },
+  {
+    title: t("transaction_management"),
     items: [
-      {
-        label: "لوحة التحكم",
-        icon: LayoutDashboard,
-        to: "/financial",
-        end: true,
-      },
+      { label: t("financial_transactions"), icon: Receipt, to: "/financial/transactions" },
+      { label: t("payment_methods"), icon: CreditCard, to: "/financial/payments" },
     ],
   },
   {
-    title: "إدارة المعاملات",
-    items: [
-      {
-        label: "المعاملات المالية",
-        icon: Receipt,
-        to: "/financial/transactions",
-      },
-      {
-        label: "طرق الدفع",
-        icon: CreditCard,
-        to: "/financial/payments",
-      },
-    ],
-  },
-  {
-    title: "المراجعات والطلبات",
-    items: [
-      {
-        label: "الاستثناءات المالية",
-        icon: AlertTriangle,
-        to: "/financial/exceptions",
-      },
-     
-    ],
+    title: t("reviews_requests"),
+    items: [{ label: t("financial_exceptions"), icon: AlertTriangle, to: "/financial/exceptions" }],
   },
 ];

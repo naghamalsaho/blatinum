@@ -1477,7 +1477,7 @@ export default function CustomerServiceOrdersPage() {
             </thead>
 
             <tbody>
-              {filteredOrders.map((order) => {
+              {filteredOrders.map((order, orderIndex) => {
                   const id = getOrderId(order);
                   const status = getOrderStatus(order);
                   const type = getOrderType(order);
@@ -1550,7 +1550,7 @@ export default function CustomerServiceOrdersPage() {
                           </button>
 
                           {menuOpen ? (
-                            <div className="customer-service-actions-menu">
+                            <div className={`customer-service-actions-menu ${orderIndex === filteredOrders.length - 1 ? "open-upwards" : ""}`}>
                               <button
                                 type="button"
                                 onClick={() => openOrderAction("status", order)}

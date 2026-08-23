@@ -5,6 +5,7 @@ import {
   Search,
   SunMedium,
   Moon,
+  Menu,
   PanelsTopLeft,
 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -58,17 +59,13 @@ export default function Topbar({
   subtitle = "",
   searchPlaceholder = "Search...",
   actions = [],
+  onMenuToggle,
 }) {
   const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const ThemeIcon = theme === "dark" ? SunMedium : Moon;
   const user = useSelector((state) => state.auth?.user);
-  const account = user?.account || user || {};
   const notificationRef = useRef(null);
-  const accountName =
-    account.full_name ||
-    [account.first_name, account.last_name].filter(Boolean).join(" ") ||
-    "Administrator";
   const canSwitchWorkspace = getAssignedWorkspaces(user).length > 1;
   const [notificationsOpen, setNotificationsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -209,7 +206,9 @@ useEffect(() => {
     try {
       const srv = notifications.find((n) => n.id === id)?.serverId;
       if (srv) markNotificationAsReadApi(srv).catch(() => {});
-    } catch (e) {}
+    } catch {
+      // The optimistic read state is still useful if the API request cannot be sent.
+    }
   };
 
   const markAllNotificationsAsRead = () => {
@@ -220,6 +219,15 @@ useEffect(() => {
   return (
     <header className="dashboard-topbar">
       <div className="topbar-right">
+        <button
+          type="button"
+          className="icon-btn mobile-menu-btn"
+          onClick={onMenuToggle}
+          aria-label={t("menu") || "Menu"}
+          title={t("menu") || "Menu"}
+        >
+          <Menu size={20} />
+        </button>
         <div className="topbar-title">
           <h2>{title}</h2>
           {subtitle ? <p>{subtitle}</p> : null}
@@ -379,4 +387,5 @@ Topbar.propTypes = {
       onClick: PropTypes.func,
     })
   ),
+  onMenuToggle: PropTypes.func,
 };

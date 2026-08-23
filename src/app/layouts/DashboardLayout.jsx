@@ -32,6 +32,7 @@ export default function DashboardLayout({
         searchPlaceholder={topbar.searchPlaceholder}
         actions={topbar.actions}
         user={topbar.user}
+        onMenuToggle={() => setSidebarOpen((open) => !open)}
       />
 
       <section className="dashboard-content">
