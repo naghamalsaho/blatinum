@@ -93,7 +93,7 @@
 
 .exact-select-chevron {
   position: absolute;
-  left: 12px;
+  inset-inline-end: 12px;
   color: var(--dash-muted);
   pointer-events: none;
 }
@@ -145,7 +145,7 @@
 
 .exact-search-icon {
   position: absolute;
-  left: 14px;
+  inset-inline-end: 14px;
   color: var(--dash-accent);
   pointer-events: none;
 }
@@ -530,7 +530,7 @@
   gap: 18px;
   max-height: 75vh; /* يمنع الموديل من الخروج عن حدود الشاشة */
   overflow-y: auto;
-  padding-left: 4px; /* لضمان ظهور شريط التمرير بشكل جميل */
+  padding-inline-end: 4px; /* يترك مساحة لشريط التمرير حسب اتجاه اللغة */
 }
 
 /* إطار وجدول التتبع مع تفعيل السكرول */

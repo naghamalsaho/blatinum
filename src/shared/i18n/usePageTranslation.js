@@ -84,6 +84,21 @@ export const LEGACY_AR_TRANSLATIONS = {
   "verified employee accounts": "حسابات موظفين موثّقة", "view employee details": "عرض تفاصيل الموظف",
   "view employees": "عرض الموظفين", "view items": "عرض العناصر", "warehouse items": "عناصر المستودع",
   "warehouse:": "المستودع:", "warehouses": "المستودعات",
+  "ai generated design": "تصميم مولّد بالذكاء الاصطناعي", "ai redesign result": "نتيجة إعادة التصميم بالذكاء الاصطناعي",
+  "large ai generated design": "عرض مكبّر للتصميم المولّد بالذكاء الاصطناعي", "engineer id:": "معرّف المهندس:",
+  "project id:": "معرّف المشروع:",
+  "latitude": "خط العرض", "latitude:": "خط العرض:", "longitude": "خط الطول", "radius meters": "نصف القطر بالأمتار",
+  "action": "الإجراء", "apply status": "تطبيق الحالة", "assigned to legal": "مُسند إلى القسم القانوني",
+  "awaiting review": "بانتظار المراجعة", "closed": "مغلق", "final decisions": "القرارات النهائية",
+  "in progress": "قيد المعالجة", "incoming orders": "الطلبات الواردة", "initially accepted": "مقبول مبدئيًا",
+  "legal": "القسم القانوني", "legal incoming orders": "الطلبات القانونية الواردة",
+  "loading incoming orders...": "جارٍ تحميل الطلبات الواردة...", "no incoming legal orders found.": "لم يتم العثور على طلبات قانونية واردة.",
+  "no notes yet.": "لا توجد ملاحظات بعد.", "order id": "معرّف الطلب", "process order #": "معالجة الطلب رقم #",
+  "review and process the incoming legal order.": "راجع الطلب القانوني الوارد وعالجه.",
+  "search legal incoming orders...": "ابحث في الطلبات القانونية الواردة...",
+  "send this order to finance & accounting.": "أرسل هذا الطلب إلى قسم المالية والمحاسبة.",
+  "transfer to finance": "تحويل إلى المالية", "unit / solution": "الوحدة / الحل", "view / process": "عرض / معالجة",
+  "write an internal legal note...": "اكتب ملاحظة قانونية داخلية...",
 };
 
 const AR = LEGACY_AR_TRANSLATIONS;
@@ -96,9 +111,13 @@ const PLACEHOLDERS = {
   "write a clear note for this order...": "اكتب ملاحظة واضحة لهذا الطلب...", "optional transfer note...": "ملاحظة اختيارية للتحويل...",
 };
 
+const EN = Object.fromEntries(Object.entries(AR).map(([english, arabic]) => [arabic, english.replace(/\b\w/g, (letter) => letter.toUpperCase())]));
+const EN_PLACEHOLDERS = Object.fromEntries(Object.entries(PLACEHOLDERS).map(([english, arabic]) => [arabic, english]));
+
 const translateText = (value) => {
   const trimmed = value.trim();
-  const translated = AR[trimmed.toLowerCase()];
+  const isArabic = getLanguage() === "ar";
+  const translated = isArabic ? AR[trimmed.toLowerCase()] : EN[trimmed];
   return translated ? value.replace(trimmed, translated) : value;
 };
 
@@ -115,22 +134,30 @@ function translateTree(root) {
   });
 
   root.querySelectorAll?.("input[placeholder], textarea[placeholder]").forEach((element) => {
-    const key = element.placeholder.trim().toLowerCase();
-    if (PLACEHOLDERS[key] || AR[key]) element.placeholder = PLACEHOLDERS[key] || AR[key];
+    const current = element.placeholder;
+    const isArabic = getLanguage() === "ar";
+    const translated = isArabic
+      ? PLACEHOLDERS[current.trim().toLowerCase()] || AR[current.trim().toLowerCase()]
+      : EN_PLACEHOLDERS[current.trim()] || EN[current.trim()];
+    if (translated) element.placeholder = translated;
   });
   root.querySelectorAll?.("[title]").forEach((element) => {
-    const key = element.title.trim().toLowerCase();
-    if (AR[key]) element.title = AR[key];
+    const translated = translateText(element.title);
+    if (translated !== element.title) element.title = translated;
   });
   root.querySelectorAll?.("[aria-label]").forEach((element) => {
-    const key = element.getAttribute("aria-label")?.trim().toLowerCase();
-    if (AR[key]) element.setAttribute("aria-label", AR[key]);
+    const current = element.getAttribute("aria-label") || "";
+    const translated = translateText(current);
+    if (translated !== current) element.setAttribute("aria-label", translated);
+  });
+  root.querySelectorAll?.("img[alt]").forEach((element) => {
+    const translated = translateText(element.alt);
+    if (translated !== element.alt) element.alt = translated;
   });
 }
 
 export function usePageTranslation() {
   useEffect(() => {
-    if (getLanguage() !== "ar") return undefined;
     translateTree(document.body);
     const observer = new MutationObserver((mutations) => {
       mutations.forEach((mutation) => {

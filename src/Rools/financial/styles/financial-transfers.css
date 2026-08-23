@@ -92,7 +92,7 @@
 .legal-stats-grid > * > svg,
 .legal-stats-grid > * > div:has(svg) {
   position: absolute !important;
-  right: 20px !important;
+  inset-inline-start: 20px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
   color: var(--dash-muted, #94a3b8) !important;
@@ -187,7 +187,7 @@
 
 .exact-select-chevron {
   position: absolute;
-  right: 12px;
+  inset-inline-start: 12px;
   pointer-events: none;
   color: var(--dash-accent, #3b82f6);
 }
@@ -195,7 +195,7 @@
 /* حقل البحث */
 .exact-search-field {
   position: relative;
-  margin-right: auto; /* يدفع الحقل لليصار في الواجهات العربية */
+  margin-inline-start: auto;
   min-width: 260px;
   flex: 1;
   max-width: 380px;
@@ -224,7 +224,7 @@
 
 .exact-search-icon {
   position: absolute;
-  right: 14px;
+  inset-inline-start: 14px;
   top: 50%;
   transform: translateY(-50%);
   color: var(--dash-muted, #94a3b8);

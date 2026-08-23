@@ -14,7 +14,6 @@ import {
 import Button from "@/shared/components/Button";
 import Modal from "@/shared/components/Modal";
 import StatCard from "@/shared/components/StatCard";
-import TableCard from "@/shared/components/TableCard";
 import Toolbar from "@/shared/components/Toolbar";
 import { formatStatus } from "../constants/customerServiceData";
 import { clearCustomerServiceComplaintActionState } from "../features/complaints/model/complaint.slice";
@@ -236,86 +235,83 @@ export default function CustomerServiceComplaintsPage() {
       {actionMessage ? <p className="customer-service-form-success">{actionMessage}</p> : null}
 
       <section className="customer-service-split-grid">
-        <TableCard title="Complaint List" count={meta?.total ?? filteredComplaints.length}>
+        <article className="customer-service-complaints-card">
+          <div className="customer-service-complaints-head">
+            <h2>Complaint List</h2>
+            <span>{meta?.total ?? filteredComplaints.length} records</span>
+          </div>
+
           {loading ? (
             <div className="table-state">Loading complaints...</div>
           ) : error ? (
             <div className="table-state is-error">{error}</div>
-          ) : (
-            <table className="legal-table">
-              <thead>
-                <tr>
-                  <th>ID</th>
-                  <th>Title</th>
-                  <th>Type</th>
-                  <th>Client</th>
-                  <th>Unit</th>
-                  <th>Status</th>
-                  <th>Created</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {filteredComplaints.length > 0 ? (
-                  filteredComplaints.map((complaint) => {
-                    const id = getComplaintId(complaint);
-                    const status = getComplaintStatus(complaint);
+          ) : filteredComplaints.length > 0 ? (
+            <div className="customer-service-complaint-list">
+              {filteredComplaints.map((complaint) => {
+                const id = getComplaintId(complaint);
+                const status = getComplaintStatus(complaint);
 
-                    return (
-                      <tr key={id || JSON.stringify(complaint)}>
-                        <td data-label="ID">
-                          <strong>{id || "-"}</strong>
-                        </td>
-                        <td data-label="Title">
-                          <div className="customer-service-name-cell">
-                            <strong>{getComplaintTitle(complaint)}</strong>
-                            <span>{getComplaintBody(complaint)}</span>
-                          </div>
-                        </td>
-                        <td data-label="Type">{getComplaintTypeTitle(complaint, typeItems)}</td>
-                        <td data-label="Client">{getClientName(complaint)}</td>
-                        <td data-label="Unit">{getUnitLabel(complaint)}</td>
-                        <td data-label="Status">
-                          <span className={`customer-service-pill ${status}`}>
-                            {formatStatus(status)}
-                          </span>
-                        </td>
-                        <td data-label="Created">{getCreatedAt(complaint)}</td>
-                        <td data-label="Actions">
-                          <div className="customer-service-row-actions">
-                            <button
-                              type="button"
-                              className="icon-action-btn"
-                              onClick={() => openStatusModal(complaint)}
-                              title="Update status"
-                            >
-                              <PencilLine size={16} />
-                            </button>
-                            <button
-                              type="button"
-                              className="icon-action-btn danger"
-                              onClick={() => dispatch(removeCustomerServiceComplaint(id))}
-                              disabled={actionLoading || !id}
-                              title="Delete complaint"
-                            >
-                              <Trash2 size={16} />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })
-                ) : (
-                  <tr>
-                    <td colSpan="8" className="empty-cell">
-                      {message || "No complaints found"}
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                return (
+                  <article
+                    className="customer-service-complaint-item"
+                    key={id || JSON.stringify(complaint)}
+                  >
+                    <div className="customer-service-complaint-main">
+                      <div className="customer-service-complaint-title-row">
+                        <span className="customer-service-complaint-id">#{id || "-"}</span>
+                        <h3>{getComplaintTitle(complaint)}</h3>
+                      </div>
+                      <p>{getComplaintBody(complaint)}</p>
+                    </div>
+
+                    <div className="customer-service-complaint-meta">
+                      <div className="customer-service-complaint-meta-item">
+                        <span>Type</span>
+                        <strong>{getComplaintTypeTitle(complaint, typeItems)}</strong>
+                      </div>
+                      <div className="customer-service-complaint-meta-item">
+                        <span>Created</span>
+                        <strong>{getCreatedAt(complaint)}</strong>
+                      </div>
+                    </div>
+
+                    <div className="customer-service-complaint-side">
+                      <span className={`customer-service-pill ${status}`}>
+                        {formatStatus(status)}
+                      </span>
+                      <div className="customer-service-row-actions">
+                        <button
+                          type="button"
+                          className="icon-action-btn"
+                          onClick={() => openStatusModal(complaint)}
+                          title="Update status"
+                          aria-label="Update status"
+                        >
+                          <PencilLine size={16} />
+                        </button>
+                        <button
+                          type="button"
+                          className="icon-action-btn danger"
+                          onClick={() => dispatch(removeCustomerServiceComplaint(id))}
+                          disabled={actionLoading || !id}
+                          title="Delete complaint"
+                          aria-label="Delete complaint"
+                        >
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="customer-service-complaints-empty">
+              <ClipboardList size={28} />
+              <p>{message || "No complaints found"}</p>
+            </div>
           )}
-        </TableCard>
+        </article>
 
         <article className="customer-service-side-card">
           <div className="customer-service-detail-head">

@@ -433,6 +433,12 @@ body,
     padding: 18px 14px;
   }
 
+  .dashboard-shell[dir="ltr"] .dashboard-sidebar.is-open {
+    right: auto;
+    left: 0;
+    box-shadow: 5px 0 25px rgba(0, 0, 0, 0.15);
+  }
+
   /* إعادة إظهار النصوص داخل القائمة المفتوحة */
   .dashboard-sidebar.is-open .brand-text,
   .dashboard-sidebar.is-open .nav-group-title,
@@ -1662,6 +1668,190 @@ body,
   white-space: nowrap;
   font-size: 12px;
   font-weight: 700;
+}
+
+/* Mobile dashboard foundation: all workspaces share an off-canvas menu and full-width content. */
+@media (max-width: 768px) {
+  html,
+  body,
+  #root {
+    overflow-x: hidden;
+  }
+
+  .dashboard-shell {
+    width: 100%;
+    min-width: 0;
+    min-height: 100dvh;
+    height: 100dvh;
+  }
+
+  .dashboard-sidebar,
+  .dashboard-sidebar:not(.is-open) {
+    position: fixed !important;
+    inset-block: 0;
+    left: 0;
+    right: auto;
+    width: min(286px, 86vw) !important;
+    min-width: 0 !important;
+    height: 100dvh;
+    padding: 18px 14px;
+    align-items: stretch;
+    overflow: hidden;
+    visibility: hidden;
+    pointer-events: none;
+    transform: translateX(-105%);
+    transition: transform .24s ease, visibility .24s ease;
+    z-index: 50;
+  }
+
+  .dashboard-shell[dir="rtl"] .dashboard-sidebar,
+  .dashboard-shell[dir="rtl"] .dashboard-sidebar:not(.is-open) {
+    left: auto;
+    right: 0;
+    transform: translateX(105%);
+  }
+
+  .dashboard-sidebar.is-open,
+  .dashboard-shell[dir="rtl"] .dashboard-sidebar.is-open,
+  .dashboard-shell[dir="ltr"] .dashboard-sidebar.is-open {
+    width: min(286px, 86vw) !important;
+    min-width: 0 !important;
+    height: 100dvh;
+    padding: 18px 14px;
+    align-items: stretch;
+    visibility: visible;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+
+  .dashboard-shell[dir="ltr"] .dashboard-sidebar.is-open {
+    left: 0;
+    right: auto;
+  }
+
+  .dashboard-shell[dir="rtl"] .dashboard-sidebar.is-open {
+    left: auto;
+    right: 0;
+  }
+
+  .dashboard-sidebar.is-open .sidebar-header {
+    min-height: 82px;
+  }
+
+  .dashboard-sidebar.is-open .platinum-brand {
+    width: min(210px, calc(100% - 38px));
+    height: 82px;
+    min-height: 82px;
+  }
+
+  .dashboard-sidebar.is-open .platinum-logo-image,
+  .dashboard-shell[dir="rtl"] .dashboard-sidebar.is-open .platinum-logo-image {
+    width: 100%;
+    height: 78px;
+  }
+
+  .dashboard-main {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .dashboard-topbar {
+    width: 100%;
+    height: auto;
+    min-height: 68px;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+
+  .topbar-right,
+  .topbar-left {
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .topbar-title {
+    min-width: 0;
+  }
+
+  .topbar-title h2 {
+    max-width: 34vw;
+    font-size: clamp(14px, 4vw, 17px);
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .dashboard-topbar .icon-btn {
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+  }
+
+  .dashboard-topbar .topbar-lang-btn {
+    width: auto;
+    min-width: 54px;
+    padding-inline: 8px;
+  }
+
+  .dashboard-content.dashboard-content {
+    width: 100%;
+    min-width: 0;
+    height: calc(100dvh - 68px);
+    padding: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .dashboard-content > *,
+  .dashboard-content > * > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dashboard-shell .dashboard-content > * :is(.legal-stats-grid, .roles-stats-grid) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .dashboard-shell .dashboard-content .legal-toolbar.dashboard-toolbar-standard {
+    width: 100%;
+    padding: 10px;
+  }
+
+  .notification-dropdown {
+    position: fixed;
+    inset-inline: 12px;
+    top: 64px;
+    width: auto;
+    max-width: none;
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-content.dashboard-content {
+    padding: 12px;
+  }
+
+  .dashboard-shell .dashboard-content > * :is(.legal-stats-grid, .roles-stats-grid) {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .dashboard-shell .dashboard-content > * :is(.legal-stats-grid, .roles-stats-grid) .legal-stat-card {
+    min-height: 112px;
+    padding: 15px;
+  }
+
+  .topbar-title h2 {
+    max-width: 28vw;
+  }
+
+  .dashboard-topbar .icon-btn {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+  }
+
+  .dashboard-topbar .topbar-lang-btn {
+    min-width: 50px;
+  }
 }
 
 @media (max-width: 1180px) {

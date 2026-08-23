@@ -58,6 +58,7 @@ export default function AdminLayout() {
           subtitle={pageMeta[1]}
           searchPlaceholder={adminDashboardConfig.topbar.searchPlaceholder}
           actions={adminDashboardConfig.topbar.actions}
+          onMenuToggle={() => setSidebarOpen((open) => !open)}
         />
 
         <section className="dashboard-content">

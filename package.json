@@ -9,6 +9,9 @@
     "lint": "eslint .",
     "audit:i18n:customer-service": "node scripts/audit-customer-service-i18n.mjs",
     "audit:i18n:admin": "node scripts/audit-admin-i18n.mjs",
+    "audit:i18n:engineering": "node scripts/audit-engineering-i18n.mjs",
+    "audit:i18n:marketing-legal": "node scripts/audit-marketing-legal-i18n.mjs",
+    "audit:i18n:financial": "node scripts/audit-financial-i18n.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

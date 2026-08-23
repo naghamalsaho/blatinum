@@ -808,6 +808,186 @@
   color: #ef4444;
 }
 
+/* Complaints use flexible records instead of a wide table so every API field stays visible. */
+.customer-service-complaints-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid var(--dash-line);
+  border-radius: 16px;
+  background: var(--dash-card-bg);
+  box-shadow: var(--dash-shadow);
+}
+
+.customer-service-complaints-head {
+  min-height: 66px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--dash-line);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.customer-service-complaints-head h2 {
+  margin: 0;
+  color: var(--dash-text);
+  font-size: 18px;
+}
+
+.customer-service-complaints-head span {
+  color: var(--dash-muted);
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.customer-service-complaint-list {
+  display: grid;
+}
+
+.customer-service-complaint-item {
+  min-width: 0;
+  padding: 18px 20px;
+  display: grid;
+  grid-template-columns: minmax(220px, 1.45fr) minmax(250px, 1fr) auto;
+  align-items: center;
+  gap: 22px;
+  border-bottom: 1px solid var(--dash-line);
+  transition: background 0.16s ease;
+}
+
+.customer-service-complaint-item:last-child {
+  border-bottom: 0;
+}
+
+.customer-service-complaint-item:hover {
+  background: rgba(14, 165, 233, 0.045);
+}
+
+.customer-service-complaint-main {
+  min-width: 0;
+}
+
+.customer-service-complaint-title-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.customer-service-complaint-title-row h3 {
+  margin: 0;
+  min-width: 0;
+  color: var(--dash-text);
+  font-size: 15px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.customer-service-complaint-id {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--dash-accent-soft);
+  color: var(--dash-accent-strong);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.customer-service-complaint-main > p {
+  margin: 7px 0 0;
+  color: var(--dash-muted);
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.customer-service-complaint-meta {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(90px, 0.75fr) minmax(150px, 1.25fr);
+  gap: 12px;
+}
+
+.customer-service-complaint-meta-item {
+  min-width: 0;
+  padding-inline-start: 14px;
+  border-inline-start: 2px solid var(--dash-line-2);
+  display: grid;
+  gap: 5px;
+}
+
+.customer-service-complaint-meta-item span {
+  color: var(--dash-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.customer-service-complaint-meta-item strong {
+  color: var(--dash-text);
+  font-size: 13px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.customer-service-complaint-side {
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+}
+
+.customer-service-complaints-empty {
+  min-height: 170px;
+  padding: 32px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  color: var(--dash-muted);
+  text-align: center;
+}
+
+.customer-service-complaints-empty p {
+  margin: 0;
+}
+
+[dir="rtl"] .customer-service-complaints-head,
+[dir="rtl"] .customer-service-complaint-item,
+[dir="rtl"] .customer-service-complaint-title-row {
+  direction: rtl;
+}
+
+[dir="rtl"] .customer-service-complaint-side {
+  justify-items: start;
+}
+
+@media (max-width: 1180px) {
+  .customer-service-complaint-item {
+    grid-template-columns: minmax(200px, 1fr) minmax(220px, 0.9fr);
+  }
+
+  .customer-service-complaint-side {
+    grid-column: 1 / -1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 720px) {
+  .customer-service-complaint-item {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .customer-service-complaint-meta {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .customer-service-complaint-side {
+    grid-column: auto;
+  }
+}
+
 .customer-service-row-actions {
   display: inline-flex;
   align-items: center;
