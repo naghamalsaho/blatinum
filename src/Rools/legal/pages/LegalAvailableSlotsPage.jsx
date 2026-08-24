@@ -1,6 +1,5 @@
 import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
-
 import {
   Plus,
   Trash2,
@@ -16,6 +15,7 @@ import {
   Eye,
   FileText,
   Home,
+  CheckCircle,
 } from "lucide-react";
 
 import StatCard from "@/shared/components/StatCard";
@@ -25,6 +25,9 @@ import TableCard from "@/shared/components/TableCard";
 import Field from "@/shared/components/Field";
 import StatusBadge from "@/shared/components/StatusBadge";
 import { t } from "../../../shared/i18n";
+
+// استدعاء Thunk الخاص بخدمة العملاء لإكمال/حضور الموعد
+import { completeCustomerServiceAppointment } from "../../../Rools/customerService/features/appointments/model/appointment.thunks";
 
 import {
   fetchAvailableSlots,
@@ -78,6 +81,8 @@ export default function LegalAvailableSlotsPage() {
       initially_accepted: { label: "مقبول مبدئياً", type: "ok" },
       accepted: { label: "مقبول", type: "ok" },
       rejected: { label: "مرفوض", type: "off" },
+      done: { label: "تم الحضور", type: "ok" },
+      completed: { label: "مكتمل", type: "ok" },
     }),
     []
   );
@@ -135,6 +140,19 @@ export default function LegalAvailableSlotsPage() {
     if (!orderId) return;
     setIsDetailsModalOpen(true);
     dispatch(fetchOrderDetails(orderId));
+  };
+
+  // 🎯 دالة تسجيل حضور الموعد عبر Thunk خدمة العملاء
+  const handleMarkAsDone = async (appointmentId) => {
+    const ok = window.confirm("هل أنت تأكد من تسجيل هذا الموعد كـ (تم الحضور)؟");
+    if (!ok) return;
+
+    const result = await dispatch(completeCustomerServiceAppointment(appointmentId));
+    if (completeCustomerServiceAppointment.fulfilled.match(result)) {
+      dispatch(fetchAppointments());
+    } else {
+      alert(result.payload || "حدث خطأ أثناء تسجيل حضور الموعد.");
+    }
   };
 
   const handleCloseOrderDetails = () => {
@@ -233,7 +251,6 @@ export default function LegalAvailableSlotsPage() {
     }
   };
 
-  // 🎯 دالة إلغاء الفترة مباشرة
   const handleCancelSlot = async (slot) => {
     if (slot.status === "cancelled") return;
 
@@ -326,6 +343,7 @@ export default function LegalAvailableSlotsPage() {
                 <option value="pending">قيد الانتظار (pending)</option>
                 <option value="initially_accepted">مقبول مبدئياً (initially_accepted)</option>
                 <option value="accepted">مقبول (accepted)</option>
+                <option value="done">تم الحضور (done)</option>
                 <option value="rejected">مرفوض (rejected)</option>
               </>
             )}
@@ -522,6 +540,16 @@ export default function LegalAvailableSlotsPage() {
                               >
                                 <Eye size={16} />
                               </button>
+                              {item.status !== "done" && item.status !== "completed" && (
+                                <button
+                                  type="button"
+                                  className="icon-action-btn success"
+                                  onClick={() => handleMarkAsDone(item.id)}
+                                  title="تسجيل الحضور (Mark as Done)"
+                                >
+                                  <CheckCircle size={16} color="#10b981" />
+                                </button>
+                              )}
                             </div>
                           </td>
                         </tr>
